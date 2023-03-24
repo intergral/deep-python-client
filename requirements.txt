@@ -1,0 +1,4 @@
+grpcio
+deep-proto
+protobuf
+opentelemetry-semantic-conventions
