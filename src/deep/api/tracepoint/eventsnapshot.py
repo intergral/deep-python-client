@@ -10,12 +10,12 @@ class IllegalStateException(BaseException):
 
 
 class EventSnapshot:
-    def __init__(self, tracepoint):
+    def __init__(self, tracepoint, frames, var_lookup: dict[str, 'Variable']):
         self._id = uuid.uuid4().hex
         self._tracepoint = tracepoint
-        self._var_lookup = {}
+        self._var_lookup: dict[str, 'Variable'] = var_lookup
         self._ts = time_ms()
-        self._frames = []
+        self._frames = frames
         self._watches = []
         self._attributes = BoundedAttributes()
         self._nanos_duration = time_ns()
@@ -30,6 +30,11 @@ class EventSnapshot:
 
     def is_open(self):
         return self._open
+
+    def add_watch_result(self, watch_result, watch_lookup):
+        if self.is_open():
+            self.watches.append(watch_result)
+            self._var_lookup.update(watch_lookup)
 
     @property
     def id(self):
@@ -56,7 +61,7 @@ class EventSnapshot:
         return self._watches
 
     @property
-    def attributes(self):
+    def attributes(self) -> BoundedAttributes:
         return self._attributes
 
     @property
@@ -68,14 +73,15 @@ class EventSnapshot:
         return self._resource
 
     def __str__(self) -> str:
-        return self._id
+        return str(self.__dict__)
 
     def __repr__(self) -> str:
-        return self._id
+        return self.__str__()
 
 
 class StackFrame:
-    def __init__(self, file_name,
+    def __init__(self,
+                 file_name,
                  method_name,
                  line_number,
                  variables,
@@ -85,7 +91,8 @@ class StackFrame:
                  transpiled_file_name=None,
                  transpiled_line_number=0,
                  transpiled_column_number=0,
-                 app_frame=False):
+                 app_frame=False
+                 ):
         self._file_name = file_name
         self._method_name = method_name
         self._line_number = line_number
@@ -142,6 +149,12 @@ class StackFrame:
     def app_frame(self):
         return self._app_frame
 
+    def __str__(self) -> str:
+        return str(self.__dict__)
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
 
 class Variable:
     def __init__(self,
@@ -170,20 +183,28 @@ class Variable:
         return self._hash
 
     @property
-    def children(self):
+    def children(self) -> list['VariableId']:
         return self._children
 
     @property
     def truncated(self):
         return self._truncated
 
+    def __str__(self) -> str:
+        return str(self.__dict__)
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
 
 class VariableId:
     def __init__(self,
                  vid,
                  name,
-                 modifiers
+                 modifiers=None
                  ):
+        if modifiers is None:
+            modifiers = []
         self._vid = vid
         self._name = name
         self._modifiers = modifiers
@@ -200,14 +221,22 @@ class VariableId:
     def modifiers(self):
         return self._modifiers
 
+    def __str__(self) -> str:
+        return str(self.__dict__)
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
 
 class WatchResult:
     def __init__(self,
                  expression,
-                 result
+                 result,
+                 error=None
                  ):
         self._expression = expression
         self._result = result
+        self._error = error
 
     @property
     def expression(self):
@@ -216,3 +245,7 @@ class WatchResult:
     @property
     def result(self):
         return self._result
+
+    @property
+    def error(self):
+        return self._error

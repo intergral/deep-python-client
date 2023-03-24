@@ -1,3 +1,4 @@
+from .trigger_handler import TriggerHandler
 
-class FrameProcessor:
-    pass
+
+__all__ = [TriggerHandler.__name__]

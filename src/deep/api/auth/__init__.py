@@ -2,7 +2,7 @@ import abc
 import base64
 from importlib import import_module
 
-from deep.config import Config
+from deep.config import ConfigService
 
 
 class UnknownAuthProvider(Exception):
@@ -15,7 +15,7 @@ class AuthProvider(abc.ABC):
         self._config = config
 
     @staticmethod
-    def get_provider(config: Config):
+    def get_provider(config: ConfigService):
         provider = config.SERVICE_AUTH_PROVIDER
         if provider is None or provider == "":
             return None

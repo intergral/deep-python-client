@@ -6,8 +6,8 @@ def start(config=None):
     if config is None:
         config = {}
 
-    from deep.config.config_service import Config
-    cfg = Config(config)
+    from deep.config.config_service import ConfigService
+    cfg = ConfigService(config)
     logging.init(cfg)
 
     deep = Deep(cfg)

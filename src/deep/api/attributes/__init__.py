@@ -5,7 +5,6 @@ from typing import MutableMapping, Optional, Union, Sequence
 from deep import logging
 from deep.api import types
 
-
 _VALID_ATTR_VALUE_TYPES = (bool, str, bytes, int, float)
 
 
@@ -177,3 +176,7 @@ class BoundedAttributes(MutableMapping):
 
     def copy(self):
         return self._dict.copy()
+
+    def merge_in(self, attributes):
+        for k, v in attributes.items():
+            self[k] = v

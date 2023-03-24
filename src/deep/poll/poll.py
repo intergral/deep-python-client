@@ -3,13 +3,13 @@ from deepproto.proto.poll.v1.poll_pb2 import PollRequest, ResponseType
 from deepproto.proto.poll.v1.poll_pb2_grpc import PollConfigStub
 
 from deep import logging
-from deep.config import Config
+from deep.config import ConfigService
 from deep.grpc import convert_resource, convert_response
 from deep.utils import time_ms, RepeatedTimer
 
 
 class LongPoll(object):
-    config: Config
+    config: ConfigService
 
     def __init__(self, config, grpc):
         self.config = config
@@ -42,4 +42,3 @@ class LongPoll(object):
         else:
             self.config.tracepoints.update_new_config(response.ts, response.current_hash,
                                                       convert_response(response.response))
-        print(str(self.config.tracepoints.current_config))

@@ -5,7 +5,7 @@ from deep.api.resource import Resource
 from deep.config.tracepoint_config import TracepointConfigService
 
 
-class Config:
+class ConfigService:
     def __init__(self, custom):
         self.custom = custom
         self._resource = None
@@ -51,3 +51,5 @@ class Config:
     def tracepoints(self) -> TracepointConfigService:
         return self._tracepoint_config
 
+    def add_listener(self, listener):
+        self._tracepoint_config.add_listener(listener)

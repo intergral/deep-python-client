@@ -1,3 +1,5 @@
+import logging
+
 # noinspection PyUnresolvedReferences
 from deepproto.proto.common.v1.common_pb2 import KeyValue
 # noinspection PyUnresolvedReferences
@@ -21,14 +23,16 @@ def convert_tracepoint(tracepoint: TrPoCo):
 def convert_frame(frame: StFr):
     return StackFrame(file_name=frame.file_name, method_name=frame.method_name, line_number=frame.line_number,
                       class_name=frame.class_name, is_async=frame.is_async, column_number=frame.column_number,
+                      variables=[convert_variable_id(v) for v in frame.variables], app_frame=frame.app_frame,
                       transpiled_file_name=frame.transpiled_file_name,
                       transpiled_line_number=frame.transpiled_line_number,
                       transpiled_column_number=frame.transpiled_column_number,
-                      variables=[convert_variable_id(v) for v in frame.variables], app_frame=frame.app_frame)
+                      )
 
 
 def convert_watch(watch: WaRe):
-    return WatchResult(expression=watch.expression, result=convert_variable_id(watch.result))
+    return WatchResult(expression=watch.expression, good_result=convert_variable_id(watch.result),
+                       error_result=watch.error)
 
 
 def convert_variable(variable: Var):
@@ -37,13 +41,28 @@ def convert_variable(variable: Var):
 
 
 def convert_variable_id(variable: VarId):
+    if variable is None:
+        return None
     return VariableId(id=variable.vid, name=variable.name, modifiers=variable.modifiers)
 
 
+def convert_lookup(var_lookup):
+    converted = {}
+    for k, v in var_lookup.items():
+        converted[k] = convert_variable(v)
+    return converted
+
+
 def convert_snapshot(snapshot: EventSnapshot) -> Snapshot:
-    return Snapshot(id=snapshot.id, tracepoint=convert_tracepoint(snapshot.tracepoint), var_lookup=snapshot.var_lookup,
-                    ts=snapshot.ts, frames=[convert_frame(f) for f in snapshot.frames],
-                    watches=[convert_watch(w) for w in snapshot.watches],
-                    attributes=[KeyValue(key=k, value=convert_value(v)) for k, v in snapshot.attributes.items()],
-                    nanos_duration=snapshot.nanos_duration,
-                    resource=[KeyValue(key=k, value=convert_value(v)) for k, v in snapshot.resource.attributes.items()])
+    try:
+        return Snapshot(id=snapshot.id, tracepoint=convert_tracepoint(snapshot.tracepoint),
+                        var_lookup=convert_lookup(snapshot.var_lookup),
+                        ts=snapshot.ts, frames=[convert_frame(f) for f in snapshot.frames],
+                        watches=[convert_watch(w) for w in snapshot.watches],
+                        attributes=[KeyValue(key=k, value=convert_value(v)) for k, v in snapshot.attributes.items()],
+                        nanos_duration=snapshot.nanos_duration,
+                        resource=[KeyValue(key=k, value=convert_value(v)) for k, v in
+                                  snapshot.resource.attributes.items()])
+    except:
+        logging.exception("Error converting to protobuf")
+        return Snapshot()

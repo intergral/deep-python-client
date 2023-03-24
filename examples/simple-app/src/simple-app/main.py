@@ -1,8 +1,7 @@
 import time
 
-from simple_test import SimpleTest
-
 import deep
+from simple_test import SimpleTest
 
 
 def main():
