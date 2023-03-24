@@ -4,7 +4,7 @@ from deepproto.proto.common.v1.common_pb2 import KeyValue, AnyValue, ArrayValue,
 from deepproto.proto.resource.v1.resource_pb2 import Resource
 
 from .grpc_service import GRPCService
-from ..api.tracepoint.tracepoint_config import TracepointConfig
+from ..api.tracepoint.tracepoint_config import TracePointConfig
 
 
 def convert_value(value):
@@ -36,11 +36,13 @@ def value_as_list(value):
 
 
 def convert_resource(resource):
-    pb_resource = Resource(dropped_attributes_count=resource.attributes.dropped,
-                           attributes=[KeyValue(key=k, value=convert_value(v)) for k, v in resource.attributes.items()])
+    return convert_attributes(resource.attributes)
 
-    return pb_resource
+
+def convert_attributes(attributes):
+    return Resource(dropped_attributes_count=attributes.dropped,
+                    attributes=[KeyValue(key=k, value=convert_value(v)) for k, v in attributes.items()])
 
 
 def convert_response(response):
-    return [TracepointConfig(r.id, r.path, r.line_no, dict(r.args), [w for w in r.watches]) for r in response]
+    return [TracePointConfig(r.id, r.path, r.line_no, dict(r.args), [w for w in r.watches]) for r in response]

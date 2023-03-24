@@ -36,6 +36,9 @@ class Config:
     def __setattr__(self, name: str, value: Any) -> None:
         super().__setattr__(name, value)
 
+    def set_task_handler(self, task_handler):
+        self._tracepoint_config.set_task_handler(task_handler)
+
     @property
     def resource(self) -> Resource:
         return self._resource
@@ -47,3 +50,4 @@ class Config:
     @property
     def tracepoints(self) -> TracepointConfigService:
         return self._tracepoint_config
+

@@ -7,6 +7,10 @@ def time_ms():
     return int(round(time.time() * 1000))
 
 
+def time_ns():
+    return time.time_ns()
+
+
 class RepeatedTimer:
     """Repeat `function` every `interval` seconds."""
 
@@ -33,7 +37,8 @@ class RepeatedTimer:
             try:
                 self.function(*self.args, **self.kwargs)
             except:
-                logging.exception("Repeated function (%s) failed, will retry in %s seconds." % (self.name, self.interval))
+                logging.exception(
+                    "Repeated function (%s) failed, will retry in %s seconds." % (self.name, self.interval))
 
     @property
     def _time(self):

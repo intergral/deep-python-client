@@ -1,6 +1,21 @@
-from time import sleep
+import time
+
+from simple_test import SimpleTest
 
 import deep
+
+
+def main():
+    ts = SimpleTest("This is a test")
+    while True:
+        try:
+            ts.message(ts.new_id())
+        except Exception as e:
+            print(e)
+            ts.reset()
+
+        time.sleep(0.1)
+
 
 if __name__ == '__main__':
     deep.start({
@@ -10,6 +25,6 @@ if __name__ == '__main__':
         'SERVICE_USERNAME': 'bob',
         'SERVICE_PASSWORD': 'obo'
     })
-    while True:
-        print("app running")
-        sleep(120)
+
+    print("app running")
+    main()

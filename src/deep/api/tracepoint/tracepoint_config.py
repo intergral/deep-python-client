@@ -1,4 +1,4 @@
-class TracepointConfig:
+class TracePointConfig:
     def __init__(self, tp_id: str, path: str, line_no: int, args: dict, watches: list):
         self._id = tp_id
         self._path = path
