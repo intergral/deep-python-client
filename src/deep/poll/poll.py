@@ -41,7 +41,7 @@ class LongPoll(object):
     def initial_poll(self):
         try:
             self.poll()
-        except:
+        except Exception:
             logging.exception("Initial poll failed. Will continue with interval.")
 
     def poll(self):

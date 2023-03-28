@@ -46,7 +46,7 @@ class TracepointConfigService:
         for listeners in listeners_copy:
             try:
                 listeners.config_change(ts, old_hash, current_hash, old_config, new_config)
-            except:
+            except Exception:
                 logging.exception("Error updating listener %s", listeners)
 
     def add_listener(self, listener):

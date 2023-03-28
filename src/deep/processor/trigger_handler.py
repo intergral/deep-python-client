@@ -93,5 +93,5 @@ class TriggerHandler:
                 snapshots = processor.collect()
                 for snapshot in snapshots:
                     self._push_service.push_snapshot(snapshot)
-            except:
+            except Exception:
                 logging.exception("Failed to collect snapshot")

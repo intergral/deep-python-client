@@ -61,7 +61,7 @@ class FrameProcessor(FrameCollector):
             if result:
                 return True
             return False
-        except:
+        except Exception:
             logging.exception("Error evaluating condition %s", condition)
             return False
 

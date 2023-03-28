@@ -12,7 +12,8 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from deep.api.tracepoint.tracepoint_config import SINGLE_FRAME_TYPE, STACK, frame_type_ordinal, STACK_TYPE, FRAME_TYPE, \
+from deep.api.tracepoint.tracepoint_config import SINGLE_FRAME_TYPE, STACK, \
+    frame_type_ordinal, STACK_TYPE, FRAME_TYPE, \
     TracePointConfig, NO_FRAME_TYPE, ALL_FRAME_TYPE
 
 
@@ -64,12 +65,20 @@ class FrameProcessorConfig:
                 self._stack_type = STACK
 
     def close(self):
-        self._max_var_depth = FrameProcessorConfig.DEFAULT_MAX_VAR_DEPTH if self._max_var_depth == -1 else self._max_var_depth
-        self._max_variables = FrameProcessorConfig.DEFAULT_MAX_VARIABLES if self._max_variables == -1 else self._max_variables
-        self._max_collection_size = FrameProcessorConfig.DEFAULT_MAX_COLLECTION_SIZE if self._max_collection_size == -1 else self._max_collection_size
-        self._max_string_length = FrameProcessorConfig.DEFAULT_MAX_STRING_LENGTH if self._max_string_length == -1 else self._max_string_length
-        self._max_watch_vars = FrameProcessorConfig.DEFAULT_MAX_WATCH_VARS if self._max_watch_vars == -1 else self._max_watch_vars
-        self._max_tp_process_time = FrameProcessorConfig.DEFAULT_MAX_TP_PROCESS_TIME if self._max_tp_process_time == -1 else self._max_tp_process_time
+        self._max_var_depth = FrameProcessorConfig.DEFAULT_MAX_VAR_DEPTH if self._max_var_depth == -1 \
+            else self._max_var_depth
+        self._max_variables = FrameProcessorConfig.DEFAULT_MAX_VARIABLES if self._max_variables == -1 \
+            else self._max_variables
+        self._max_collection_size = FrameProcessorConfig.DEFAULT_MAX_COLLECTION_SIZE \
+            if self._max_collection_size == -1 \
+            else self._max_collection_size
+        self._max_string_length = FrameProcessorConfig.DEFAULT_MAX_STRING_LENGTH if self._max_string_length == -1 \
+            else self._max_string_length
+        self._max_watch_vars = FrameProcessorConfig.DEFAULT_MAX_WATCH_VARS if self._max_watch_vars == -1 \
+            else self._max_watch_vars
+        self._max_tp_process_time = FrameProcessorConfig.DEFAULT_MAX_TP_PROCESS_TIME \
+            if self._max_tp_process_time == -1 \
+            else self._max_tp_process_time
 
         if self._frame_type is None:
             self._frame_type = SINGLE_FRAME_TYPE

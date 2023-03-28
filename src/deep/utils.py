@@ -68,7 +68,7 @@ class RepeatedTimer:
         while not self.event.wait(self._time):
             try:
                 self.function(*self.args, **self.kwargs)
-            except:
+            except Exception:
                 logging.exception(
                     "Repeated function (%s) failed, will retry in %s seconds." % (self.name, self.interval))
 
