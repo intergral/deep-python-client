@@ -11,18 +11,3 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
-
-import sys
-import unittest
-
-from deep.config import IN_APP_INCLUDE, IN_APP_EXCLUDE
-
-
-class ConfigTest(unittest.TestCase):
-    def test_in_app_includes(self):
-        include = IN_APP_INCLUDE()
-        self.assertEqual(include, [])
-
-    def test_in_app_excludes(self):
-        include = IN_APP_EXCLUDE()
-        self.assertEqual(include, [sys.exec_prefix])

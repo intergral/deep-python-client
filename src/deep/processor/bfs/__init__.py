@@ -53,6 +53,12 @@ class Node:
     def children(self) -> list['Node']:
         return self._children
 
+    def __str__(self) -> str:
+        return str(self.__dict__)
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
 
 class ParentNode(abc.ABC):
     """This represents the parent node - simple used to attach children to the parent if they are processed"""
@@ -66,6 +72,12 @@ class NodeValue:
     def __init__(self, name: str, value: any):
         self.name = name
         self.value = value
+
+    def __str__(self) -> str:
+        return str(self.__dict__)
+
+    def __repr__(self) -> str:
+        return self.__str__()
 
 
 def breadth_first_search(node: 'Node', consumer: Callable[['Node'], bool]):

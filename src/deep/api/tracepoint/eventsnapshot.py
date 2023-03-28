@@ -247,11 +247,21 @@ class VariableId:
     def __repr__(self) -> str:
         return self.__str__()
 
+    def __eq__(self, o) -> bool:
+        if type(o) != VariableId:
+            return False
+
+        if id(o) == id(self):
+            return True
+
+        return o._vid == self._vid and o._name == self._name and o._modifiers == self._modifiers
+
 
 class WatchResult:
     """
     This is the result of a watch expression
     """
+
     def __init__(self,
                  expression,
                  result,
