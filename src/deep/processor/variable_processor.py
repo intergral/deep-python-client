@@ -11,10 +11,12 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
+import abc
 
 from deep import logging
 from deep.api.tracepoint import VariableId, Variable
 from .bfs import Node, ParentNode, NodeValue
+from .frame_config import FrameProcessorConfig
 
 NO_CHILD_TYPES = [
     'str',
@@ -40,6 +42,30 @@ ITER_LIKE_TYPES = [
     'list_reverseiterator',
     'listreverseiterator',
 ]
+
+
+class Collector(abc.ABC):
+
+    @property
+    @abc.abstractmethod
+    def frame_config(self) -> FrameProcessorConfig:
+        pass
+
+    @abc.abstractmethod
+    def add_child_to_lookup(self, variable_id, child):
+        pass
+
+    @abc.abstractmethod
+    def check_id(self, identity_hash_id):
+        pass
+
+    @abc.abstractmethod
+    def new_var_id(self, identity_hash_id):
+        pass
+
+    @abc.abstractmethod
+    def append_variable(self, var_id, variable):
+        pass
 
 
 class VariableResponse:
@@ -80,7 +106,7 @@ def variable_to_string(variable_type, var_value):
         return str(var_value)
 
 
-def process_variable(frame_collector: 'FrameCollector', var_name: str, var_value: any) -> VariableResponse:
+def process_variable(frame_collector: Collector, var_name: str, var_value: any) -> VariableResponse:
     identity_hash_id = str(id(var_value))
     check_id = frame_collector.check_id(identity_hash_id)
     if check_id is not None:
@@ -105,7 +131,7 @@ def truncate_string(string, max_length):
 
 
 def process_child_nodes(
-        frame_collector: 'FrameCollector',
+        frame_collector: Collector,
         variable_id: str,
         var_value: any,
         frame_depth: int
@@ -125,7 +151,7 @@ def process_child_nodes(
     return find_children_for_parent(frame_collector, VariableParent(), var_value, variable_type)
 
 
-def find_children_for_parent(frame_collector: 'FrameCollector', parent_node: ParentNode, value: any,
+def find_children_for_parent(frame_collector: Collector, parent_node: ParentNode, value: any,
                              variable_type: type):
     if variable_type is dict:
         return process_dict_breadth_first(parent_node, value)
@@ -148,7 +174,7 @@ def process_dict_breadth_first(parent_node, value):
             key in value]
 
 
-def process_list_breadth_first(frame_collector: 'FrameCollector', parent_node, value):
+def process_list_breadth_first(frame_collector: Collector, parent_node, value):
     nodes = []
     total = 0
     for val_ in tuple(value):
@@ -161,7 +187,7 @@ def process_list_breadth_first(frame_collector: 'FrameCollector', parent_node, v
 
 
 # todo this needs to be checked, does it affect the position of the iterable
-def process_iterable_breadth_first(frame_collector: 'FrameCollector', parent_node, value):
+def process_iterable_breadth_first(frame_collector: Collector, parent_node, value):
     nodes = []
     end = VariableId(-1, 'end')
     val = next(value, end)

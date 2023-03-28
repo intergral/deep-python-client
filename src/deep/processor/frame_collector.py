@@ -19,10 +19,10 @@ from deep.api.tracepoint import StackFrame, WatchResult, Variable, VariableId
 from deep.processor.bfs import Node, NodeValue, breadth_first_search, ParentNode
 from deep.utils import time_ms
 from .frame_config import FrameProcessorConfig
-from .variable_processor import process_variable, process_child_nodes, variable_to_string, truncate_string
+from .variable_processor import process_variable, process_child_nodes, variable_to_string, truncate_string, Collector
 
 
-class FrameCollector(abc.ABC):
+class FrameCollector(Collector):
     def __init__(self, frame, config):
         self._var_cache: dict[str, str] = {}
         self._config = config
