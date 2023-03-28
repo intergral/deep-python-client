@@ -11,24 +11,22 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
+import os
+import unittest
 
-from deep import logging
-from deep.api import Deep
+from deep.config import ConfigService
 
 
-def start(config=None):
-    """
-    Start DEEP.
-    :param config: a custom config
-    :return: the created Deep instance
-    """
-    if config is None:
-        config = {}
+class TestConfigService(unittest.TestCase):
+    def test_custom_attr(self):
+        service = ConfigService({'SOME_VALUE': 'thing'})
+        self.assertEqual(service.SOME_VALUE, 'thing')
 
-    from deep.config.config_service import ConfigService
-    cfg = ConfigService(config)
-    logging.init(cfg)
+    def test_custom_attr_callable(self):
+        service = ConfigService({'SOME_VALUE': lambda: 'thing'})
+        self.assertEqual(service.SOME_VALUE, 'thing')
 
-    deep = Deep(cfg)
-    deep.start()
-    return deep
+    def test_env_attr(self):
+        items_ = os.environ.get('PATH')
+        service = ConfigService({})
+        self.assertEqual(service.PATH, items_)

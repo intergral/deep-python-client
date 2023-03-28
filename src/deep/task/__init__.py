@@ -17,7 +17,9 @@ import threading
 from concurrent.futures import Future
 from concurrent.futures import ThreadPoolExecutor
 
-from deep.api.tracepoint import IllegalStateException
+
+class IllegalStateException(BaseException):
+    pass
 
 
 class TaskHandler:

@@ -15,21 +15,33 @@
 import abc
 import base64
 from importlib import import_module
+from typing import Optional
 
 from deep.config import ConfigService
 
 
 class UnknownAuthProvider(Exception):
+    """This exception is thrown when the configured auth provider cannot be loaded"""
     pass
 
 
 class AuthProvider(abc.ABC):
+    """
+    This is the abstract class to define an AuthProvider. The 'provide' function will be called
+    when the system needs to get an auth token.
+    """
 
     def __init__(self, config) -> None:
         self._config = config
 
     @staticmethod
-    def get_provider(config: ConfigService):
+    def get_provider(config: ConfigService) -> Optional['AuthProvider']:
+        """
+        Static function to load the correct auth provider based on the current config.
+        :param config: The agent config
+        :return: the loaded provider
+        :raises: UnknownAuthProvider if we cannot load the provider configured
+        """
         provider = config.SERVICE_AUTH_PROVIDER
         if provider is None or provider == "":
             return None
@@ -43,10 +55,17 @@ class AuthProvider(abc.ABC):
 
     @abc.abstractmethod
     def provide(self):
+        """
+        This is called when we need to get the auth for the request.
+        :return: a list of tuples to be attached to the outbound request
+        """
         raise NotImplementedError()
 
 
 class BasicAuthProvider(AuthProvider):
+    """
+    This is a provider for http basic auth. This expects the config to provide a username and password.
+    """
     def provide(self):
         username = self._config.SERVICE_USERNAME
         password = self._config.SERVICE_PASSWORD

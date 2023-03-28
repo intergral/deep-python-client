@@ -11,7 +11,7 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
-
+import os
 from typing import Any
 
 from deep import logging
@@ -20,28 +20,52 @@ from deep.config.tracepoint_config import TracepointConfigService
 
 
 class ConfigService:
-    def __init__(self, custom):
+    """
+    This is the main service that handles config for DEEP.
+    """
+
+    def __init__(self, custom: dict[str, any]):
+        """
+        Create a new config object
+        :param custom: any custom values that are passed to DEEP
+        """
         self.custom = custom
         self._resource = None
         self._tracepoint_config = TracepointConfigService()
 
     def __getattribute__(self, name: str) -> Any:
+        """
+        A custom attribute processor to load the config values
+        :param name: the key to load
+        :return: the loaded value or None
+        """
         attr = None
         try:
+            # first we try to load from our selves. This handles things like getting 'self.custom' etc.
             attr = super().__getattribute__(name)
         except AttributeError:
-
+            # if we get here then we are not an attribute on 'self'
+            # so look in the custom map
             if self.custom is not None and name in self.custom:
                 attr = self.custom[name]
 
+            # if not in custom then load from 'deep.config'
             if attr is None:
                 from deep import config
                 has_attr = hasattr(config, name)
                 if not has_attr:
-                    logging.warning("Unrecognised config key: %s", name)
-                    return None
+                    # attribute is no in 'deep.config', so look in env
+                    from_env = os.getenv(name, None)
+                    if from_env is None:
+                        # not found in env - log and return none
+                        logging.warning("Unrecognised config key: %s", name)
+                        return None
+                    else:
+                        # if loaded from env, then cannot be function
+                        return from_env
                 attr = getattr(config, name, None)
 
+            # some can be callable - if is callable call it
             if callable(attr):
                 return attr()
 

@@ -17,18 +17,24 @@ import sys
 
 from .config_service import ConfigService
 
+# Here we have the initial values for the config, there can be set as either static values, environment
+# values or functions.
+
 '''The path to the logging config file to use'''
 LOGGING_CONF = os.getenv('DEEP_LOGGING_CONF', None)
 
+"""The time in seconds to wait between each poll (default: 10)"""
 POLL_TIMER = os.getenv('DEEP_POLL_TIMER', 10)  # time in seconds
 
+"""The URL for the service to connect to (default: deep:43315)"""
 SERVICE_URL = os.getenv('DEEP_SERVICE_URL', 'deep:43315')
+"""Is the service secured, should we connect with TLS or not (default: True)"""
 SERVICE_SECURE = os.getenv('SERVICE_SECURE', True)
+"""The Auth provider to use for the service (default: None)"""
 SERVICE_AUTH_PROVIDER = os.getenv('DEEP_SERVICE_AUTH_PROVIDER', None)
-SERVICE_USERNAME = os.getenv('DEEP_SERVICE_USERNAME', None)
-SERVICE_PASSWORD = os.getenv('DEEP_SERVICE_PASSWORD', None)
 
 
+# noinspection PyPep8Naming
 def IN_APP_INCLUDE():
     user_defined = os.getenv('DEEP_IN_APP_INCLUDE', None)
     if user_defined is None:
@@ -36,6 +42,7 @@ def IN_APP_INCLUDE():
     return user_defined
 
 
+# noinspection PyPep8Naming
 def IN_APP_EXCLUDE():
     user_defined = os.getenv('DEEP_IN_APP_INCLUDE', None)
     if user_defined is None:
@@ -43,12 +50,6 @@ def IN_APP_EXCLUDE():
 
     prefix = sys.exec_prefix
     user_defined.append(prefix)
-
-    # path_to_us = Path(__file__)
-    # while path_to_us.name != "site-packages" and len(path_to_us.parents) > 0:
-    #     path_to_us = path_to_us.parent
-    # if len(path_to_us.parents) > 0 != "/":
-    #     user_defined.append(str(path_to_us.parent.absolute()))
     return user_defined
 
 # Config items can be functions

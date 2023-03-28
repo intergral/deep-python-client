@@ -28,6 +28,10 @@ def add_or_get(target, key, default_value):
 
 
 class TracepointHandlerUpdateListener(ConfigUpdateListener):
+    """
+    This is the listener that connects the config to the handler
+    """
+
     def __init__(self, handler):
         self._handler = handler
 
@@ -44,6 +48,11 @@ class TracepointHandlerUpdateListener(ConfigUpdateListener):
 
 
 class TriggerHandler:
+    """
+    This is the handler for the tracepoints. This is where we 'listen' for a hit, and determine if we
+    should collect data.
+    """
+
     def __init__(self, config, push_service):
         self._push_service = push_service
         self._tp_config = []
@@ -58,6 +67,13 @@ class TriggerHandler:
         self._tp_config = new_config
 
     def trace_call(self, frame, event, arg):
+        """
+        This is called by python with the current frame data
+        :param frame: the current frame
+        :param event: the event 'line', 'call', etc. That we are processing.
+        :param arg: the args
+        :return: None to ignore other calls, or our self to continue
+        """
 
         # return if we do not have any tracepoints
         if len(self._tp_config) == 0:
@@ -73,7 +89,7 @@ class TriggerHandler:
             return self.trace_call
 
         if len(tracepoints_for_line) > 0:
-            self.process_tracepoints(tracepoints_for_line, frame, event, arg)
+            self.process_tracepoints(tracepoints_for_line, frame)
         return self.trace_call
 
     def tracepoints_for(self, filename, lineno):
@@ -84,14 +100,25 @@ class TriggerHandler:
             return filename_, []
         return [], []
 
-    def process_tracepoints(self, tracepoints_for, frame, event, arg):
+    def process_tracepoints(self, tracepoints_for, frame):
+        """
+        We have some tracepoints, now check if we can collect
+
+        :param tracepoints_for: tracepoints for the file/line
+        :param frame: the frame data
+        """
+        # create a new frame processor with the config
         processor = FrameProcessor(tracepoints_for, frame, self._config)
+        # check if we can collect anything
         can_collect = processor.can_collect()
         if can_collect:
+            # we can proceed so have the processor configure from active tracepoints
             processor.configure_self()
             try:
+                # collect the data - this can be more than one result
                 snapshots = processor.collect()
                 for snapshot in snapshots:
+                    # push each result to services - this is async to allow the program to resume
                     self._push_service.push_snapshot(snapshot)
             except Exception:
                 logging.exception("Failed to collect snapshot")

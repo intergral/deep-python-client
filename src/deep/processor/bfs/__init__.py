@@ -19,6 +19,7 @@ from deep.api.tracepoint import VariableId
 
 
 class Node:
+    """This is a Node that is used within the Breadth First Search of variables."""
     def __init__(self, value=None, children=None, parent=None):
         if children is None:
             children = []
@@ -54,18 +55,27 @@ class Node:
 
 
 class ParentNode(abc.ABC):
+    """This represents the parent node - simple used to attach children to the parent if they are processed"""
     @abc.abstractmethod
     def add_child(self, child: VariableId):
         raise NotImplementedError
 
 
 class NodeValue:
+    """The variable value the node represents"""
     def __init__(self, name: str, value: any):
         self.name = name
         self.value = value
 
 
 def breadth_first_search(node: 'Node', consumer: Callable[['Node'], bool]):
+    """
+    To improve the performance and usefulness of the variable data gathered we use a Breadth First Search (BFS)
+    approach. This means scanning all local values before proceeding to the next depth on each.
+
+    :param node: the initial node to start the search
+    :param consumer: the consumer to call on each node
+    """
     queue = [node]
 
     while len(queue) != 0:

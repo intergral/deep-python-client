@@ -19,6 +19,10 @@ from deep.api.auth import AuthProvider
 
 
 class GRPCService:
+    """
+    This service handles config and initialising the GRPc channel that will be used
+    """
+
     def __init__(self, config):
         self.channel = None
         self._config = config
@@ -37,6 +41,10 @@ class GRPCService:
             self.channel = grpc.insecure_channel(self._service_url)
 
     def metadata(self):
+        """
+        Call this to get any metadata that should be attached to calls
+        :return: list of metadata
+        """
         if self._metadata is None:
             self._metadata = self._build_metadata()
         return self._metadata

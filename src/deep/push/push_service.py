@@ -19,6 +19,9 @@ from deep.api.tracepoint import EventSnapshot
 
 
 class PushService:
+    """
+    This service deals with pushing the snapshots to the service endpoints
+    """
     def __init__(self, config, grpc, task_handler):
         self.config = config
         self.grpc = grpc

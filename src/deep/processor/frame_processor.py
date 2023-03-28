@@ -20,6 +20,9 @@ from deep.processor.frame_collector import FrameCollector
 
 
 class FrameProcessor(FrameCollector):
+    """
+    This handles a 'hit' and starts the process of collecting the data.
+    """
     _filtered_tracepoints: list[TracePointConfig]
 
     def __init__(self, tracepoints: list[TracePointConfig], frame, config: ConfigService):
@@ -28,23 +31,39 @@ class FrameProcessor(FrameCollector):
         self._filtered_tracepoints = []
 
     def collect(self):
+        """
+        Here we start the data collection process
+        :return: list of completed snapshots
+        """
         snapshots = []
+        # process the frame to a stack and var list
         stack, variables = self.process_frame()
+        # iterate the tracepoints
         for tp in self._filtered_tracepoints:
+            # crete a snapshot
             snapshot = EventSnapshot(tp, stack, variables)
+            # process the snapshot watches
             for watch in tp.watches:
                 result, watch_lookup = self.eval_watch(watch)
                 snapshot.add_watch_result(result, watch_lookup)
+            # process the snapshot attributes
             attributes = self.process_attributes(tp)
             snapshot.attributes.merge_in(attributes)
+            # save the snapshot
             snapshots.append(snapshot)
-            tp.has_triggered(self._ts)
+            # mark tp as triggered
+            tp.record_triggered(self._ts)
 
         return snapshots
 
     def can_collect(self):
+        """
+        Check if the tracepoints can fire given their configs. Checking time windows, fire rates etc.
+        :return: True, if any tracepoint can fire
+        """
         for tp in self._tracepoints:
             if tp.can_trigger(self._ts) and self.condition_passes(tp):
+                # store the filtered tracepoints in a new list
                 self._filtered_tracepoints.append(tp)
 
         return len(self._filtered_tracepoints) > 0
@@ -66,6 +85,10 @@ class FrameProcessor(FrameCollector):
             return False
 
     def configure_self(self):
+        """
+        Using the filtered tracepoints, re-configure the frame config for minimum collection
+        :return:
+        """
         for tp in self._filtered_tracepoints:
             self._frame_config.process_tracepoint(tp)
         self._frame_config.close()

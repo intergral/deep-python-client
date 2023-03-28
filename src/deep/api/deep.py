@@ -21,6 +21,10 @@ from deep.task import TaskHandler
 
 
 class Deep:
+    """
+    This type acts as the main service for DEEP. It will initialise the other services and bind then together.
+    DEEP is so small there is no need for service injection work.
+    """
 
     def __init__(self, config):
         self.config = config

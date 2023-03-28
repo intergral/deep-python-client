@@ -18,6 +18,9 @@ from deep.api.tracepoint.tracepoint_config import SINGLE_FRAME_TYPE, STACK, \
 
 
 class FrameProcessorConfig:
+    """
+    This is the config for a data collection.
+    """
     DEFAULT_MAX_VAR_DEPTH = 5
     DEFAULT_MAX_VARIABLES = 1000
     DEFAULT_MAX_COLLECTION_SIZE = 10
@@ -38,6 +41,11 @@ class FrameProcessorConfig:
         self._max_tp_process_time = -1
 
     def process_tracepoint(self, tp: TracePointConfig):
+        """
+        Each tracepoint can have a different  config we want to re-configure to the lowest impact. e.g. if all
+        tracepoints are single frame, then do not collect all frames.
+        :param tp: the tracepoint to process
+        """
         self._max_var_depth = FrameProcessorConfig.get_max_or_default(tp.args, 'MAX_VAR_DEPTH', self._max_var_depth)
         self._max_variables = FrameProcessorConfig.get_max_or_default(tp.args, 'MAX_VARIABLES', self._max_variables)
         self._max_collection_size = FrameProcessorConfig.get_max_or_default(tp.args, 'MAX_COLLECTION_SIZE',
@@ -65,6 +73,10 @@ class FrameProcessorConfig:
                 self._stack_type = STACK
 
     def close(self):
+        """Close the config, to check for any unconfirmed parts, and set them to defaults."""
+
+        # todo: What if one tp has 'MAX_VARS' as 10, but others do not have it set.
+
         self._max_var_depth = FrameProcessorConfig.DEFAULT_MAX_VAR_DEPTH if self._max_var_depth == -1 \
             else self._max_var_depth
         self._max_variables = FrameProcessorConfig.DEFAULT_MAX_VARIABLES if self._max_variables == -1 \

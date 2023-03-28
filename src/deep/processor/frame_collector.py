@@ -23,6 +23,9 @@ from .variable_processor import process_variable, process_child_nodes, variable_
 
 
 class FrameCollector(Collector):
+    """
+    This deals with collecting data from the paused frames.
+    """
     def __init__(self, frame, config):
         self._var_cache: dict[str, str] = {}
         self._config = config
@@ -57,15 +60,22 @@ class FrameCollector(Collector):
             return WatchResult(watch, None, str(e)), {}
 
     def process_frame(self):
+        """
+        This is the main variable processing
+        :return: Tuple of collected frames and variables
+        """
         current_frame = self._frame
         collected_frames = []
+        # while we still have frames process them
         while current_frame is not None:
+            # process the current frame
             frame = self._process_frame(current_frame, self._frame_config.should_collect_vars(len(collected_frames)))
             collected_frames.append(frame)
             current_frame = current_frame.f_back
         return collected_frames, self._var_lookup
 
     def _process_frame(self, frame, process_vars):
+        # process the current frame info
         lineno = frame.f_lineno
         filename = frame.f_code.co_filename
         func_name = frame.f_code.co_name
@@ -106,6 +116,11 @@ class FrameCollector(Collector):
         return True
 
     def process_frame_variables_breadth_first(self, f_locals):
+        """
+        Here we start the BFS process for the frame.
+        :param f_locals: the frame locals.
+        :return: the list of var ids for the frame.
+        """
         var_ids = []
 
         class FrameParent(ParentNode):
@@ -121,18 +136,29 @@ class FrameCollector(Collector):
         return var_ids
 
     def search_function(self, node: Node) -> bool:
+        """
+        This is the search function to use during BFS
+        :param node: the current node we are process
+        :return: True, if we want to continue with the nodes children
+        """
         if not self.check_var_count():
+            # we have exceeded the var count, so do not continue
             return False
 
         node_value = node.value
         if node_value is None:
+            # this node has no value, continue with children
             return True
 
+        # process this node variable
         process_result = process_variable(self, node_value.name, node_value.value)
         var_id = process_result.variable_id
+        # add the result to the parent - this maintains the hierarchy in the var look up
         node.parent.add_child(var_id)
 
+        # some variables do not want the children processed (e.g. strings)
         if process_result.process_children:
+            # process children and add to node
             child_nodes = process_child_nodes(self, var_id.vid, node_value.value, node.depth)
             node.add_children(child_nodes)
         return True
@@ -178,7 +204,7 @@ class FrameCollector(Collector):
             return self._var_cache[identity_hash_id]
         return None
 
-    def new_var_id(self, identity_hash_id):
+    def new_var_id(self, identity_hash_id: str) -> str:
         var_count = len(self._var_cache)
         new_id = str(var_count + 1)
         self._var_cache[identity_hash_id] = new_id

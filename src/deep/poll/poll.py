@@ -23,6 +23,9 @@ from deep.utils import time_ms, RepeatedTimer
 
 
 class LongPoll(object):
+    """
+    This service deals with polling the remote service to get the tracepoint configs
+    """
     config: ConfigService
 
     def __init__(self, config, grpc):

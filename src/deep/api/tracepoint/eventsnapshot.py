@@ -19,11 +19,10 @@ from deep.api.resource import Resource
 from deep.utils import time_ms, time_ns
 
 
-class IllegalStateException(BaseException):
-    pass
-
-
 class EventSnapshot:
+    """
+    This is the model for the snapshot that is uploaded to the services
+    """
     def __init__(self, tracepoint, frames, var_lookup: dict[str, 'Variable']):
         self._id = uuid.uuid4().hex
         self._tracepoint = tracepoint
@@ -94,6 +93,9 @@ class EventSnapshot:
 
 
 class StackFrame:
+    """
+    This represents a frame of code that is being executed
+    """
     def __init__(self,
                  file_name,
                  method_name,
@@ -171,6 +173,7 @@ class StackFrame:
 
 
 class Variable:
+    """This represents a captured variable value"""
     def __init__(self,
                  var_type,
                  value,
@@ -212,6 +215,9 @@ class Variable:
 
 
 class VariableId:
+    """
+    This represents an variable id, that is used for de duplication
+    """
     def __init__(self,
                  vid,
                  name,
@@ -243,6 +249,9 @@ class VariableId:
 
 
 class WatchResult:
+    """
+    This is the result of a watch expression
+    """
     def __init__(self,
                  expression,
                  result,
