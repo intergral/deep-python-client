@@ -198,7 +198,7 @@ def process_child_nodes(
     """
     variable_type = type(var_value)
     # if the type is a type we do not want children from - return empty
-    if variable_type in NO_CHILD_TYPES:
+    if variable_type.__name__ in NO_CHILD_TYPES:
         return []
 
     # if the depth is more than we are configured - return empty
