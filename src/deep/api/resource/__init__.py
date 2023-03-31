@@ -18,8 +18,6 @@ import typing
 from json import dumps
 from urllib import parse
 
-from opentelemetry.semconv.resource import ResourceAttributes
-
 import deep.version
 from deep import logging
 from deep.api.attributes import BoundedAttributes
@@ -30,15 +28,53 @@ Attributes = typing.Dict[str, LabelValue]
 
 _DEEP_SDK_VERSION = deep.version.__version__
 
-TELEMETRY_SDK_NAME = ResourceAttributes.TELEMETRY_SDK_NAME
-TELEMETRY_SDK_VERSION = ResourceAttributes.TELEMETRY_SDK_VERSION
-TELEMETRY_AUTO_VERSION = ResourceAttributes.TELEMETRY_AUTO_VERSION
-TELEMETRY_SDK_LANGUAGE = ResourceAttributes.TELEMETRY_SDK_LANGUAGE
-PROCESS_EXECUTABLE_NAME = ResourceAttributes.PROCESS_EXECUTABLE_NAME
-SERVICE_NAME = ResourceAttributes.SERVICE_NAME
-SERVICE_NAMESPACE = ResourceAttributes.SERVICE_NAMESPACE
-SERVICE_INSTANCE_ID = ResourceAttributes.SERVICE_INSTANCE_ID
-SERVICE_VERSION = ResourceAttributes.SERVICE_VERSION
+TELEMETRY_SDK_NAME = "telemetry.sdk.name"
+"""
+The name of the telemetry SDK as defined above.
+"""
+
+TELEMETRY_SDK_VERSION = "telemetry.sdk.version"
+"""
+The version string of the telemetry SDK.
+"""
+
+TELEMETRY_AUTO_VERSION = "telemetry.auto.version"
+"""
+The version string of the auto instrumentation agent, if used.
+"""
+
+TELEMETRY_SDK_LANGUAGE = "telemetry.sdk.language"
+"""
+The language of the telemetry SDK.
+"""
+
+PROCESS_EXECUTABLE_NAME = "process.executable.name"
+"""
+The name of the process executable. On Linux based systems, can be set to the `Name` in `proc/[pid]/status`. On Windows, can be set to the base name of `GetProcessImageFileNameW`.
+"""
+
+SERVICE_NAME = "service.name"
+"""
+Logical name of the service.
+Note: MUST be the same for all instances of horizontally scaled services. If the value was not specified, SDKs MUST fallback to `unknown_service:` concatenated with [`process.executable.name`](process.md#process), e.g. `unknown_service:bash`. If `process.executable.name` is not available, the value MUST be set to `unknown_service`.
+"""
+
+SERVICE_NAMESPACE = "service.namespace"
+"""
+A namespace for `service.name`.
+Note: A string value having a meaning that helps to distinguish a group of services, for example the team name that owns a group of services. `service.name` is expected to be unique within the same namespace. If `service.namespace` is not specified in the Resource then `service.name` is expected to be unique for all services that have no explicit namespace defined (so the empty/unspecified namespace is simply one more valid namespace). Zero-length namespace string is assumed equal to unspecified namespace.
+"""
+
+SERVICE_INSTANCE_ID = "service.instance.id"
+"""
+The string ID of the service instance.
+Note: MUST be unique for each instance of the same `service.namespace,service.name` pair (in other words `service.namespace,service.name,service.instance.id` triplet MUST be globally unique). The ID helps to distinguish instances of the same service that exist at the same time (e.g. instances of a horizontally scaled service). It is preferable for the ID to be persistent and stay the same for the lifetime of the service instance, however it is acceptable that the ID is ephemeral and changes during important lifetime events for the service (e.g. service restarts). If the service has no inherent unique ID that can be used as the value of this attribute it is recommended to generate a random Version 1 or Version 4 RFC 4122 UUID (services aiming for reproducible UUIDs may also use Version 5, see RFC 4122 for more recommendations).
+"""
+
+SERVICE_VERSION = "service.version"
+"""
+The version string of the service API or implementation.
+"""
 
 DEEP_RESOURCE_ATTRIBUTES = "DEEP_RESOURCE_ATTRIBUTES"
 DEEP_SERVICE_NAME = "DEEP_SERVICE_NAME"

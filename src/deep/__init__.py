@@ -12,7 +12,7 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-from deep import logging
+from deep import logging, version
 from deep.api import Deep
 
 
@@ -28,6 +28,8 @@ def start(config=None):
     from deep.config.config_service import ConfigService
     cfg = ConfigService(config)
     logging.init(cfg)
+
+    logging.info("Deep Python Client [%s] (c) 2023 Intergral GmbH", version.__version__)
 
     deep = Deep(cfg)
     deep.start()

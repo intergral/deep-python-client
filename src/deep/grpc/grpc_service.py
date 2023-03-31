@@ -16,6 +16,7 @@ import grpc
 
 from deep import logging
 from deep.api.auth import AuthProvider
+from deep.utils import str2bool
 
 
 class GRPCService:
@@ -31,7 +32,7 @@ class GRPCService:
         self._metadata = None
 
     def start(self):
-        if self._secure:
+        if str2bool(self._secure):
             logging.info("Connecting securely")
             logging.debug("Connecting securely to: %s", self._service_url)
             self.channel = grpc.secure_channel(self._service_url, grpc.ssl_channel_credentials())

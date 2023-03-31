@@ -1,3 +1,4 @@
+
 #     Copyright 2023 Intergral GmbH
 #
 #     Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,31 +13,25 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-import time
-
-import deep
-from simple_test import SimpleTest
+import random
+import uuid
 
 
-def main():
-    ts = SimpleTest("This is a test")
-    while True:
-        try:
-            ts.message(ts.new_id())
-        except Exception as e:
-            print(e)
-            ts.reset()
+class BaseTest:
 
-        time.sleep(0.1)
+    def new_id(self):
+        return str(uuid.uuid4())
 
+    def next_max(self):
+        return random.randint(1, 101)
 
-if __name__ == '__main__':
-    deep.start({
-        'SERVICE_URL': 'localhost:43315',
-        'SERVICE_AUTH_PROVIDER': 'deep.api.auth.BasicAuthProvider',
-        'SERVICE_USERNAME': 'bob',
-        'SERVICE_PASSWORD': 'obo'
-    })
+    def make_char_count_map(self, in_str):
+        res = {}
 
-    print("app running")
-    main()
+        for i in range(0, len(in_str)):
+            c = in_str[i]
+            if c not in res:
+                res[c] = 0
+            else:
+                res[c] = res[c] + 1
+        return res

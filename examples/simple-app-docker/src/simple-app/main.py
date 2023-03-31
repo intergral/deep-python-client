@@ -23,7 +23,7 @@ def main():
     while True:
         try:
             ts.message(ts.new_id())
-        except Exception as e:
+        except BaseException as e:
             print(e)
             ts.reset()
 
@@ -31,12 +31,7 @@ def main():
 
 
 if __name__ == '__main__':
-    deep.start({
-        'SERVICE_URL': 'localhost:43315',
-        'SERVICE_AUTH_PROVIDER': 'deep.api.auth.BasicAuthProvider',
-        'SERVICE_USERNAME': 'bob',
-        'SERVICE_PASSWORD': 'obo'
-    })
+    deep.start()
 
     print("app running")
     main()
