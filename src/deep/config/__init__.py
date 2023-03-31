@@ -29,7 +29,7 @@ POLL_TIMER = os.getenv('DEEP_POLL_TIMER', 10)  # time in seconds
 """The URL for the service to connect to (default: deep:43315)"""
 SERVICE_URL = os.getenv('DEEP_SERVICE_URL', 'deep:43315')
 """Is the service secured, should we connect with TLS or not (default: True)"""
-SERVICE_SECURE = os.getenv('DEEP_SERVICE_SECURE', True)
+SERVICE_SECURE = os.getenv('DEEP_SERVICE_SECURE', 'True')
 """The Auth provider to use for the service (default: None)"""
 SERVICE_AUTH_PROVIDER = os.getenv('DEEP_SERVICE_AUTH_PROVIDER', None)
 
