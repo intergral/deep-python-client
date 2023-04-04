@@ -1,1 +1,1 @@
-deep-agent==0.0.7
+deep-agent==0.0.8
