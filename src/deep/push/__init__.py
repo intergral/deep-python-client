@@ -69,7 +69,7 @@ def convert_lookup(var_lookup):
 
 def convert_snapshot(snapshot: EventSnapshot) -> Snapshot:
     try:
-        return Snapshot(id=snapshot.id, tracepoint=convert_tracepoint(snapshot.tracepoint),
+        return Snapshot(id=snapshot.id.to_bytes(16, "big"), tracepoint=convert_tracepoint(snapshot.tracepoint),
                         var_lookup=convert_lookup(snapshot.var_lookup),
                         ts=snapshot.ts, frames=[convert_frame(f) for f in snapshot.frames],
                         watches=[convert_watch(w) for w in snapshot.watches],

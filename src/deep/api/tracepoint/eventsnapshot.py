@@ -12,7 +12,7 @@
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
 
-import uuid
+import random
 
 from deep.api.attributes import BoundedAttributes
 from deep.api.resource import Resource
@@ -24,7 +24,7 @@ class EventSnapshot:
     This is the model for the snapshot that is uploaded to the services
     """
     def __init__(self, tracepoint, frames, var_lookup: dict[str, 'Variable']):
-        self._id = uuid.uuid4().hex
+        self._id = random.getrandbits(128)
         self._tracepoint = tracepoint
         self._var_lookup: dict[str, 'Variable'] = var_lookup
         self._ts = time_ms()

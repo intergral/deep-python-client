@@ -38,7 +38,7 @@ def serve():
 class SnapshotServicer(SnapshotServiceServicer):
 
     def send(self, request, context):
-        print("hit")
+        print("hit", request.id)
         return SnapshotResponse()
 
 

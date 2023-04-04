@@ -45,6 +45,7 @@ def main():
 if __name__ == '__main__':
     deep.start({
         'SERVICE_URL': 'localhost:43315',
+        'SERVICE_SECURE': 'False',
         'SERVICE_AUTH_PROVIDER': 'deep.api.auth.BasicAuthProvider',
         'SERVICE_USERNAME': 'bob',
         'SERVICE_PASSWORD': 'obo'
