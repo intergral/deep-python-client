@@ -16,6 +16,7 @@ from deepproto.proto.tracepoint.v1.tracepoint_pb2_grpc import SnapshotServiceStu
 
 from deep import logging
 from deep.api.tracepoint import EventSnapshot
+from deep.utils import snapshot_id_as_hex_str
 
 
 class PushService:
@@ -30,12 +31,12 @@ class PushService:
     def push_snapshot(self, snapshot: EventSnapshot):
         snapshot.complete()
         task = self.task_handler.submit_task(self._push_task, snapshot)
-        task.add_done_callback(lambda _: logging.debug("Completed uploading snapshot %s", snapshot.id))
+        task.add_done_callback(lambda _: logging.debug("Completed uploading snapshot %s", snapshot_id_as_hex_str(snapshot.id)))
 
     def _push_task(self, snapshot):
         from deep.push import convert_snapshot
         converted = convert_snapshot(snapshot)
-        logging.debug("Uploading snapshot: %s", snapshot.id)
+        logging.debug("Uploading snapshot: %s", snapshot_id_as_hex_str(snapshot.id))
 
         stub = SnapshotServiceStub(self.grpc.channel)
 

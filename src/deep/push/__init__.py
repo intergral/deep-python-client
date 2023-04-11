@@ -18,7 +18,7 @@ import logging
 from deepproto.proto.common.v1.common_pb2 import KeyValue
 # noinspection PyUnresolvedReferences
 from deepproto.proto.tracepoint.v1.tracepoint_pb2 import Snapshot, TracePointConfig, WatchResult, Variable, \
-    VariableId, StackFrame
+    VariableID, StackFrame
 
 from .push_service import PushService
 
@@ -30,7 +30,7 @@ from ..grpc import convert_value
 
 
 def convert_tracepoint(tracepoint: TrPoCo):
-    return TracePointConfig(id=tracepoint.id, path=tracepoint.path, line_no=tracepoint.line_no, args=tracepoint.args,
+    return TracePointConfig(ID=tracepoint.id, path=tracepoint.path, line_no=tracepoint.line_no, args=tracepoint.args,
                             watches=tracepoint.watches)
 
 
@@ -57,7 +57,7 @@ def convert_variable(variable: Var):
 def convert_variable_id(variable: VarId):
     if variable is None:
         return None
-    return VariableId(id=variable.vid, name=variable.name, modifiers=variable.modifiers)
+    return VariableID(ID=variable.vid, name=variable.name, modifiers=variable.modifiers)
 
 
 def convert_lookup(var_lookup):
@@ -69,7 +69,7 @@ def convert_lookup(var_lookup):
 
 def convert_snapshot(snapshot: EventSnapshot) -> Snapshot:
     try:
-        return Snapshot(id=snapshot.id.to_bytes(16, "big"), tracepoint=convert_tracepoint(snapshot.tracepoint),
+        return Snapshot(ID=snapshot.id.to_bytes(16, "big"), tracepoint=convert_tracepoint(snapshot.tracepoint),
                         var_lookup=convert_lookup(snapshot.var_lookup),
                         ts=snapshot.ts, frames=[convert_frame(f) for f in snapshot.frames],
                         watches=[convert_watch(w) for w in snapshot.watches],

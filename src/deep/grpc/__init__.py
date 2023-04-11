@@ -59,4 +59,4 @@ def convert_attributes(attributes):
 
 
 def convert_response(response):
-    return [TracePointConfig(r.id, r.path, r.line_no, dict(r.args), [w for w in r.watches]) for r in response]
+    return [TracePointConfig(r.ID, r.path, r.line_no, dict(r.args), [w for w in r.watches]) for r in response]

@@ -162,9 +162,8 @@ class TracePointConfig:
         :param ts: the time the tracepoint has been triggered
         :return: true, if we should collect data; else false
         """
-
         # Have we exceeded the fire count?
-        if self.fire_count <= self._stats.fire_count:
+        if self.fire_count != -1 and self.fire_count <= self._stats.fire_count:
             return False
 
         # Are we in the time window?

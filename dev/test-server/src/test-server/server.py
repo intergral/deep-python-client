@@ -47,7 +47,7 @@ class PollServicer(PollConfigServicer):
         print(request, context, context.invocation_metadata())
         response = PollResponse(ts=request.ts, current_hash="123", response=[
             TracePointConfig(id="17", path="/simple-app/simple_test.py", line_no=31,
-                             args={"some": "thing", "fire_count": "5"},
+                             args={"some": "thing", "fire_count": "-1", "fire_period": "10000"},
                              watches=["len(uuid)", "uuid", "self.char_counter"]),
             TracePointConfig(id="2", path="/some/file_2.py", line_no=15,
                              args={"some": "thing"}, watches=["some.value"]),

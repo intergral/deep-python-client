@@ -17,6 +17,10 @@ import time
 from threading import Event, Thread
 
 
+def snapshot_id_as_hex_str(snapshot_id):
+    return snapshot_id.to_bytes(16, 'big').hex()
+
+
 def time_ms():
     return int(round(time.time() * 1000))
 
