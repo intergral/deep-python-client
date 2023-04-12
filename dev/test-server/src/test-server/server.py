@@ -38,24 +38,24 @@ def serve():
 class SnapshotServicer(SnapshotServiceServicer):
 
     def send(self, request, context):
-        print("hit", request.id)
+        print("hit", request.ID)
         return SnapshotResponse()
 
 
 class PollServicer(PollConfigServicer):
     def poll(self, request, context):
         print(request, context, context.invocation_metadata())
-        response = PollResponse(ts=request.ts, current_hash="123", response=[
-            TracePointConfig(id="17", path="/simple-app/simple_test.py", line_no=31,
-                             args={"some": "thing", "fire_count": "-1", "fire_period": "10000"},
+        response = PollResponse(ts_nanos=request.ts_nanos, current_hash="123", response=[
+            TracePointConfig(ID="17", path="/simple-app/simple_test.py", line_number=31,
+                             args={"some": "thing", "fire_count": "-1", "fire_period": "1000"},
                              watches=["len(uuid)", "uuid", "self.char_counter"]),
-            TracePointConfig(id="2", path="/some/file_2.py", line_no=15,
+            TracePointConfig(ID="2", path="/some/file_2.py", line_number=15,
                              args={"some": "thing"}, watches=["some.value"]),
-            TracePointConfig(id="2", path="/some/file_2.py", line_no=18,
+            TracePointConfig(ID="2", path="/some/file_2.py", line_number=18,
                              args={"some": "thing"}, watches=["some.value"]),
-            TracePointConfig(id="5", path="/some/file.py", line_no=13,
+            TracePointConfig(ID="5", path="/some/file.py", line_number=13,
                              args={"some": "thing"}, watches=["some.value"]),
-            TracePointConfig(id="5", path="/some/file.py", line_no=1,
+            TracePointConfig(ID="5", path="/some/file.py", line_number=1,
                              args={"some": "thing"}, watches=["some.value"])],
                                 response_type=ResponseType.NO_CHANGE if request.current_hash == "123"
                                 else ResponseType.UPDATE)

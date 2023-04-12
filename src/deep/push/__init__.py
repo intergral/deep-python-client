@@ -30,7 +30,7 @@ from ..grpc import convert_value
 
 
 def convert_tracepoint(tracepoint: TrPoCo):
-    return TracePointConfig(ID=tracepoint.id, path=tracepoint.path, line_no=tracepoint.line_no, args=tracepoint.args,
+    return TracePointConfig(ID=tracepoint.id, path=tracepoint.path, line_number=tracepoint.line_no, args=tracepoint.args,
                             watches=tracepoint.watches)
 
 
@@ -71,10 +71,10 @@ def convert_snapshot(snapshot: EventSnapshot) -> Snapshot:
     try:
         return Snapshot(ID=snapshot.id.to_bytes(16, "big"), tracepoint=convert_tracepoint(snapshot.tracepoint),
                         var_lookup=convert_lookup(snapshot.var_lookup),
-                        ts=snapshot.ts, frames=[convert_frame(f) for f in snapshot.frames],
+                        ts_nanos=snapshot.ts_nanos, frames=[convert_frame(f) for f in snapshot.frames],
                         watches=[convert_watch(w) for w in snapshot.watches],
                         attributes=[KeyValue(key=k, value=convert_value(v)) for k, v in snapshot.attributes.items()],
-                        nanos_duration=snapshot.nanos_duration,
+                        duration_nanos=snapshot.duration_nanos,
                         resource=[KeyValue(key=k, value=convert_value(v)) for k, v in
                                   snapshot.resource.attributes.items()])
     except Exception:

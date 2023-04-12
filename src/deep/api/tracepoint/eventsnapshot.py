@@ -16,7 +16,7 @@ import random
 
 from deep.api.attributes import BoundedAttributes
 from deep.api.resource import Resource
-from deep.utils import time_ms, time_ns
+from deep.utils import time_ns
 
 
 class EventSnapshot:
@@ -27,18 +27,18 @@ class EventSnapshot:
         self._id = random.getrandbits(128)
         self._tracepoint = tracepoint
         self._var_lookup: dict[str, 'Variable'] = var_lookup
-        self._ts = time_ms()
+        self._ts_nanos = time_ns()
         self._frames = frames
         self._watches = []
         self._attributes = BoundedAttributes()
-        self._nanos_duration = time_ns()
+        self._duration_nanos = 0
         self._resource = Resource.create()
         self._open = True
 
     def complete(self):
         if not self._open:
             return
-        self._nanos_duration = time_ns() - self._nanos_duration
+        self._duration_nanos = time_ns() - self._ts_nanos
         self._open = False
 
     def is_open(self):
@@ -62,8 +62,8 @@ class EventSnapshot:
         return self._var_lookup
 
     @property
-    def ts(self):
-        return self._ts
+    def ts_nanos(self):
+        return self._ts_nanos
 
     @property
     def frames(self):
@@ -78,8 +78,8 @@ class EventSnapshot:
         return self._attributes
 
     @property
-    def nanos_duration(self):
-        return self._nanos_duration
+    def duration_nanos(self):
+        return self._duration_nanos
 
     @property
     def resource(self):

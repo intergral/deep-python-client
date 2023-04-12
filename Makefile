@@ -16,7 +16,7 @@ endif
 .PHONY: rel-agent
 rel-agent: check-version
 	rm -Rf $(ROOT_DIR)/dist
-	sed -i "s/[0-9]+\.[0-9]+\.[0-9]+/$(VERSION)/" $(ROOT_DIR)/src/deep/version.py
+	sed -i "s/[0-9]*\.[0-9]*\.[0-9]*/$(VERSION)/" $(ROOT_DIR)/src/deep/version.py
 
 	python -m build $(ROOT_DIR)
 

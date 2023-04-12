@@ -19,7 +19,7 @@ from deepproto.proto.poll.v1.poll_pb2_grpc import PollConfigStub
 from deep import logging
 from deep.config import ConfigService
 from deep.grpc import convert_resource, convert_response
-from deep.utils import time_ms, RepeatedTimer
+from deep.utils import time_ns, RepeatedTimer
 
 
 class LongPoll(object):
@@ -49,13 +49,13 @@ class LongPoll(object):
 
     def poll(self):
         stub = PollConfigStub(self.grpc.channel)
-        request = PollRequest(ts=time_ms(), current_hash=self.config.tracepoints.current_hash,
+        request = PollRequest(ts_nanos=time_ns(), current_hash=self.config.tracepoints.current_hash,
                               resource=convert_resource(self.config.resource))
         response = stub.poll(request, metadata=self.grpc.metadata())
 
         if response.response_type == ResponseType.NO_CHANGE:
             logging.debug("No Change in config.")
-            self.config.tracepoints.update_no_change(response.ts)
+            self.config.tracepoints.update_no_change(response.ts_nanos)
         else:
-            self.config.tracepoints.update_new_config(response.ts, response.current_hash,
+            self.config.tracepoints.update_new_config(response.ts_nanos, response.current_hash,
                                                       convert_response(response.response))
