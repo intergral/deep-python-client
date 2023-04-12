@@ -23,16 +23,16 @@ class EventSnapshot:
     """
     This is the model for the snapshot that is uploaded to the services
     """
-    def __init__(self, tracepoint, frames, var_lookup: dict[str, 'Variable']):
+    def __init__(self, tracepoint, resource, frames, var_lookup: dict[str, 'Variable']):
         self._id = random.getrandbits(128)
         self._tracepoint = tracepoint
         self._var_lookup: dict[str, 'Variable'] = var_lookup
         self._ts_nanos = time_ns()
         self._frames = frames
         self._watches = []
-        self._attributes = BoundedAttributes()
+        self._attributes = BoundedAttributes(immutable=False)
         self._duration_nanos = 0
-        self._resource = Resource.create()
+        self._resource = Resource.get_empty().merge(resource)
         self._open = True
 
     def complete(self):
@@ -221,12 +221,14 @@ class VariableId:
     def __init__(self,
                  vid,
                  name,
-                 modifiers=None
+                 modifiers=None,
+                 original_name=None
                  ):
         if modifiers is None:
             modifiers = []
         self._vid = vid
         self._name = name
+        self._original_name = original_name
         self._modifiers = modifiers
 
     @property
@@ -236,6 +238,10 @@ class VariableId:
     @property
     def name(self):
         return self._name
+
+    @property
+    def original_name(self):
+        return self._original_name
 
     @property
     def modifiers(self):

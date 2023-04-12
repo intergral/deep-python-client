@@ -15,6 +15,7 @@ import os
 from typing import Any
 
 from deep import logging
+from deep.api.plugin import Plugin
 from deep.api.resource import Resource
 from deep.config.tracepoint_config import TracepointConfigService
 
@@ -29,6 +30,7 @@ class ConfigService:
         Create a new config object
         :param custom: any custom values that are passed to DEEP
         """
+        self._plugins = []
         self.custom = custom
         self._resource = None
         self._tracepoint_config = TracepointConfigService()
@@ -84,6 +86,14 @@ class ConfigService:
     @resource.setter
     def resource(self, new_resource):
         self._resource = new_resource
+
+    @property
+    def plugins(self) -> list[Plugin]:
+        return self._plugins
+
+    @plugins.setter
+    def plugins(self, plugins):
+        self._plugins = plugins
 
     @property
     def tracepoints(self) -> TracepointConfigService:

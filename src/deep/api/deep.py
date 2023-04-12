@@ -11,7 +11,7 @@
 #     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #     See the License for the specific language governing permissions and
 #     limitations under the License.
-
+from deep.api.plugin import load_plugins
 from deep.api.resource import Resource
 from deep.grpc import GRPCService
 from deep.poll import LongPoll
@@ -36,7 +36,9 @@ class Deep:
         self.trigger_handler = TriggerHandler(config, self.push)
 
     def start(self):
-        self.config.resource = Resource.create()
+        plugins, attributes = load_plugins()
+        self.config.plugins = plugins
+        self.config.resource = Resource.create(attributes)
         self.trigger_handler.start()
         self.grpc.start()
         self.poll.start()

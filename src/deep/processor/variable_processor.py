@@ -129,19 +129,18 @@ def variable_to_string(variable_type, var_value):
         return str(var_value)
 
 
-def process_variable(frame_collector: Collector, var_name: str, var_value: any) -> VariableResponse:
+def process_variable(frame_collector: Collector, node: NodeValue) -> VariableResponse:
     """
     Process the variable into a serializable type.
     :param frame_collector: the collector being used
-    :param var_name: the variable name
-    :param var_value: the variable value
+    :param node: the variable node to process
     :return: a response to determine if we continue
     """
 
     # get the variable hash id
-    identity_hash_id = str(id(var_value))
+    identity_hash_id = str(id(node.value))
     # guess the modifiers
-    modifiers = var_modifiers(var_name)
+    modifiers = var_modifiers(node.name)
     # check the collector cache for this id
     cache_id = frame_collector.check_id(identity_hash_id)
     # if we have a cache_id, then this variable is already been processed, so we just return
@@ -149,17 +148,17 @@ def process_variable(frame_collector: Collector, var_name: str, var_value: any) 
     # also do not count this towards the max_vars, so we can increase the data we send.
 
     if cache_id is not None:
-        return VariableResponse(VariableId(cache_id, var_name, modifiers), process_children=False)
+        return VariableResponse(VariableId(cache_id, node.name, modifiers, node.original_name), process_children=False)
 
     # if we do not have a cache_id - then create one
     var_id = frame_collector.new_var_id(identity_hash_id)
 
     # crete the variable id to use
-    variable_id = VariableId(var_id, var_name, modifiers)
+    variable_id = VariableId(var_id, node.name, modifiers, node.original_name)
     # extract variable type
-    variable_type = type(var_value)
+    variable_type = type(node.value)
     # create a string value of the variable
-    variable_value_str, truncated = truncate_string(variable_to_string(variable_type, var_value),
+    variable_value_str, truncated = truncate_string(variable_to_string(variable_type, node.value),
                                                     frame_collector.frame_config.max_string_length)
 
     # create a variable for the lookup
@@ -215,6 +214,19 @@ def process_child_nodes(
     return find_children_for_parent(frame_collector, VariableParent(), var_value, variable_type)
 
 
+def correct_names(name, val):
+    """
+    If a value is 'private' then python will rename the value to be prefixed with the class name
+    :param name: the name of the class
+    :param val: the variable name we are modifying
+    :return: the new name to use
+    """
+    prefix = "_" + name
+    if val.startswith(prefix):
+        return val[len(prefix):]
+    return val
+
+
 def find_children_for_parent(frame_collector: Collector, parent_node: ParentNode, value: any,
                              variable_type: type):
     """
@@ -226,23 +238,25 @@ def find_children_for_parent(frame_collector: Collector, parent_node: ParentNode
     :return: list of child nodes
     """
     if variable_type is dict:
-        return process_dict_breadth_first(parent_node, value)
+        return process_dict_breadth_first(parent_node, variable_type.__name__, value)
     elif variable_type.__name__ in LIST_LIKE_TYPES:
         return process_list_breadth_first(frame_collector, parent_node, value)
     elif variable_type.__name__ in ITER_LIKE_TYPES:
         return process_iterable_breadth_first(frame_collector, parent_node, value)
     elif isinstance(value, Exception):
         return process_list_breadth_first(frame_collector, parent_node, value.args)
+    elif hasattr(value, '__class__'):
+        return process_dict_breadth_first(parent_node, variable_type.__name__, value.__dict__, correct_names)
     elif hasattr(value, '__dict__'):
-        return process_dict_breadth_first(parent_node, value.__dict__)
+        return process_dict_breadth_first(parent_node, variable_type.__name__, value.__dict__)
     else:
         logging.debug("Unknown type processed %s", variable_type)
         return []
 
 
-def process_dict_breadth_first(parent_node, value):
+def process_dict_breadth_first(parent_node, type_name, value, func=lambda x, y: y):
     # we wrap the keys() in a call to list to prevent concurrent changes
-    return [Node(value=NodeValue(key, value[key]), parent=parent_node) for key in list(value.keys()) if
+    return [Node(value=NodeValue(func(type_name, key), value[key], key), parent=parent_node) for key in list(value.keys()) if
             key in value]
 
 

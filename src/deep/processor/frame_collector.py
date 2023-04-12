@@ -151,7 +151,7 @@ class FrameCollector(Collector):
             return True
 
         # process this node variable
-        process_result = process_variable(self, node_value.name, node_value.value)
+        process_result = process_variable(self, node_value)
         var_id = process_result.variable_id
         # add the result to the parent - this maintains the hierarchy in the var look up
         node.parent.add_child(var_id)

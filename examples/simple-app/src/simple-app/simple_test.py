@@ -21,20 +21,20 @@ class SimpleTest(BaseTest):
 
     def __init__(self, test_name) -> None:
         super().__init__()
-        self.started_at = round(time.time() * 1000)
-        self.cnt = 0
+        self._started_at = round(time.time() * 1000)
+        self.__cnt = 0
         self.char_counter = {}
         self.test_name = test_name
         self.max_executions = self.next_max()
 
     def message(self, uuid):
-        print("%s:%s" % (self.cnt, uuid))
-        self.cnt += 1
-        self.check_end(self.cnt, self.max_executions)
+        print("%s:%s" % (self.__cnt, uuid))
+        self.__cnt += 1
+        self.check_end(self.__cnt, self.max_executions)
 
         info = self.make_char_count_map(uuid)
         self.merge(self.char_counter, info)
-        if self.cnt % 30 == 0:
+        if self.__cnt % 30 == 0:
             self.dump()
 
     def merge(self, char_counter, new_info):
@@ -56,8 +56,8 @@ class SimpleTest(BaseTest):
             raise Exception("Hit max executions %s %s " % (value, max_executions))
 
     def __str__(self) -> str:
-        return self.__class__.__name__ + ":" + self.test_name + ":" + str(self.started_at)
+        return self.__class__.__name__ + ":" + self.test_name + ":" + str(self._started_at)
 
     def reset(self):
-        self.cnt = 0
+        self.__cnt = 0
         self.max_executions = self.next_max()

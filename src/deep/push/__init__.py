@@ -57,7 +57,8 @@ def convert_variable(variable: Var):
 def convert_variable_id(variable: VarId):
     if variable is None:
         return None
-    return VariableID(ID=variable.vid, name=variable.name, modifiers=variable.modifiers)
+    return VariableID(ID=variable.vid, name=variable.name, modifiers=variable.modifiers,
+                      original_name=variable.original_name)
 
 
 def convert_lookup(var_lookup):

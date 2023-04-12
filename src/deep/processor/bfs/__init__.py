@@ -69,8 +69,12 @@ class ParentNode(abc.ABC):
 
 class NodeValue:
     """The variable value the node represents"""
-    def __init__(self, name: str, value: any):
+    def __init__(self, name: str, value: any, original_name=None):
         self.name = name
+        if original_name is not None and name != original_name:
+            self.original_name = original_name
+        else:
+            self.original_name = None
         self.value = value
 
     def __str__(self) -> str:

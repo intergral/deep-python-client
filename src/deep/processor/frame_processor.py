@@ -41,7 +41,7 @@ class FrameProcessor(FrameCollector):
         # iterate the tracepoints
         for tp in self._filtered_tracepoints:
             # crete a snapshot
-            snapshot = EventSnapshot(tp, stack, variables)
+            snapshot = EventSnapshot(tp, self._config.resource, stack, variables)
             # process the snapshot watches
             for watch in tp.watches:
                 result, watch_lookup = self.eval_watch(watch)

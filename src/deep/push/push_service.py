@@ -29,6 +29,7 @@ class PushService:
         self.task_handler = task_handler
 
     def push_snapshot(self, snapshot: EventSnapshot):
+        self.decorate(snapshot)
         snapshot.complete()
         task = self.task_handler.submit_task(self._push_task, snapshot)
         task.add_done_callback(lambda _: logging.debug("Completed uploading snapshot %s", snapshot_id_as_hex_str(snapshot.id)))
@@ -41,3 +42,14 @@ class PushService:
         stub = SnapshotServiceStub(self.grpc.channel)
 
         stub.send(converted, metadata=self.grpc.metadata())
+
+    def decorate(self, snapshot):
+        plugins = self.config.plugins
+        for plugin in plugins:
+            try:
+                attributes = plugin.collect_attributes()
+                if attributes is not None:
+                    snapshot.attributes.merge_in(attributes)
+            except Exception:
+                logging.exception("Error processing plugin %s", plugin.name)
+
