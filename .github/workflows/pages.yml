@@ -26,13 +26,11 @@ jobs:
           path: .cache
           restore-keys: |
             mkdocs-material-
-      - run: pip install mkdocs-material pdoc3
-      - run: make docs
+      - run: pip install mkdocs-material
+      - run: python scripts/gendocs.py
+      - run: mkdocs build -d./_site
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: Mk docs
-          path: _site
+        uses: actions/upload-pages-artifact@v1
 
   deploy:
     needs: build

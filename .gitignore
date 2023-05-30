@@ -155,3 +155,7 @@ dmypy.json
 cython_debug/
 
 html/
+
+junit/
+
+docs/apidocs

@@ -36,20 +36,29 @@ SERVICE_AUTH_PROVIDER = os.getenv('DEEP_SERVICE_AUTH_PROVIDER', None)
 
 # noinspection PyPep8Naming
 def IN_APP_INCLUDE():
+    """The packages to mark as in app packages. (default: ''). Must be a command (,) seperated list."""
     user_defined = os.getenv('DEEP_IN_APP_INCLUDE', None)
     if user_defined is None:
         user_defined = []
-    return user_defined
+    if ',' in user_defined:
+        return user_defined.split(',')
+    return [user_defined]
 
 
 # noinspection PyPep8Naming
 def IN_APP_EXCLUDE():
+    """The packages to mark as NOT in app packages. (default: ''). Must be a command (,) seperated list."""
     user_defined = os.getenv('DEEP_IN_APP_EXCLUDE', None)
     if user_defined is None:
         user_defined = []
+    else:
+        if ',' in user_defined:
+            user_defined = user_defined.split(',')
+        user_defined = [user_defined]
 
     prefix = sys.exec_prefix
     user_defined.append(prefix)
+
     return user_defined
 
 # Config items can be functions

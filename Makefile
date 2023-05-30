@@ -1,3 +1,4 @@
+SHELL:=/bin/bash -O globstar
 
 ROOT_DIR=$(shell pwd)
 
@@ -23,13 +24,6 @@ lint:
 
 .PHONY: flake
 flake: lint
-
-.PHONY: docs
-docs:
-	rm -Rf html
-	pdoc --html src
-	mkdocs build  -d./_site
-	mv html _site/python-site
 
 .PHONY: rel-agent
 rel-agent: check-version
