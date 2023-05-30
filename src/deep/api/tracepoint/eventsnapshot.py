@@ -1,16 +1,14 @@
-#     Copyright 2023 Intergral GmbH
+#       Copyright (C) 2023  Intergral GmbH
 #
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
+#      This program is free software: you can redistribute it and/or modify
+#      it under the terms of the GNU Affero General Public License as published by
+#      the Free Software Foundation, either version 3 of the License, or
+#      (at your option) any later version.
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+#      This program is distributed in the hope that it will be useful,
+#      but WITHOUT ANY WARRANTY; without even the implied warranty of
+#      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#      GNU Affero General Public License for more details.
 
 import random
 
@@ -23,11 +21,12 @@ class EventSnapshot:
     """
     This is the model for the snapshot that is uploaded to the services
     """
-    def __init__(self, tracepoint, resource, frames, var_lookup: dict[str, 'Variable']):
+
+    def __init__(self, tracepoint, ts, resource, frames, var_lookup: dict[str, 'Variable']):
         self._id = random.getrandbits(128)
         self._tracepoint = tracepoint
         self._var_lookup: dict[str, 'Variable'] = var_lookup
-        self._ts_nanos = time_ns()
+        self._ts_nanos = ts
         self._frames = frames
         self._watches = []
         self._attributes = BoundedAttributes(immutable=False)
@@ -96,6 +95,7 @@ class StackFrame:
     """
     This represents a frame of code that is being executed
     """
+
     def __init__(self,
                  file_name,
                  method_name,
@@ -174,6 +174,7 @@ class StackFrame:
 
 class Variable:
     """This represents a captured variable value"""
+
     def __init__(self,
                  var_type,
                  value,
@@ -218,6 +219,7 @@ class VariableId:
     """
     This represents an variable id, that is used for de duplication
     """
+
     def __init__(self,
                  vid,
                  name,

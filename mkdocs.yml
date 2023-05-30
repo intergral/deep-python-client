@@ -1,0 +1,17 @@
+site_name: Deep Python Client Docs
+site_url: https://intergral.github.io/deep-python-client/
+
+repo_name: Deep Python Client
+repo_url: https://github.com/intergral/deep-python-client
+
+copyright: Intergral GmbH 2023
+
+theme:
+  name: material
+
+nav:
+  - Home: index.md
+  - API Docs: python-site/src/deep/index.html
+
+extra_css:
+  - 'styles.css'

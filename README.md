@@ -1,7 +1,7 @@
 # DEEP Python Client
 
 DEEP is an open source dynamic insight engine based on the Grafana stack. The idea is to allow dynamic collection of
-Traces, Metrics, Logs and Snapshots via the Grafama UI.
+Traces, Metrics, Logs and Snapshots via the Grafana UI.
 
 ## Usage
 

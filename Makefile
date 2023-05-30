@@ -13,6 +13,24 @@ ifndef VERSION
 	$(error VERSION argument must be defined. (make rel-agent VERSION=0.0.2))
 endif
 
+.PHONY: test
+test:
+	pytest test
+
+.PHONY: lint
+lint:
+	flake8
+
+.PHONY: flake
+flake: lint
+
+.PHONY: docs
+docs:
+	rm -Rf html
+	pdoc --html src
+	mkdocs build  -d./_site
+	mv html _site/python-site
+
 .PHONY: rel-agent
 rel-agent: check-version
 	rm -Rf $(ROOT_DIR)/dist

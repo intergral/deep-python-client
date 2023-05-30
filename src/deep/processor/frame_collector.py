@@ -1,23 +1,21 @@
-#     Copyright 2023 Intergral GmbH
+#       Copyright (C) 2023  Intergral GmbH
 #
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
+#      This program is free software: you can redistribute it and/or modify
+#      it under the terms of the GNU Affero General Public License as published by
+#      the Free Software Foundation, either version 3 of the License, or
+#      (at your option) any later version.
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+#      This program is distributed in the hope that it will be useful,
+#      but WITHOUT ANY WARRANTY; without even the implied warranty of
+#      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#      GNU Affero General Public License for more details.
 
 import abc
 
 from deep import logging
 from deep.api.tracepoint import StackFrame, WatchResult, Variable, VariableId
 from deep.processor.bfs import Node, NodeValue, breadth_first_search, ParentNode
-from deep.utils import time_ms
+from deep.utils import time_ns
 from .frame_config import FrameProcessorConfig
 from .variable_processor import process_variable, process_child_nodes, variable_to_string, truncate_string, Collector
 
@@ -26,11 +24,12 @@ class FrameCollector(Collector):
     """
     This deals with collecting data from the paused frames.
     """
+
     def __init__(self, frame, config):
         self._var_cache: dict[str, str] = {}
         self._config = config
         self._has_time_exceeded = False
-        self._ts = time_ms()
+        self._ts = time_ns()
         self._frame_config = FrameProcessorConfig()
         self._frame = frame
         self._var_lookup: dict[str, Variable] = {}
@@ -97,7 +96,7 @@ class FrameCollector(Collector):
         if self._has_time_exceeded:
             return self._has_time_exceeded
 
-        duration = time_ms() - self._ts
+        duration = (time_ns() - self._ts) / 1000000  # make duration ms not ns
         self._has_time_exceeded = duration > self._frame_config.max_tp_process_time
         return self._has_time_exceeded
 

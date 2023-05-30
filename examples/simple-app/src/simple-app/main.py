@@ -1,26 +1,26 @@
-#     Copyright 2023 Intergral GmbH
+#       Copyright (C) 2023  Intergral GmbH
 #
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
+#      This program is free software: you can redistribute it and/or modify
+#      it under the terms of the GNU Affero General Public License as published by
+#      the Free Software Foundation, either version 3 of the License, or
+#      (at your option) any later version.
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+#      This program is distributed in the hope that it will be useful,
+#      but WITHOUT ANY WARRANTY; without even the implied warranty of
+#      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#      GNU Affero General Public License for more details.
 import signal
 import time
 
-import deep
-from simple_test import SimpleTest
 from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+import deep
+from simple_test import SimpleTest
+
 
 class GracefulKiller:
     kill_now = False
@@ -38,7 +38,7 @@ def main():
     ts = SimpleTest("This is a test")
     while not killer.kill_now:
         with trace.get_tracer(__name__).start_as_current_span("loop"):
-            with trace.get_tracer(__name__).start_as_current_span("loop-inner") as span:
+            with trace.get_tracer(__name__).start_as_current_span("loop-inner"):
                 try:
                     ts.message(ts.new_id())
                 except BaseException as e:
@@ -46,7 +46,6 @@ def main():
                     ts.reset()
 
                 time.sleep(0.1)
-
 
 
 if __name__ == '__main__':
@@ -62,9 +61,6 @@ if __name__ == '__main__':
     deep.start({
         'SERVICE_URL': 'localhost:43315',
         'SERVICE_SECURE': 'False',
-        'SERVICE_AUTH_PROVIDER': 'deep.api.auth.BasicAuthProvider',
-        'SERVICE_USERNAME': 'bob',
-        'SERVICE_PASSWORD': 'obo'
     })
 
     print("app running")

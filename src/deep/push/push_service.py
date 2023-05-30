@@ -1,16 +1,14 @@
-#     Copyright 2023 Intergral GmbH
+#       Copyright (C) 2023  Intergral GmbH
 #
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
+#      This program is free software: you can redistribute it and/or modify
+#      it under the terms of the GNU Affero General Public License as published by
+#      the Free Software Foundation, either version 3 of the License, or
+#      (at your option) any later version.
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+#      This program is distributed in the hope that it will be useful,
+#      but WITHOUT ANY WARRANTY; without even the implied warranty of
+#      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#      GNU Affero General Public License for more details.
 
 from deepproto.proto.tracepoint.v1.tracepoint_pb2_grpc import SnapshotServiceStub
 
@@ -23,6 +21,7 @@ class PushService:
     """
     This service deals with pushing the snapshots to the service endpoints
     """
+
     def __init__(self, config, grpc, task_handler):
         self.config = config
         self.grpc = grpc
@@ -30,9 +29,9 @@ class PushService:
 
     def push_snapshot(self, snapshot: EventSnapshot):
         self.decorate(snapshot)
-        snapshot.complete()
         task = self.task_handler.submit_task(self._push_task, snapshot)
-        task.add_done_callback(lambda _: logging.debug("Completed uploading snapshot %s", snapshot_id_as_hex_str(snapshot.id)))
+        task.add_done_callback(
+            lambda _: logging.debug("Completed uploading snapshot %s", snapshot_id_as_hex_str(snapshot.id)))
 
     def _push_task(self, snapshot):
         from deep.push import convert_snapshot
@@ -52,4 +51,4 @@ class PushService:
                     snapshot.attributes.merge_in(attributes)
             except Exception:
                 logging.exception("Error processing plugin %s", plugin.name)
-
+        snapshot.complete()

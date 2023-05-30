@@ -1,16 +1,15 @@
-#     Copyright 2023 Intergral GmbH
+#       Copyright (C) 2023  Intergral GmbH
 #
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
+#      This program is free software: you can redistribute it and/or modify
+#      it under the terms of the GNU Affero General Public License as published by
+#      the Free Software Foundation, either version 3 of the License, or
+#      (at your option) any later version.
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+#      This program is distributed in the hope that it will be useful,
+#      but WITHOUT ANY WARRANTY; without even the implied warranty of
+#      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#      GNU Affero General Public License for more details.
+
 import abc
 
 from deep import logging
@@ -26,7 +25,7 @@ NO_CHILD_TYPES = [
     'type',
     'module',
     'unicode',
-    'long'
+    'long',
 ]
 
 LIST_LIKE_TYPES = [
@@ -42,6 +41,8 @@ ITER_LIKE_TYPES = [
     'list_reverseiterator',
     'listreverseiterator',
 ]
+
+NO_CHILD_TYPES += ITER_LIKE_TYPES
 
 
 class Collector(abc.ABC):
@@ -118,7 +119,7 @@ def variable_to_string(variable_type, var_value):
     """
     if variable_type.__name__ in ITER_LIKE_TYPES:
         # if interator like then make a custom string - we do not want to mess with iterators
-        return 'Object of type: %s' % variable_type
+        return 'Iterator of type: %s' % variable_type
     elif variable_type is dict \
             or variable_type.__name__ in LIST_LIKE_TYPES:
         # if we are a collection then we do not want to use built in string as this can be very
@@ -241,8 +242,6 @@ def find_children_for_parent(frame_collector: Collector, parent_node: ParentNode
         return process_dict_breadth_first(parent_node, variable_type.__name__, value)
     elif variable_type.__name__ in LIST_LIKE_TYPES:
         return process_list_breadth_first(frame_collector, parent_node, value)
-    elif variable_type.__name__ in ITER_LIKE_TYPES:
-        return process_iterable_breadth_first(frame_collector, parent_node, value)
     elif isinstance(value, Exception):
         return process_list_breadth_first(frame_collector, parent_node, value.args)
     elif hasattr(value, '__class__'):
@@ -256,33 +255,17 @@ def find_children_for_parent(frame_collector: Collector, parent_node: ParentNode
 
 def process_dict_breadth_first(parent_node, type_name, value, func=lambda x, y: y):
     # we wrap the keys() in a call to list to prevent concurrent changes
-    return [Node(value=NodeValue(func(type_name, key), value[key], key), parent=parent_node) for key in list(value.keys()) if
+    return [Node(value=NodeValue(func(type_name, key), value[key], key), parent=parent_node) for key in
+            list(value.keys()) if
             key in value]
 
 
-def process_list_breadth_first(frame_collector: Collector, parent_node, value):
+def process_list_breadth_first(frame_collector: Collector, parent_node: ParentNode, value):
     nodes = []
     total = 0
     for val_ in tuple(value):
         if total >= frame_collector.frame_config.max_collection_size:
-            parent_node.flag('list_truncated')
             break
         nodes.append(Node(value=NodeValue(str(total), val_), parent=parent_node))
-        total += 1
-    return nodes
-
-
-# todo this needs to be checked, does it affect the position of the iterable
-def process_iterable_breadth_first(frame_collector: Collector, parent_node, value):
-    nodes = []
-    end = VariableId(-1, 'end')
-    val = next(value, end)
-    total = 0
-    while val is not end:
-        if total > frame_collector.frame_config.max_collection_size:
-            parent_node.flag('list_truncated')
-            break
-        nodes.append(Node(value=NodeValue(str(total), val), parent=parent_node))
-        val = next(value, end)
         total += 1
     return nodes

@@ -1,4 +1,3 @@
-grpcio
-deep-proto
-protobuf
-opentelemetry-semantic-conventions
+grpcio>=1.51.3
+deep-proto>=1.0.0
+protobuf>=3.20.3

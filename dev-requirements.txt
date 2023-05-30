@@ -1,2 +1,5 @@
 flake8
 parameterized
+pytest
+mkdocs-material
+pdoc3

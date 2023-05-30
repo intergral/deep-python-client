@@ -1,16 +1,14 @@
-#     Copyright 2023 Intergral GmbH
+#       Copyright (C) 2023  Intergral GmbH
 #
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
+#      This program is free software: you can redistribute it and/or modify
+#      it under the terms of the GNU Affero General Public License as published by
+#      the Free Software Foundation, either version 3 of the License, or
+#      (at your option) any later version.
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+#      This program is distributed in the hope that it will be useful,
+#      but WITHOUT ANY WARRANTY; without even the implied warranty of
+#      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#      GNU Affero General Public License for more details.
 
 import os
 import sys
@@ -20,18 +18,20 @@ from .config_service import ConfigService
 # Here we have the initial values for the config, there can be set as either static values, environment
 # values or functions.
 
-'''The path to the logging config file to use'''
 LOGGING_CONF = os.getenv('DEEP_LOGGING_CONF', None)
+'''The path to the logging config file to use'''
 
+POLL_TIMER = os.getenv('DEEP_POLL_TIMER', 10)
 """The time in seconds to wait between each poll (default: 10)"""
-POLL_TIMER = os.getenv('DEEP_POLL_TIMER', 10)  # time in seconds
 
-"""The URL for the service to connect to (default: deep:43315)"""
 SERVICE_URL = os.getenv('DEEP_SERVICE_URL', 'deep:43315')
-"""Is the service secured, should we connect with TLS or not (default: True)"""
+"""The URL for the service to connect to (default: deep:43315)"""
+
 SERVICE_SECURE = os.getenv('DEEP_SERVICE_SECURE', 'True')
-"""The Auth provider to use for the service (default: None)"""
+"""Is the service secured, should we connect with TLS or not (default: True)"""
+
 SERVICE_AUTH_PROVIDER = os.getenv('DEEP_SERVICE_AUTH_PROVIDER', None)
+"""The Auth provider to use for the service (default: None)"""
 
 
 # noinspection PyPep8Naming
@@ -44,7 +44,7 @@ def IN_APP_INCLUDE():
 
 # noinspection PyPep8Naming
 def IN_APP_EXCLUDE():
-    user_defined = os.getenv('DEEP_IN_APP_INCLUDE', None)
+    user_defined = os.getenv('DEEP_IN_APP_EXCLUDE', None)
     if user_defined is None:
         user_defined = []
 

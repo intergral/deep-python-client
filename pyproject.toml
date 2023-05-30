@@ -6,15 +6,16 @@ build-backend = "hatchling.build"
 name = "deep-agent"
 description = "DEEP Python Agent"
 readme = "README.md"
-license = "Apache-2.0"
+license = "AGPL-3.0-only"
 requires-python = ">3.7"
 authors = [
+    { name = "Intergral GmbH", email = "support@intergral.com" },
     { name = "Ben Donnelly", email = "b.w.donnelly1@gmail.com" }
 ]
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.7",
@@ -25,9 +26,9 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "deep-proto",
-    "protobuf",
-    "grpcio"
+    "grpcio>=1.51.3",
+    "deep-proto>=1.0.0",
+    "protobuf>=3.20.3"
 ]
 dynamic = [
     "version"

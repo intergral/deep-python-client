@@ -50,25 +50,40 @@ The language of the telemetry SDK.
 
 PROCESS_EXECUTABLE_NAME = "process.executable.name"
 """
-The name of the process executable. On Linux based systems, can be set to the `Name` in `proc/[pid]/status`. On Windows, can be set to the base name of `GetProcessImageFileNameW`.
+The name of the process executable. On Linux based systems, can be set to the `Name` in
+`proc/[pid]/status`. On Windows, can be set to the base name of `GetProcessImageFileNameW`.
 """
 
 SERVICE_NAME = "service.name"
 """
 Logical name of the service.
-Note: MUST be the same for all instances of horizontally scaled services. If the value was not specified, SDKs MUST fallback to `unknown_service:` concatenated with [`process.executable.name`](process.md#process), e.g. `unknown_service:bash`. If `process.executable.name` is not available, the value MUST be set to `unknown_service`.
+Note: MUST be the same for all instances of horizontally scaled services. If the value was
+not specified, SDKs MUST fallback to `unknown_service:` concatenated with
+[`process.executable.name`](process.md#process), e.g. `unknown_service:bash`. If `process.executable.name`
+is not available, the value MUST be set to `unknown_service`.
 """
 
 SERVICE_NAMESPACE = "service.namespace"
 """
 A namespace for `service.name`.
-Note: A string value having a meaning that helps to distinguish a group of services, for example the team name that owns a group of services. `service.name` is expected to be unique within the same namespace. If `service.namespace` is not specified in the Resource then `service.name` is expected to be unique for all services that have no explicit namespace defined (so the empty/unspecified namespace is simply one more valid namespace). Zero-length namespace string is assumed equal to unspecified namespace.
+Note: A string value having a meaning that helps to distinguish a group of services, for example
+the team name that owns a group of services. `service.name` is expected to be unique within the same namespace.
+ If `service.namespace` is not specified in the Resource then `service.name` is expected to be unique for
+ all services that have no explicit namespace defined (so the empty/unspecified namespace is simply one more
+ valid namespace). Zero-length namespace string is assumed equal to unspecified namespace.
 """
 
 SERVICE_INSTANCE_ID = "service.instance.id"
 """
 The string ID of the service instance.
-Note: MUST be unique for each instance of the same `service.namespace,service.name` pair (in other words `service.namespace,service.name,service.instance.id` triplet MUST be globally unique). The ID helps to distinguish instances of the same service that exist at the same time (e.g. instances of a horizontally scaled service). It is preferable for the ID to be persistent and stay the same for the lifetime of the service instance, however it is acceptable that the ID is ephemeral and changes during important lifetime events for the service (e.g. service restarts). If the service has no inherent unique ID that can be used as the value of this attribute it is recommended to generate a random Version 1 or Version 4 RFC 4122 UUID (services aiming for reproducible UUIDs may also use Version 5, see RFC 4122 for more recommendations).
+Note: MUST be unique for each instance of the same `service.namespace,service.name` pair (in other words
+`service.namespace,service.name,service.instance.id` triplet MUST be globally unique). The ID helps to distinguish
+instances of the same service that exist at the same time (e.g. instances of a horizontally scaled service). It is
+preferable for the ID to be persistent and stay the same for the lifetime of the service instance, however it is
+acceptable that the ID is ephemeral and changes during important lifetime events for the service (e.g. service
+restarts). If the service has no inherent unique ID that can be used as the value of this attribute it is recommended
+to generate a random Version 1 or Version 4 RFC 4122 UUID (services aiming for reproducible UUIDs may also use Version
+5, see RFC 4122 for more recommendations).
 """
 
 SERVICE_VERSION = "service.version"
@@ -77,7 +92,14 @@ The version string of the service API or implementation.
 """
 
 DEEP_RESOURCE_ATTRIBUTES = "DEEP_RESOURCE_ATTRIBUTES"
+"""
+The environment key to find user defined attributes as key value string.
+"""
+
 DEEP_SERVICE_NAME = "DEEP_SERVICE_NAME"
+"""
+The environment key to define the service name for deep.
+"""
 
 
 class Resource:
@@ -111,7 +133,7 @@ class Resource:
             DeepResourceDetector().detect()
         ).merge(Resource(attributes, schema_url))
         if not resource.attributes.get(SERVICE_NAME, None):
-            default_service_name = "unknown_service"
+            default_service_name = "unknown_service:python"
             process_executable_name = resource.attributes.get(
                 PROCESS_EXECUTABLE_NAME, None
             )

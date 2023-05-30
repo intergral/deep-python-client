@@ -1,0 +1,30 @@
+name: Release Version
+
+on:
+  release:
+    types: [ published ]
+
+env:
+  VERSION: ${{ github.ref_name }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TWINE_USER: __token__
+      TWINE_PASSWORD: ${{ secrets.TWINE_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+
+      - name: Install deps
+        run: |
+          pip install -r requirements.txt
+          pip install -r dev-requirements.txt
+
+      - name: Generate Python Proto
+        run: make rel-python

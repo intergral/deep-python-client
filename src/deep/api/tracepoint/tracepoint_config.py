@@ -1,45 +1,52 @@
-#     Copyright 2023 Intergral GmbH
+#       Copyright (C) 2023  Intergral GmbH
 #
-#     Licensed under the Apache License, Version 2.0 (the "License");
-#     you may not use this file except in compliance with the License.
-#     You may obtain a copy of the License at
+#      This program is free software: you can redistribute it and/or modify
+#      it under the terms of the GNU Affero General Public License as published by
+#      the Free Software Foundation, either version 3 of the License, or
+#      (at your option) any later version.
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#     Unless required by applicable law or agreed to in writing, software
-#     distributed under the License is distributed on an "AS IS" BASIS,
-#     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#     See the License for the specific language governing permissions and
-#     limitations under the License.
+#      This program is distributed in the hope that it will be useful,
+#      but WITHOUT ANY WARRANTY; without even the implied warranty of
+#      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#      GNU Affero General Public License for more details.
 
 # Below are constants used in the configuration of a tracepoint
-"""The number of times this tracepoint should fire"""
+
 FIRE_COUNT = "fire_count"
-"""The start of the time period this tracepoint can fire in"""
+"""The number of times this tracepoint should fire"""
+
 WINDOW_START = "window_start"
-"""The end of the time period this tracepoint can fire in"""
+"""The start of the time period this tracepoint can fire in"""
+
 WINDOW_END = "window_end"
-"""The minimum time between successive triggers, in ms"""
+"""The end of the time period this tracepoint can fire in"""
+
 FIRE_PERIOD = "fire_period"
-"""The condition that has to be 'truthy' for this tracepoint to fire"""
+"""The minimum time between successive triggers, in ms"""
+
 CONDITION = "condition"
+"""The condition that has to be 'truthy' for this tracepoint to fire"""
 
-"""This is the key to indicate the frame collection type"""
 FRAME_TYPE = 'frame_type'
-"""This is the key to indicate the stack collection type"""
+"""This is the key to indicate the frame collection type"""
+
 STACK_TYPE = 'stack_type'
+"""This is the key to indicate the stack collection type"""
 
-"""Collect only the frame we are on"""
 SINGLE_FRAME_TYPE = 'single_frame'
-"""Collect from all available frames"""
-ALL_FRAME_TYPE = 'all_frame'
-"""Collect on frame data"""
-NO_FRAME_TYPE = 'no_frame'
+"""Collect only the frame we are on"""
 
-"""Collect the full stack"""
+ALL_FRAME_TYPE = 'all_frame'
+"""Collect from all available frames"""
+
+NO_FRAME_TYPE = 'no_frame'
+"""Collect on frame data"""
+
 STACK = 'stack'
-"""Do not collect the stack data"""
+"""Collect the full stack"""
+
 NO_STACK = 'no_stack'
+"""Do not collect the stack data"""
 
 
 def frame_type_ordinal(frame_type) -> int:
