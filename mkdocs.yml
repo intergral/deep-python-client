@@ -11,6 +11,9 @@ theme:
 
 nav:
   - Home: index.md
+  - Config: config/config.md
+  - Auth:
+      - Providers: auth/providers.md
 
 extra_css:
   - 'styles.css'

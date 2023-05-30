@@ -63,7 +63,7 @@ def update_name(project_root, new_nav):
 
 if __name__ == '__main__':
     nav = {}
-    project_root = os.getenv("GITHUB_WORKSPACE")
+    project_root = "/home/bdonnell/repo/github/intergral/deep-python-client/deep-python-client"
     if os.path.exists("%s/docs/apidocs" % project_root):
         shutil.rmtree("%s/docs/apidocs" % project_root)
 
