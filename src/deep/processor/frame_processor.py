@@ -9,6 +9,7 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+from typing import List
 
 from deep import logging
 from deep.api.attributes import BoundedAttributes
@@ -21,9 +22,9 @@ class FrameProcessor(FrameCollector):
     """
     This handles a 'hit' and starts the process of collecting the data.
     """
-    _filtered_tracepoints: list[TracePointConfig]
+    _filtered_tracepoints: List[TracePointConfig]
 
-    def __init__(self, tracepoints: list[TracePointConfig], frame, config: ConfigService):
+    def __init__(self, tracepoints: List[TracePointConfig], frame, config: ConfigService):
         super().__init__(frame, config)
         self._tracepoints = tracepoints
         self._filtered_tracepoints = []

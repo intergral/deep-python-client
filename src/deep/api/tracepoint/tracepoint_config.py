@@ -9,6 +9,7 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+from typing import List
 
 # Below are constants used in the configuration of a tracepoint
 
@@ -102,7 +103,7 @@ class TracePointConfig:
     data collected from the LongPoll.
     """
 
-    def __init__(self, tp_id: str, path: str, line_no: int, args: dict, watches: list):
+    def __init__(self, tp_id: str, path: str, line_no: int, args: dict, watches: List[str]):
         self._id = tp_id
         self._path = path
         self._line_no = line_no

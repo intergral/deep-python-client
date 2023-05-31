@@ -11,7 +11,7 @@
 #      GNU Affero General Public License for more details.
 
 import abc
-from typing import Callable
+from typing import Callable, List
 
 from deep.api.tracepoint import VariableId
 
@@ -19,11 +19,11 @@ from deep.api.tracepoint import VariableId
 class Node:
     """This is a Node that is used within the Breadth First Search of variables."""
 
-    def __init__(self, value=None, children=None, parent=None):
+    def __init__(self, value=None, children: List['Node'] = None, parent=None):
         if children is None:
             children = []
         self._value: 'NodeValue' = value
-        self._children: list['Node'] = children
+        self._children: List['Node'] = children
         self._parent: 'ParentNode' = parent
         self._depth = 0
 
@@ -35,7 +35,7 @@ class Node:
     def parent(self, parent: 'ParentNode'):
         self._parent = parent
 
-    def add_children(self, children: list['Node']):
+    def add_children(self, children: List['Node']):
         for child in children:
             child._depth = self._depth + 1
             self._children.append(child)
@@ -49,7 +49,7 @@ class Node:
         return self._depth
 
     @property
-    def children(self) -> list['Node']:
+    def children(self) -> List['Node']:
         return self._children
 
     def __str__(self) -> str:

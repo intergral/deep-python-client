@@ -11,6 +11,7 @@
 #      GNU Affero General Public License for more details.
 
 import abc
+from typing import Dict
 
 from deep import logging
 from deep.api.tracepoint import StackFrame, WatchResult, Variable, VariableId
@@ -26,13 +27,13 @@ class FrameCollector(Collector):
     """
 
     def __init__(self, frame, config):
-        self._var_cache: dict[str, str] = {}
+        self._var_cache: Dict[str, str] = {}
         self._config = config
         self._has_time_exceeded = False
         self._ts = time_ns()
         self._frame_config = FrameProcessorConfig()
         self._frame = frame
-        self._var_lookup: dict[str, Variable] = {}
+        self._var_lookup: Dict[str, Variable] = {}
         self._var_id = 0
 
     @property

@@ -11,7 +11,7 @@
 #      GNU Affero General Public License for more details.
 
 import os
-from typing import Any
+from typing import Any, List, Dict
 
 from deep import logging
 from deep.api.plugin import Plugin
@@ -24,13 +24,13 @@ class ConfigService:
     This is the main service that handles config for DEEP.
     """
 
-    def __init__(self, custom: dict[str, any]):
+    def __init__(self, custom: Dict[str, any]):
         """
         Create a new config object
         :param custom: any custom values that are passed to DEEP
         """
         self._plugins = []
-        self.custom = custom
+        self.__custom = custom
         self._resource = None
         self._tracepoint_config = TracepointConfigService()
 
@@ -47,8 +47,8 @@ class ConfigService:
         except AttributeError:
             # if we get here then we are not an attribute on 'self'
             # so look in the custom map
-            if self.custom is not None and name in self.custom:
-                attr = self.custom[name]
+            if self.__custom is not None and name in self.__custom:
+                attr = self.__custom[name]
 
             # if not in custom then load from 'deep.config'
             if attr is None:
@@ -87,7 +87,7 @@ class ConfigService:
         self._resource = new_resource
 
     @property
-    def plugins(self) -> list[Plugin]:
+    def plugins(self) -> List[Plugin]:
         return self._plugins
 
     @plugins.setter

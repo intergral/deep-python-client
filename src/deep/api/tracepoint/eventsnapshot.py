@@ -11,6 +11,7 @@
 #      GNU Affero General Public License for more details.
 
 import random
+from typing import List, Dict
 
 from deep.api.attributes import BoundedAttributes
 from deep.api.resource import Resource
@@ -22,10 +23,10 @@ class EventSnapshot:
     This is the model for the snapshot that is uploaded to the services
     """
 
-    def __init__(self, tracepoint, ts, resource, frames, var_lookup: dict[str, 'Variable']):
+    def __init__(self, tracepoint, ts, resource, frames, var_lookup: Dict[str, 'Variable']):
         self._id = random.getrandbits(128)
         self._tracepoint = tracepoint
-        self._var_lookup: dict[str, 'Variable'] = var_lookup
+        self._var_lookup: Dict[str, 'Variable'] = var_lookup
         self._ts_nanos = ts
         self._frames = frames
         self._watches = []
@@ -201,7 +202,7 @@ class Variable:
         return self._hash
 
     @property
-    def children(self) -> list['VariableId']:
+    def children(self) -> List['VariableId']:
         return self._children
 
     @property

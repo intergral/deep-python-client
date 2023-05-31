@@ -11,6 +11,7 @@
 #      GNU Affero General Public License for more details.
 
 import abc
+from typing import List
 
 from deep import logging
 from deep.api.tracepoint import VariableId, Variable
@@ -93,7 +94,7 @@ class VariableResponse:
         return self.__process_children
 
 
-def var_modifiers(var_name: str) -> list[str]:
+def var_modifiers(var_name: str) -> List[str]:
     """
     Python does not have true access modifiers. The convention is to use leading underscores, one for
     protected, two for private.
@@ -185,7 +186,7 @@ def process_child_nodes(
         variable_id: str,
         var_value: any,
         frame_depth: int
-) -> list[Node]:
+) -> List[Node]:
     """
     Processing the children how we get the list of new variables to process. The method changes depending on
     the type we are processing.
