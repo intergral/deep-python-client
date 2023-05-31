@@ -20,7 +20,7 @@ from deep.processor.variable_processor import var_modifiers, variable_to_string,
     truncate_string, process_child_nodes
 
 
-class TestVariable(Variable):
+class MockVariable(Variable):
     """
     We do not want to test the hash as this is the memory address so hard to verify in the tests
     """
@@ -37,13 +37,13 @@ class TestVariable(Variable):
             and o._children == self._children and o._truncated == self._truncated
 
 
-class TestNode(Node):
+class MockNode(Node):
 
     def __eq__(self, o: object) -> bool:
         return o.value == self.value
 
 
-class TestNodeValue(NodeValue):
+class MockNodeValue(NodeValue):
 
     def __eq__(self, o: object) -> bool:
         return o.name == self.name and o.value == self.value
@@ -101,32 +101,32 @@ class TestVariableProcessor(unittest.TestCase):
         ["list", ["one", 2], "Size: 2"],
         ["set", {"one", 2}, "Size: 2"],
         ["frozen", frozenset({"one", 2}), "Size: 2"],
-        ["list_iter", iter(["one", 2]), "Object of type: <class 'list_iterator'>"],
-        ["list_reverse_iter", reversed([1, 2, 3]), "Object of type: <class 'list_reverseiterator'>"]
+        ["list_iter", iter(["one", 2]), "Iterator of type: <class 'list_iterator'>"],
+        ["list_reverse_iter", reversed([1, 2, 3]), "Iterator of type: <class 'list_reverseiterator'>"]
     ])
     def test_variable_to_string(self, name, _input, expected):
         self.assertEqual(variable_to_string(type(_input), _input), expected)
 
     @parameterized.expand([
         ["string", "some string", VariableId('1', "string"), True,
-         TestVariable('str', "some string", "139916521692464", [], False)],
-        ["int", 123, VariableId('1', "int"), True, TestVariable('int', "123", "", [], False)],
+         MockVariable('str', "some string", "139916521692464", [], False)],
+        ["int", 123, VariableId('1', "int"), True, MockVariable('int', "123", "", [], False)],
 
-        ["float", 1.23, VariableId('1', "float"), True, TestVariable('float', "1.23", "", [], False)],
-        ["bool", True, VariableId('1', "bool"), True, TestVariable('bool', "True", "", [], False)],
-        ["tuple", ("one", 2), VariableId('1', "tuple"), True, TestVariable('tuple', "Size: 2", "", [], False)],
-        ["list", ["one", 2], VariableId('1', "list"), True, TestVariable('list', "Size: 2", "", [], False)],
-        ["set", {"one", 2}, VariableId('1', "set"), True, TestVariable('set', "Size: 2", "", [], False)],
+        ["float", 1.23, VariableId('1', "float"), True, MockVariable('float', "1.23", "", [], False)],
+        ["bool", True, VariableId('1', "bool"), True, MockVariable('bool', "True", "", [], False)],
+        ["tuple", ("one", 2), VariableId('1', "tuple"), True, MockVariable('tuple', "Size: 2", "", [], False)],
+        ["list", ["one", 2], VariableId('1', "list"), True, MockVariable('list', "Size: 2", "", [], False)],
+        ["set", {"one", 2}, VariableId('1', "set"), True, MockVariable('set', "Size: 2", "", [], False)],
         ["frozen", frozenset({"one", 2}), VariableId('1', "frozen"), True,
-         TestVariable('frozenset', "Size: 2", "", [], False)],
+         MockVariable('frozenset', "Size: 2", "", [], False)],
         ["list_iter", iter(["one", 2]), VariableId('1', "list_iter"), True,
-         TestVariable('list_iterator', "Object of type: <class 'list_iterator'>", "", [], False)],
+         MockVariable('list_iterator', "Iterator of type: <class 'list_iterator'>", "", [], False)],
         ["list_reverse_iter", reversed([1, 2, 3]), VariableId('1', "list_reverse_iter"), True,
-         TestVariable('list_reverseiterator', "Object of type: <class 'list_reverseiterator'>", "", [], False)],
+         MockVariable('list_reverseiterator', "Iterator of type: <class 'list_reverseiterator'>", "", [], False)],
     ])
     def test_process_variable(self, name, _input, expected_var_id: VariableId, expected_process_children, expected_var):
         collector = MockCollector()
-        variable_response = process_variable(collector, name, _input)
+        variable_response = process_variable(collector, NodeValue(name, _input))
         self.assertEqual(variable_response.variable_id, expected_var_id)
         self.assertEqual(variable_response.process_children, expected_process_children)
         self.assertEqual(collector.var_lookup[expected_var_id.vid], expected_var)
@@ -145,12 +145,12 @@ class TestVariableProcessor(unittest.TestCase):
         ["float", 1.23, 0, []],
         ["bool", False, 0, []],
         ["tuple", ("some", "val"), 0,
-         [TestNode(value=TestNodeValue(name="0", value="some")), TestNode(value=TestNodeValue(name="1", value="val"))]],
+         [MockNode(value=MockNodeValue(name="0", value="some")), MockNode(value=MockNodeValue(name="1", value="val"))]],
         ["list", ["some", "val"], 0,
-         [TestNode(value=TestNodeValue(name="0", value="some")), TestNode(value=TestNodeValue(name="1", value="val"))]],
-        ["set", {"some"}, 0, [TestNode(value=TestNodeValue(name="0", value="some"))]],
-        ["frozen", frozenset({"some"}), 0, [TestNode(value=TestNodeValue(name="0", value="some"))]],
-        ["dict", {"some": "val"}, 0, [TestNode(value=TestNodeValue(name="some", value="val"))]],
+         [MockNode(value=MockNodeValue(name="0", value="some")), MockNode(value=MockNodeValue(name="1", value="val"))]],
+        ["set", {"some"}, 0, [MockNode(value=MockNodeValue(name="0", value="some"))]],
+        ["frozen", frozenset({"some"}), 0, [MockNode(value=MockNodeValue(name="0", value="some"))]],
+        ["dict", {"some": "val"}, 0, [MockNode(value=MockNodeValue(name="some", value="val"))]],
         [3, "some string", 6, []],
     ])
     def test_process_child_nodes(self, name, in_var, in_depth, expected):

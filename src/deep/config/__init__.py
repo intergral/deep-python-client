@@ -39,7 +39,7 @@ def IN_APP_INCLUDE():
     """The packages to mark as in app packages. (default: ''). Must be a command (,) seperated list."""
     user_defined = os.getenv('DEEP_IN_APP_INCLUDE', None)
     if user_defined is None:
-        user_defined = []
+        return []
     if ',' in user_defined:
         return user_defined.split(',')
     return [user_defined]

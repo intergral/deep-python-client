@@ -49,7 +49,7 @@ def covert_nav(new_nav):
     return as_list
 
 
-def update_name(project_root, new_nav):
+def update_nav(project_root, new_nav):
     loaded = None
     with open("%s/mkdocs.yml" % project_root, 'r') as mkdocs:
         read = mkdocs.read()
@@ -58,7 +58,7 @@ def update_name(project_root, new_nav):
         print("Cannot load mkdocs.yml")
         exit()
     loaded['nav'].append({'apidocs': covert_nav(new_nav)})
-    with open("%s/mkdocs.yml" % project_root, 'w') as mkdocs:
+    with open("%s/mkdocs-mod.yml" % project_root, 'w') as mkdocs:
         yaml.dump(loaded, mkdocs)
 
 
@@ -92,4 +92,4 @@ if __name__ == '__main__':
         c_nav[end_part] = dest_file[len("%s/docs/" % project_root):]
 
     # dump_nav(nav)
-    update_name(project_root, nav)
+    update_nav(project_root, nav)

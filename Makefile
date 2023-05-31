@@ -43,4 +43,8 @@ rel-docker-test-app:
 .PHONY: docs
 docs:
 	python $(ROOT_DIR)/scripts/gendocs.py $(ROOT_DIR)
-	mkdocs build
+	mkdocs build --config-file=$(ROOT_DIR)/mkdocs-mod.yml
+
+.PHONY: clean
+clean:
+	rm -Rf _site docs/apidocs .pytest_cache test/.pytest_cache
