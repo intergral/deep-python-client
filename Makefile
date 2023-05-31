@@ -41,7 +41,7 @@ rel-agent: check-version check-python-vars
 
 	python -m build $(ROOT_DIR)
 
-	python -m twine -u $(TWINE_USER) -p $(TWINE_PASSWORD) upload $(ROOT_DIR)/dist/*
+	python -m twine upload -u $(TWINE_USER) -p $(TWINE_PASSWORD) $(ROOT_DIR)/dist/*
 
 .PHONY: rel-docker-test-app
 rel-docker-test-app:
