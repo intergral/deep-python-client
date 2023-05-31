@@ -25,14 +25,23 @@ lint:
 .PHONY: flake
 flake: lint
 
+.PHONY: check-python-vars
+check-python-vars:
+ifndef TWINE_USER
+	$(error TWINE_USER argument must be defined.)
+endif
+ifndef TWINE_PASSWORD
+	$(error TWINE_PASSWORD argument must be defined.)
+endif
+
 .PHONY: rel-agent
-rel-agent: check-version
+rel-agent: check-version check-python-vars
 	rm -Rf $(ROOT_DIR)/dist
 	sed -i "s/[0-9]*\.[0-9]*\.[0-9]*/$(VERSION)/" $(ROOT_DIR)/src/deep/version.py
 
 	python -m build $(ROOT_DIR)
 
-	python -m twine upload $(ROOT_DIR)/dist/*
+	python -m twine -u $(TWINE_USER) -p $(TWINE_PASSWORD) upload $(ROOT_DIR)/dist/*
 
 .PHONY: rel-docker-test-app
 rel-docker-test-app:
