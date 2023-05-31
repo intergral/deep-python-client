@@ -3,3 +3,4 @@ parameterized
 pytest
 mkdocs-material
 pdoc3
+mkdocstrings-python

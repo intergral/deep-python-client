@@ -1,22 +1,66 @@
-site_name: Deep Python Client Docs
-site_url: https://intergral.github.io/deep-python-client/
-
+copyright: Intergral GmbH 2023
+extra_css:
+- styles.css
+nav:
+- Home: index.md
+- Config: config/config.md
+- Auth:
+  - Providers: auth/providers.md
+- apidocs:
+  - deep:
+    - utils: apidocs/deep/utils.md
+    - version: apidocs/deep/version.md
+    - __init__: apidocs/deep/__init__.md
+    - config:
+      - config_service: apidocs/deep/config/config_service.md
+      - tracepoint_config: apidocs/deep/config/tracepoint_config.md
+      - __init__: apidocs/deep/config/__init__.md
+    - grpc:
+      - grpc_service: apidocs/deep/grpc/grpc_service.md
+      - __init__: apidocs/deep/grpc/__init__.md
+    - poll:
+      - poll: apidocs/deep/poll/poll.md
+      - __init__: apidocs/deep/poll/__init__.md
+    - push:
+      - push_service: apidocs/deep/push/push_service.md
+      - __init__: apidocs/deep/push/__init__.md
+    - task:
+      - __init__: apidocs/deep/task/__init__.md
+    - logging:
+      - __init__: apidocs/deep/logging/__init__.md
+    - api:
+      - types: apidocs/deep/api/types.md
+      - deep: apidocs/deep/api/deep.md
+      - __init__: apidocs/deep/api/__init__.md
+      - auth:
+        - __init__: apidocs/deep/api/auth/__init__.md
+      - tracepoint:
+        - eventsnapshot: apidocs/deep/api/tracepoint/eventsnapshot.md
+        - tracepoint_config: apidocs/deep/api/tracepoint/tracepoint_config.md
+        - __init__: apidocs/deep/api/tracepoint/__init__.md
+      - plugin:
+        - otel: apidocs/deep/api/plugin/otel.md
+        - python: apidocs/deep/api/plugin/python.md
+        - __init__: apidocs/deep/api/plugin/__init__.md
+      - resource:
+        - __init__: apidocs/deep/api/resource/__init__.md
+      - attributes:
+        - __init__: apidocs/deep/api/attributes/__init__.md
+    - processor:
+      - frame_config: apidocs/deep/processor/frame_config.md
+      - frame_collector: apidocs/deep/processor/frame_collector.md
+      - frame_processor: apidocs/deep/processor/frame_processor.md
+      - __init__: apidocs/deep/processor/__init__.md
+      - variable_processor: apidocs/deep/processor/variable_processor.md
+      - trigger_handler: apidocs/deep/processor/trigger_handler.md
+      - bfs:
+        - __init__: apidocs/deep/processor/bfs/__init__.md
+plugins:
+- mkdocstrings
 repo_name: Deep Python Client
 repo_url: https://github.com/intergral/deep-python-client
-
-copyright: Intergral GmbH 2023
-
+site_dir: _site
+site_name: Deep Python Client Docs
+site_url: https://intergral.github.io/deep-python-client/
 theme:
   name: material
-
-nav:
-  - Home: index.md
-  - Config: config/config.md
-  - Auth:
-      - Providers: auth/providers.md
-
-extra_css:
-  - 'styles.css'
-
-plugins:
-  - mkdocstrings

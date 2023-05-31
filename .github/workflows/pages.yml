@@ -27,8 +27,7 @@ jobs:
           restore-keys: |
             mkdocs-material-
       - run: pip install mkdocs-material mkdocstrings-python .
-      - run: python scripts/gendocs.py
-      - run: mkdocs build -d./_site
+      - run: make docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
 

@@ -39,3 +39,8 @@ rel-docker-test-app:
 	docker build -t ghcr.io/intergral/deep-python-client:simple-app $(ROOT_DIR)/examples/simple-app-docker
 
 	docker push ghcr.io/intergral/deep-python-client:simple-app
+
+.PHONY: docs
+docs:
+	python $(ROOT_DIR)/scripts/gendocs.py $(ROOT_DIR)
+	mkdocs build

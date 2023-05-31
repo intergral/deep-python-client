@@ -1,3 +1,5 @@
+# !/usr/env python3
+
 #       Copyright (C) 2023  Intergral GmbH
 #
 #      This program is free software: you can redistribute it and/or modify
@@ -16,11 +18,10 @@
 import glob
 import os
 import shutil
+import sys
 
 import yaml
 
-
-# !/usr/env python3
 
 def dump_nav(nav, depth=0):
     keys = []
@@ -63,7 +64,7 @@ def update_name(project_root, new_nav):
 
 if __name__ == '__main__':
     nav = {}
-    project_root = "/home/bdonnell/repo/github/intergral/deep-python-client/deep-python-client"
+    project_root = sys.argv[1]
     if os.path.exists("%s/docs/apidocs" % project_root):
         shutil.rmtree("%s/docs/apidocs" % project_root)
 
