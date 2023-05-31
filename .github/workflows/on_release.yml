@@ -26,5 +26,5 @@ jobs:
           pip install -r requirements.txt
           pip install -r dev-requirements.txt
 
-      - name: Generate Python Proto
-        run: make rel-python
+      - name: Release Agent
+        run: make rel-agent
