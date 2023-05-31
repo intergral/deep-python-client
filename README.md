@@ -27,3 +27,8 @@ There are a couple of examples [available here](./examples/README.md).
 ## Documentation
 
 For further documentation on the usage of deep-agent view the [docs](https://intergral.github.io/deep-python-client/).
+
+
+## Licensing
+
+For licensing info please see [LICENSING.md](./LICENSING.md)
