@@ -46,7 +46,8 @@ def covert_nav(new_nav):
             as_list.append({k: nav})
         else:
             as_list.append({k: val})
-    return as_list
+    # sort the nav alphabetically (each list item is a single element dict, so use first key to sort)
+    return sorted(as_list, key=lambda x: list(x.keys())[0])
 
 
 def update_nav(project_root, new_nav):
