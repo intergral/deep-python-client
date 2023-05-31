@@ -4,3 +4,5 @@ pytest
 mkdocs-material
 pdoc3
 mkdocstrings-python
+build
+twine
