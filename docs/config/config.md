@@ -1,4 +1,4 @@
-# Deep Python Agent config values
+# Deep Python Client config values
 
 A list of the possible config values for the deep python agent. They can be set via code, or as environment variables.
 

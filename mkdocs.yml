@@ -11,6 +11,13 @@ copyright: Intergral GmbH 2023
 extra_css:
   - styles.css
 
+theme:
+  logo: https://github.com/intergral/deep/blob/master/docs/docs/images/logo/icon.png?raw=true
+  favicon: https://github.com/intergral/deep/blob/master/docs/docs/images/logo/icon.svg?raw=true
+  name: material
+  features:
+    - content.code.copy
+
 nav:
   - Home: index.md
   - Config: config/config.md
@@ -20,5 +27,12 @@ nav:
 plugins:
   - mkdocstrings
 
-theme:
-  name: material
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
