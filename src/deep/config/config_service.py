@@ -56,7 +56,7 @@ class ConfigService:
                 has_attr = hasattr(config, name)
                 if not has_attr:
                     # attribute is no in 'deep.config', so look in env
-                    from_env = os.getenv(name, None)
+                    from_env = os.getenv("DEEP_%s" % name, None)
                     if from_env is None:
                         # not found in env - log and return none
                         logging.warning("Unrecognised config key: %s", name)
