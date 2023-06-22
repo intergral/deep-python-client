@@ -25,6 +25,6 @@ class TestConfigService(unittest.TestCase):
         self.assertEqual(service.SOME_VALUE, 'thing')
 
     def test_env_attr(self):
-        items_ = os.environ.get('PATH')
+        items_ = os.environ.setdefault("DEEP_PATH", "a thing")
         service = ConfigService({})
         self.assertEqual(service.PATH, items_)
