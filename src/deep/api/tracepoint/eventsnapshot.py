@@ -11,7 +11,7 @@
 #      GNU Affero General Public License for more details.
 
 import random
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from deep.api.attributes import BoundedAttributes
 from deep.api.resource import Resource
@@ -34,6 +34,7 @@ class EventSnapshot:
         self._duration_nanos = 0
         self._resource = Resource.get_empty().merge(resource)
         self._open = True
+        self._log = None
 
     def complete(self):
         if not self._open:
@@ -44,10 +45,13 @@ class EventSnapshot:
     def is_open(self):
         return self._open
 
-    def add_watch_result(self, watch_result, watch_lookup):
+    def add_watch_result(self, watch_result: 'WatchResult'):
         if self.is_open():
             self.watches.append(watch_result)
-            self._var_lookup.update(watch_lookup)
+
+    def merge_var_lookup(self, lookup: Dict[str, 'Variable']):
+        if self.is_open():
+            self._var_lookup.update(lookup)
 
     @property
     def id(self):
@@ -84,6 +88,14 @@ class EventSnapshot:
     @property
     def resource(self):
         return self._resource
+
+    @property
+    def log_msg(self):
+        return self._log
+
+    @log_msg.setter
+    def log_msg(self, msg):
+        self._log = msg
 
     def __str__(self) -> str:
         return str(self.__dict__)
@@ -272,22 +284,22 @@ class WatchResult:
     """
 
     def __init__(self,
-                 expression,
-                 result,
-                 error=None
+                 expression: str,
+                 result: Optional[VariableId],
+                 error: Optional[str] = None
                  ):
         self._expression = expression
         self._result = result
         self._error = error
 
     @property
-    def expression(self):
+    def expression(self) -> str:
         return self._expression
 
     @property
-    def result(self):
+    def result(self) -> Optional[VariableId]:
         return self._result
 
     @property
-    def error(self):
+    def error(self) -> Optional[str]:
         return self._error

@@ -14,6 +14,7 @@ from typing import List
 from deep import logging
 from deep.api.attributes import BoundedAttributes
 from deep.api.tracepoint import TracePointConfig, EventSnapshot
+from deep.api.tracepoint.tracepoint_config import LOG_MSG
 from deep.config import ConfigService
 from deep.processor.frame_collector import FrameCollector
 
@@ -43,8 +44,19 @@ class FrameProcessor(FrameCollector):
             snapshot = EventSnapshot(tp, self._ts, self._config.resource, stack, variables)
             # process the snapshot watches
             for watch in tp.watches:
-                result, watch_lookup = self.eval_watch(watch)
-                snapshot.add_watch_result(result, watch_lookup)
+                result, watch_lookup, _ = self.eval_watch(watch)
+                snapshot.add_watch_result(result)
+                snapshot.merge_var_lookup(watch_lookup)
+
+            log_msg = tp.get_arg(LOG_MSG, None)
+            if log_msg is not None:
+                processed_log, watch_results, watch_lookup = self.process_log(tp, log_msg)
+                snapshot.log_msg = processed_log
+                for watch in watch_results:
+                    snapshot.add_watch_result(watch)
+                snapshot.merge_var_lookup(watch_lookup)
+                self.log_tracepoint(processed_log, tp.id, format(snapshot.id, "016x"))
+
             # process the snapshot attributes
             attributes = self.process_attributes(tp)
             snapshot.attributes.merge_in(attributes)

@@ -12,7 +12,9 @@
 
 from deep.api.plugin import load_plugins
 from deep.api.resource import Resource
+from deep.config import ConfigService
 from deep.grpc import GRPCService
+from deep.logging.tracepoint_logger import TracepointLogger
 from deep.poll import LongPoll
 from deep.processor import TriggerHandler
 from deep.push import PushService
@@ -25,7 +27,7 @@ class Deep:
     DEEP is so small there is no need for service injection work.
     """
 
-    def __init__(self, config):
+    def __init__(self, config: ConfigService):
         self.started = False
         self.config = config
         self.grpc = GRPCService(self.config)
@@ -51,3 +53,6 @@ class Deep:
             return
         self.task_handler.flush()
         self.started = False
+
+    def tracepoint_logger(self, logger: TracepointLogger):
+        self.config.tracepoint_logger = logger

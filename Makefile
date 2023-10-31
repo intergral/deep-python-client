@@ -45,9 +45,9 @@ rel-agent: check-version check-python-vars
 
 .PHONY: rel-docker-test-app
 rel-docker-test-app:
-	docker build -t ghcr.io/intergral/deep-python-client:simple-app $(ROOT_DIR)/examples/simple-app-docker
+	docker build -t intergral/deep-python:latest $(ROOT_DIR)/examples/simple-app-docker
 
-	docker push ghcr.io/intergral/deep-python-client:simple-app
+	docker push intergral/deep-python:latest
 
 .PHONY: docs
 docs:
