@@ -14,8 +14,11 @@
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import abc
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from deep.config import ConfigService
+
 from deep import logging
-from deep.config import ConfigService
 
 
 class TracepointLogger(abc.ABC):
@@ -25,7 +28,7 @@ class TracepointLogger(abc.ABC):
         pass
 
 class DefaultLogger(TracepointLogger):
-    def __init__(self, _config: ConfigService):
+    def __init__(self, _config: 'ConfigService'):
         self._config = _config
 
     def log_tracepoint(self, log_msg: str, tp_id: str, snap_id: str):

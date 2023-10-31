@@ -27,7 +27,7 @@ class Deep:
     DEEP is so small there is no need for service injection work.
     """
 
-    def __init__(self, config: ConfigService):
+    def __init__(self, config: 'ConfigService'):
         self.started = False
         self.config = config
         self.grpc = GRPCService(self.config)
@@ -54,5 +54,5 @@ class Deep:
         self.task_handler.flush()
         self.started = False
 
-    def tracepoint_logger(self, logger: TracepointLogger):
+    def tracepoint_logger(self, logger: 'TracepointLogger'):
         self.config.tracepoint_logger = logger

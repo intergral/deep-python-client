@@ -285,7 +285,7 @@ class WatchResult:
 
     def __init__(self,
                  expression: str,
-                 result: Optional[VariableId],
+                 result: Optional['VariableId'],
                  error: Optional[str] = None
                  ):
         self._expression = expression
@@ -297,7 +297,7 @@ class WatchResult:
         return self._expression
 
     @property
-    def result(self) -> Optional[VariableId]:
+    def result(self) -> Optional['VariableId']:
         return self._result
 
     @property

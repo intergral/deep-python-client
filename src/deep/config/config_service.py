@@ -34,7 +34,7 @@ class ConfigService:
         self.__custom = custom
         self._resource = None
         self._tracepoint_config = TracepointConfigService()
-        self._tracepoint_logger: TracepointLogger  = DefaultLogger(self)
+        self._tracepoint_logger: 'TracepointLogger'  = DefaultLogger(self)
 
     def __getattribute__(self, name: str) -> Any:
         """
@@ -97,18 +97,18 @@ class ConfigService:
         self._plugins = plugins
 
     @property
-    def tracepoints(self) -> TracepointConfigService:
+    def tracepoints(self) -> 'TracepointConfigService':
         return self._tracepoint_config
 
     def add_listener(self, listener):
         self._tracepoint_config.add_listener(listener)
 
     @property
-    def tracepoint_logger(self):
+    def tracepoint_logger(self) -> 'TracepointLogger':
         return self._tracepoint_logger
 
     @tracepoint_logger.setter
-    def tracepoint_logger(self, logger: TracepointLogger):
+    def tracepoint_logger(self, logger: 'TracepointLogger'):
         self._tracepoint_logger = logger
 
     def log_tracepoint(self, log_msg: str, tp_id: str, snap_id: str):
