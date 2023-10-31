@@ -27,6 +27,7 @@ class TracepointLogger(abc.ABC):
     def log_tracepoint(self, log_msg: str, tp_id: str, snap_id: str):
         pass
 
+
 class DefaultLogger(TracepointLogger):
     def __init__(self, _config: 'ConfigService'):
         self._config = _config

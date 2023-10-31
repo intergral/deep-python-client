@@ -26,8 +26,10 @@ class TestLogMessages(unittest.TestCase):
         ["some log message", "[deep] some log message", {}, []],
         ["some log message: {name}", "[deep] some log message: bob", {'name': 'bob'}, ['bob']],
         ["some log message: {len(name)}", "[deep] some log message: 3", {'name': 'bob'}, ['3']],
-        ["some log message: {person}", "[deep] some log message: {'name': 'bob'}", {'person': {'name': 'bob'}}, ["Size: 1"]],
-        ["some log message: {person.name}", "[deep] some log message: 'dict' object has no attribute 'name'", {'person': {'name': 'bob'}}, ["'dict' object has no attribute 'name'"]],
+        ["some log message: {person}", "[deep] some log message: {'name': 'bob'}",
+         {'person': {'name': 'bob'}}, ["Size: 1"]],
+        ["some log message: {person.name}", "[deep] some log message: 'dict' object has no attribute 'name'",
+         {'person': {'name': 'bob'}}, ["'dict' object has no attribute 'name'"]],
         ["some log message: {person['name']}", "[deep] some log message: bob", {'person': {'name': 'bob'}}, ["bob"]],
     ])
     def test_simple_log_interpolation(self, log_msg, expected_msg, _locals, expected_watches):

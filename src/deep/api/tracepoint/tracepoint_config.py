@@ -52,6 +52,7 @@ NO_STACK = 'no_stack'
 LOG_MSG = 'log_msg'
 """The log message to interpolate at position of tracepoint"""
 
+
 def frame_type_ordinal(frame_type) -> int:
     """
     Convert a frame type to an ordinal (essentially making it an enum). This is useful for ordering.

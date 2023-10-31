@@ -34,7 +34,7 @@ class ConfigService:
         self.__custom = custom
         self._resource = None
         self._tracepoint_config = TracepointConfigService()
-        self._tracepoint_logger: 'TracepointLogger'  = DefaultLogger(self)
+        self._tracepoint_logger: 'TracepointLogger' = DefaultLogger(self)
 
     def __getattribute__(self, name: str) -> Any:
         """
@@ -113,4 +113,3 @@ class ConfigService:
 
     def log_tracepoint(self, log_msg: str, tp_id: str, snap_id: str):
         self._tracepoint_logger.log_tracepoint(log_msg, tp_id, snap_id)
-

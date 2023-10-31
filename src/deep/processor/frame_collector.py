@@ -55,6 +55,7 @@ class FrameCollector(Collector):
         frame_col = self
         watch_results = []
         _var_lookup = {}
+
         class FormatDict(dict):
             """This type is used in the log process to ensure that missing values are formatted don't error"""
 
@@ -64,7 +65,8 @@ class FrameCollector(Collector):
         import string
 
         class FormatExtractor(string.Formatter):
-            """This type allows us to use watches within log strings and collect the watch as well as interpolate the values"""
+            """This type allows us to use watches within log strings and collect the watch
+            as well as interpolate the values"""
 
             def get_field(self, field_name, args, kwargs):
                 # evaluate watch
@@ -210,7 +212,8 @@ class FrameCollector(Collector):
             return False
         return True
 
-    def process_watch_result_breadth_first(self, watch: str, result: any) -> Tuple[VariableId, Dict[str, Variable], str]:
+    def process_watch_result_breadth_first(self, watch: str, result: any) -> (
+            Tuple)[VariableId, Dict[str, Variable], str]:
 
         identity_hash_id = str(id(result))
         check_id = self.check_id(identity_hash_id)
