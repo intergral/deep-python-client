@@ -263,7 +263,7 @@ class VariableId:
         return self.__str__()
 
     def __eq__(self, o) -> bool:
-        if type(o) != VariableId:
+        if not isinstance(o, VariableId):
             return False
 
         if id(o) == id(self):
