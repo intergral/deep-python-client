@@ -113,7 +113,7 @@ class FrameCollector(Collector):
             if filename.starstwith(path):
                 return True
 
-        return True
+        return False
 
     def process_frame_variables_breadth_first(self, f_locals):
         """
