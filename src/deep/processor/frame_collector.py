@@ -114,7 +114,7 @@ class FrameCollector(Collector):
             if filename.startswith(path):
                 return True, path
 
-        return True, None
+        return False, None
 
     def process_frame_variables_breadth_first(self, f_locals):
         """

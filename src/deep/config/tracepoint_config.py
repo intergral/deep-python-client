@@ -12,12 +12,17 @@
 
 import abc
 import logging
+import uuid
+from typing import Dict, List
+
+from deep.api.tracepoint import TracePointConfig
 
 
 class TracepointConfigService:
     """This service deals with new responses from the LongPoll"""
 
     def __init__(self) -> None:
+        self._custom = []
         self._tracepoint_config = []
         self._current_hash = None
         self._last_update = 0
@@ -43,6 +48,10 @@ class TracepointConfigService:
         self._last_update = ts
         self._current_hash = new_hash
         self._tracepoint_config = new_config
+        self.trigger_update(old_hash, old_config)
+
+    def trigger_update(self, old_hash, old_config):
+        ts = self._last_update
         if self._task_handler is not None:
             future = self._task_handler.submit_task(self.update_listeners, self._last_update, old_hash,
                                                     self._current_hash, old_config, self._tracepoint_config)
@@ -57,7 +66,7 @@ class TracepointConfigService:
         listeners_copy = self._listeners.copy()
         for listeners in listeners_copy:
             try:
-                listeners.config_change(ts, old_hash, current_hash, old_config, new_config)
+                listeners.config_change(ts, old_hash, current_hash, old_config, new_config + self._custom)
             except Exception:
                 logging.exception("Error updating listener %s", listeners)
 
@@ -72,6 +81,18 @@ class TracepointConfigService:
     @property
     def current_hash(self):
         return self._current_hash
+
+    def add_custom(self, path: str, line: int, args: Dict[str, str], watches: List[str]) -> TracePointConfig:
+        config = TracePointConfig(str(uuid.uuid4()), path, line, args, watches)
+        self._custom.append(config)
+        self.trigger_update(None, None)
+        return config
+
+    def remove_custom(self, config: TracePointConfig):
+        for idx, cfg in enumerate(self._custom):
+            if cfg.id == config.id:
+                del self._custom[idx]
+                return
 
 
 class ConfigUpdateListener(abc.ABC):
