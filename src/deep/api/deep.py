@@ -78,4 +78,3 @@ class TracepointRegistration:
 
     def unregister(self):
         self._tpServ.remove_custom(self._cfg)
-

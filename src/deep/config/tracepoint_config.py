@@ -50,7 +50,6 @@ class TracepointConfigService:
         self._tracepoint_config = new_config
         self.trigger_update(old_hash, old_config)
 
-
     def trigger_update(self, old_hash, old_config):
         ts = self._last_update
         if self._task_handler is not None:
