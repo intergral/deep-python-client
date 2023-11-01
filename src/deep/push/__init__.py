@@ -34,9 +34,10 @@ def convert_tracepoint(tracepoint: TrPoCo):
 
 
 def convert_frame(frame: StFr):
-    return StackFrame(file_name=frame.file_name, method_name=frame.method_name, line_number=frame.line_number,
-                      class_name=frame.class_name, is_async=frame.is_async, column_number=frame.column_number,
-                      variables=[convert_variable_id(v) for v in frame.variables], app_frame=frame.app_frame,
+    return StackFrame(file_name=frame.file_name, short_path=frame.short_path, method_name=frame.method_name,
+                      line_number=frame.line_number, class_name=frame.class_name, is_async=frame.is_async,
+                      column_number=frame.column_number, variables=[convert_variable_id(v) for v in frame.variables],
+                      app_frame=frame.app_frame,
                       transpiled_file_name=frame.transpiled_file_name,
                       transpiled_line_number=frame.transpiled_line_number,
                       transpiled_column_number=frame.transpiled_column_number,
