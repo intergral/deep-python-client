@@ -27,7 +27,7 @@ class MockVariable(Variable):
 
     def __eq__(self, o: object) -> bool:
 
-        if type(o) != Variable:
+        if not isinstance(o, Variable):
             return False
 
         if id(o) == id(self):
@@ -40,12 +40,14 @@ class MockVariable(Variable):
 class MockNode(Node):
 
     def __eq__(self, o: object) -> bool:
+        # noinspection PyUnresolvedReferences
         return o.value == self.value
 
 
 class MockNodeValue(NodeValue):
 
     def __eq__(self, o: object) -> bool:
+        # noinspection PyUnresolvedReferences
         return o.name == self.name and o.value == self.value
 
 
