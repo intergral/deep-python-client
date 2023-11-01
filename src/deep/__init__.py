@@ -9,6 +9,8 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+import inspect
+import os
 
 from deep import logging, version
 from deep.api import Deep
@@ -22,6 +24,12 @@ def start(config=None):
     """
     if config is None:
         config = {}
+
+    # we use the app root to shorten file paths for display
+    if 'APP_ROOT' not in config:
+        # if app root is not set then we use the folder in which the code that called us is in as the app root
+        config['APP_ROOT'] = os.getenv("DEEP_APP_ROOT", None) or os.path.dirname(
+            os.path.dirname(inspect.stack()[1].filename))
 
     from deep.config.config_service import ConfigService
     cfg = ConfigService(config)

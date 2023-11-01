@@ -114,6 +114,9 @@ class FrameCollector(Collector):
             if filename.startswith(path):
                 return True, path
 
+        if filename.startswith(self._config.APP_ROOT):
+            return True, self._config.APP_ROOT
+
         return False, None
 
     def process_frame_variables_breadth_first(self, f_locals):
