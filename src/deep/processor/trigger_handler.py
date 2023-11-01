@@ -60,6 +60,10 @@ class TriggerHandler:
         self._config.add_listener(TracepointHandlerUpdateListener(self))
 
     def start(self):
+        # if we call settrace we cannot use debugger,
+        # so we allow the settrace to be disabled, so we can at least debug around it
+        if self._config.NO_TRACE:
+            return
         sys.settrace(self.trace_call)
         threading.settrace(self.trace_call)
 

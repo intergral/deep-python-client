@@ -9,10 +9,13 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+from typing import Dict, List
 
 from deep.api.plugin import load_plugins
 from deep.api.resource import Resource
+from deep.api.tracepoint import TracePointConfig
 from deep.config import ConfigService
+from deep.config.tracepoint_config import TracepointConfigService
 from deep.grpc import GRPCService
 from deep.logging.tracepoint_logger import TracepointLogger
 from deep.poll import LongPoll
@@ -53,6 +56,29 @@ class Deep:
             return
         self.task_handler.flush()
         self.started = False
+    def register_tracepoint(self, path: str, line: int, args: Dict[str, str] = None,
+                            watches: List[str] = None) -> 'TracepointRegistration':
+        if watches is None:
+            watches = []
+        if args is None:
+            args = {}
+        tp_config = self.config.tracepoints.add_custom(path, line, args, watches)
+        return TracepointRegistration(tp_config, self.config.tracepoints)
+
+
+class TracepointRegistration:
+    _cfg: TracePointConfig
+    _tpServ: TracepointConfigService
+
+    def __init__(self, cfg: TracePointConfig, tracepoints: TracepointConfigService):
+        self._cfg = cfg
+        self._tpServ = tracepoints
+
+    def get(self) -> TracePointConfig:
+        return self._cfg
+
+    def unregister(self):
+        self._tpServ.remove_custom(self._cfg)
 
     def tracepoint_logger(self, logger: 'TracepointLogger'):
         self.config.tracepoint_logger = logger

@@ -111,6 +111,7 @@ class StackFrame:
 
     def __init__(self,
                  file_name,
+                 short_path,
                  method_name,
                  line_number,
                  variables,
@@ -123,6 +124,7 @@ class StackFrame:
                  app_frame=False
                  ):
         self._file_name = file_name
+        self._short_path = short_path
         self._method_name = method_name
         self._line_number = line_number
         self._class_name = class_name
@@ -137,6 +139,10 @@ class StackFrame:
     @property
     def file_name(self):
         return self._file_name
+
+    @property
+    def short_path(self):
+        return self._short_path
 
     @property
     def method_name(self):

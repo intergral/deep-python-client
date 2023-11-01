@@ -11,7 +11,7 @@
 #      GNU Affero General Public License for more details.
 
 import abc
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Optional
 
 from deep import logging
 from deep.api.tracepoint import StackFrame, WatchResult, Variable, VariableId
@@ -134,8 +134,9 @@ class FrameCollector(Collector):
         # only process vars if we are under the time limit
         if process_vars and not self.time_exceeded():
             var_ids = self.process_frame_variables_breadth_first(f_locals)
-
-        return StackFrame(filename, func_name, lineno, var_ids, class_name, app_frame=self.is_app_frame(filename))
+        short_path, app_frame = self.parse_short_name(filename)
+        return StackFrame(filename, short_path, func_name, lineno, var_ids, class_name,
+                          app_frame=app_frame)
 
     def time_exceeded(self):
         if self._has_time_exceeded:
@@ -145,19 +146,22 @@ class FrameCollector(Collector):
         self._has_time_exceeded = duration > self._frame_config.max_tp_process_time
         return self._has_time_exceeded
 
-    def is_app_frame(self, filename):
+    def is_app_frame(self, filename: str) -> Tuple[bool, Optional[str]]:
         in_app_include = self._config.IN_APP_INCLUDE
         in_app_exclude = self._config.IN_APP_EXCLUDE
 
         for path in in_app_exclude:
             if filename.startswith(path):
-                return False
+                return False, path
 
         for path in in_app_include:
-            if filename.starstwith(path):
-                return True
+            if filename.startswith(path):
+                return True, path
 
-        return True
+        if filename.startswith(self._config.APP_ROOT):
+            return True, self._config.APP_ROOT
+
+        return False, None
 
     def process_frame_variables_breadth_first(self, f_locals):
         """
@@ -257,3 +261,9 @@ class FrameCollector(Collector):
 
     def append_variable(self, var_id, variable):
         self._var_lookup[var_id] = variable
+
+    def parse_short_name(self, filename) -> Tuple[str, bool]:
+        is_app_frame, match = self.is_app_frame(filename)
+        if match is not None:
+            return filename[len(match):], is_app_frame
+        return filename, is_app_frame
