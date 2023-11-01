@@ -11,7 +11,7 @@
 #      GNU Affero General Public License for more details.
 
 import abc
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 
 from deep import logging
 from deep.api.tracepoint import StackFrame, WatchResult, Variable, VariableId
@@ -102,7 +102,7 @@ class FrameCollector(Collector):
         self._has_time_exceeded = duration > self._frame_config.max_tp_process_time
         return self._has_time_exceeded
 
-    def is_app_frame(self, filename: str) -> Tuple[bool, str | None]:
+    def is_app_frame(self, filename: str) -> Tuple[bool, Optional[str]]:
         in_app_include = self._config.IN_APP_INCLUDE
         in_app_exclude = self._config.IN_APP_EXCLUDE
 
@@ -117,7 +117,7 @@ class FrameCollector(Collector):
         if filename.startswith(self._config.APP_ROOT):
             return True, self._config.APP_ROOT
 
-        return True, None
+        return False, None
 
     def process_frame_variables_breadth_first(self, f_locals):
         """
