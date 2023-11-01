@@ -9,3 +9,9 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+
+class MockFrame:
+    def __init__(self, _locals=None):
+        if _locals is None:
+            _locals = {}
+        self.f_locals = _locals

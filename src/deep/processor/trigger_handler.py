@@ -15,8 +15,10 @@ import os
 import sys
 import threading
 
+from deep.config import ConfigService
 from deep.config.tracepoint_config import ConfigUpdateListener
 from deep.processor.frame_processor import FrameProcessor
+from deep.push import PushService
 
 
 def add_or_get(target, key, default_value):
@@ -51,7 +53,7 @@ class TriggerHandler:
     should collect data.
     """
 
-    def __init__(self, config, push_service):
+    def __init__(self, config: ConfigService, push_service: PushService):
         self._push_service = push_service
         self._tp_config = []
         self._config = config

@@ -11,7 +11,7 @@
 #      GNU Affero General Public License for more details.
 
 import abc
-from typing import Dict, Tuple, Optional
+from typing import Dict, Tuple, List, Optional
 
 from deep import logging
 from deep.api.tracepoint import StackFrame, WatchResult, Variable, VariableId
@@ -19,6 +19,7 @@ from deep.processor.bfs import Node, NodeValue, breadth_first_search, ParentNode
 from deep.utils import time_ns
 from .frame_config import FrameProcessorConfig
 from .variable_processor import process_variable, process_child_nodes, variable_to_string, truncate_string, Collector
+from ..config import ConfigService
 
 
 class FrameCollector(Collector):
@@ -26,7 +27,7 @@ class FrameCollector(Collector):
     This deals with collecting data from the paused frames.
     """
 
-    def __init__(self, frame, config):
+    def __init__(self, frame, config: ConfigService):
         self._var_cache: Dict[str, str] = {}
         self._config = config
         self._has_time_exceeded = False
@@ -47,17 +48,56 @@ class FrameCollector(Collector):
     def add_child_to_lookup(self, parent_id: str, child: VariableId):
         self._var_lookup[parent_id].children.append(child)
 
-    def eval_watch(self, watch):
+    def log_tracepoint(self, log_msg: str, tp_id: str, snap_id: str):
+        self._config.log_tracepoint(log_msg, tp_id, snap_id)
+
+    def process_log(self, tp, log_msg) -> Tuple[str, List[WatchResult], Dict[str, Variable]]:
+        frame_col = self
+        watch_results = []
+        _var_lookup = {}
+
+        class FormatDict(dict):
+            """This type is used in the log process to ensure that missing values are formatted don't error"""
+
+            def __missing__(self, key):
+                return "{%s}" % key
+
+        import string
+
+        class FormatExtractor(string.Formatter):
+            """This type allows us to use watches within log strings and collect the watch
+            as well as interpolate the values"""
+
+            def get_field(self, field_name, args, kwargs):
+                # evaluate watch
+                watch, var_lookup, log_str = frame_col.eval_watch(field_name)
+                # collect data
+                watch_results.append(watch)
+                _var_lookup.update(var_lookup)
+
+                return log_str, field_name
+
+        log_msg = "[deep] %s" % FormatExtractor().vformat(log_msg, (), FormatDict(self._frame.f_locals))
+        return log_msg, watch_results, _var_lookup
+
+    def eval_watch(self, watch: str) -> Tuple[WatchResult, Dict[str, Variable], str]:
+        """
+        Evaluate an expression in the current frame.
+        :param watch: The watch expression to evaluate.
+        :return: Tuple with WatchResult, collected variables, and the log string for the expression
+        """
         # reset var lookup - var cache is still used to reduce duplicates
         self._var_lookup = {}
 
         try:
             result = eval(watch, None, self._frame.f_locals)
-            watch_var, var_lookup = self.process_watch_result_breadth_first(watch, result)
-            return WatchResult(watch, watch_var), var_lookup
+            watch_var, var_lookup, log_str = self.process_watch_result_breadth_first(watch, result)
+            # again we reset the local version of the var lookup.
+            self._var_lookup = {}
+            return WatchResult(watch, watch_var), var_lookup, log_str
         except BaseException as e:
             logging.exception("Error evaluating watch %s", watch)
-            return WatchResult(watch, None, str(e)), {}
+            return WatchResult(watch, None, str(e)), {}, str(e)
 
     def process_frame(self):
         """
@@ -72,7 +112,11 @@ class FrameCollector(Collector):
             frame = self._process_frame(current_frame, self._frame_config.should_collect_vars(len(collected_frames)))
             collected_frames.append(frame)
             current_frame = current_frame.f_back
-        return collected_frames, self._var_lookup
+        # We want to clear the local collected var lookup now that we have processed the frame
+        # this is, so we can process watches later while maintaining independence between tracepoints
+        _vars = self._var_lookup
+        self._var_lookup = {}
+        return collected_frames, _vars
 
     def _process_frame(self, frame, process_vars):
         # process the current frame info
@@ -172,13 +216,14 @@ class FrameCollector(Collector):
             return False
         return True
 
-    def process_watch_result_breadth_first(self, watch: str, result: any):
+    def process_watch_result_breadth_first(self, watch: str, result: any) -> (
+            Tuple)[VariableId, Dict[str, Variable], str]:
 
         identity_hash_id = str(id(result))
         check_id = self.check_id(identity_hash_id)
         if check_id is not None:
             # this means the watch result is already in the var_lookup
-            return VariableId(check_id, watch), {}
+            return VariableId(check_id, watch), {}, str(result)
 
         # else this is an unknown value so process breadth first
         var_ids = []
@@ -201,7 +246,7 @@ class FrameCollector(Collector):
 
         self._var_lookup[var_id] = Variable(str(variable_type.__name__), variable_value_str, identity_hash_id, [],
                                             truncated)
-        return VariableId(var_id, watch), self._var_lookup
+        return VariableId(var_id, watch), self._var_lookup, str(result)
 
     def check_id(self, identity_hash_id):
         if identity_hash_id in self._var_cache:

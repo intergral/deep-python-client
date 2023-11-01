@@ -17,6 +17,7 @@ from deep.api.tracepoint import TracePointConfig
 from deep.config import ConfigService
 from deep.config.tracepoint_config import TracepointConfigService
 from deep.grpc import GRPCService
+from deep.logging.tracepoint_logger import TracepointLogger
 from deep.poll import LongPoll
 from deep.processor import TriggerHandler
 from deep.push import PushService
@@ -78,3 +79,6 @@ class TracepointRegistration:
 
     def unregister(self):
         self._tpServ.remove_custom(self._cfg)
+
+    def tracepoint_logger(self, logger: 'TracepointLogger'):
+        self.config.tracepoint_logger = logger

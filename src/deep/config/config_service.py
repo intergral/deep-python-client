@@ -17,6 +17,7 @@ from deep import logging
 from deep.api.plugin import Plugin
 from deep.api.resource import Resource
 from deep.config.tracepoint_config import TracepointConfigService
+from deep.logging.tracepoint_logger import DefaultLogger, TracepointLogger
 
 
 class ConfigService:
@@ -33,6 +34,7 @@ class ConfigService:
         self.__custom = custom
         self._resource = None
         self._tracepoint_config = TracepointConfigService()
+        self._tracepoint_logger: 'TracepointLogger' = DefaultLogger(self)
 
     def __getattribute__(self, name: str) -> Any:
         """
@@ -95,8 +97,19 @@ class ConfigService:
         self._plugins = plugins
 
     @property
-    def tracepoints(self) -> TracepointConfigService:
+    def tracepoints(self) -> 'TracepointConfigService':
         return self._tracepoint_config
 
     def add_listener(self, listener):
         self._tracepoint_config.add_listener(listener)
+
+    @property
+    def tracepoint_logger(self) -> 'TracepointLogger':
+        return self._tracepoint_logger
+
+    @tracepoint_logger.setter
+    def tracepoint_logger(self, logger: 'TracepointLogger'):
+        self._tracepoint_logger = logger
+
+    def log_tracepoint(self, log_msg: str, tp_id: str, snap_id: str):
+        self._tracepoint_logger.log_tracepoint(log_msg, tp_id, snap_id)

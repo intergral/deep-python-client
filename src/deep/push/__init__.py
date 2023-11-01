@@ -77,7 +77,8 @@ def convert_snapshot(snapshot: EventSnapshot) -> Snapshot:
                         attributes=[KeyValue(key=k, value=convert_value(v)) for k, v in snapshot.attributes.items()],
                         duration_nanos=snapshot.duration_nanos,
                         resource=[KeyValue(key=k, value=convert_value(v)) for k, v in
-                                  snapshot.resource.attributes.items()])
+                                  snapshot.resource.attributes.items()],
+                        log_msg=snapshot.log_msg)
     except Exception:
         logging.exception("Error converting to protobuf")
         return Snapshot()

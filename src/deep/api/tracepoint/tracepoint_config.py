@@ -49,6 +49,9 @@ STACK = 'stack'
 NO_STACK = 'no_stack'
 """Do not collect the stack data"""
 
+LOG_MSG = 'log_msg'
+"""The log message to interpolate at position of tracepoint"""
+
 
 def frame_type_ordinal(frame_type) -> int:
     """
