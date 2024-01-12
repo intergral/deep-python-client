@@ -6,3 +6,4 @@ pdoc3
 mkdocstrings-python
 build
 twine
+flake8-docstrings
