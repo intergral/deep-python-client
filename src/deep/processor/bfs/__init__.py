@@ -21,7 +21,7 @@ approach. This means scanning all local values before proceeding to the next dep
 """
 
 import abc
-from typing import Callable
+from typing import Callable, List
 
 from deep.api.tracepoint import VariableId
 
@@ -29,7 +29,7 @@ from deep.api.tracepoint import VariableId
 class Node:
     """This is a Node that is used within the Breadth First Search of variables."""
 
-    def __init__(self, value: 'NodeValue' = None, children: list['Node'] = None, parent: 'ParentNode' = None):
+    def __init__(self, value: 'NodeValue' = None, children: List['Node'] = None, parent: 'ParentNode' = None):
         """
         Create a new node to process.
 
@@ -54,7 +54,7 @@ class Node:
         """Set the parent node."""
         self._parent = parent
 
-    def add_children(self, children: list['Node']):
+    def add_children(self, children: List['Node']):
         """
         Add children to this node.
 
@@ -75,7 +75,7 @@ class Node:
         return self._depth
 
     @property
-    def children(self) -> list['Node']:
+    def children(self) -> List['Node']:
         """The node children."""
         return self._children
 

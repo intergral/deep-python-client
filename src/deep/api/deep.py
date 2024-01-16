@@ -14,6 +14,7 @@
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.from typing import Dict, List
 
 """The main services for Deep."""
+from typing import Dict, List
 
 from deep.api.plugin import load_plugins
 from deep.api.resource import Resource
@@ -69,8 +70,8 @@ class Deep:
         self.task_handler.flush()
         self.started = False
 
-    def register_tracepoint(self, path: str, line: int, args: dict[str, str] = None,
-                            watches: list[str] = None) -> 'TracepointRegistration':
+    def register_tracepoint(self, path: str, line: int, args: Dict[str, str] = None,
+                            watches: List[str] = None) -> 'TracepointRegistration':
         """
         Register a new tracepoint.
 

@@ -18,7 +18,10 @@
 import abc
 import os
 from importlib import import_module
-from typing import Tuple
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Tuple
 
 from deep import logging
 from deep.api.attributes import BoundedAttributes
@@ -42,7 +45,7 @@ def __plugin_generator(configured):
             )
 
 
-def load_plugins() -> Tuple[list['Plugin'], BoundedAttributes]:
+def load_plugins() -> 'Tuple[list[Plugin], BoundedAttributes]':
     """
     Load all the deep plugins.
 

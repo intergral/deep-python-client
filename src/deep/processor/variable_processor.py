@@ -302,7 +302,7 @@ def find_children_for_parent(frame_collector: Collector, parent_node: ParentNode
         return []
 
 
-def process_dict_breadth_first(parent_node, type_name, value, func=lambda x, y: y) -> list[Node]:
+def process_dict_breadth_first(parent_node, type_name, value, func=lambda x, y: y) -> List[Node]:
     """
     Process a dict value.
 
@@ -322,7 +322,7 @@ def process_dict_breadth_first(parent_node, type_name, value, func=lambda x, y: 
             key in value]
 
 
-def process_list_breadth_first(frame_collector: Collector, parent_node: ParentNode, value) -> list[Node]:
+def process_list_breadth_first(frame_collector: Collector, parent_node: ParentNode, value) -> List[Node]:
     """
     Process a list value.
 

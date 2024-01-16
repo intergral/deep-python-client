@@ -49,7 +49,7 @@ class FrameProcessor(FrameCollector):
         self._tracepoints = tracepoints
         self._filtered_tracepoints = []
 
-    def collect(self) -> list[EventSnapshot]:
+    def collect(self) -> List[EventSnapshot]:
         """
         Collect the snapshot data for the available tracepoints.
 

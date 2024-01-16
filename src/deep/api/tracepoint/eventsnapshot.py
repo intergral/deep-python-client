@@ -16,7 +16,7 @@
 """Types for the captured data."""
 
 import random
-from typing import Optional
+from typing import Optional, Dict, List
 
 from deep.api.attributes import BoundedAttributes
 from deep.api.resource import Resource
@@ -26,7 +26,7 @@ from deep.utils import time_ns
 class EventSnapshot:
     """This is the model for the snapshot that is uploaded to the services."""
 
-    def __init__(self, tracepoint, ts, resource, frames, var_lookup: dict[str, 'Variable']):
+    def __init__(self, tracepoint, ts, resource, frames, var_lookup: Dict[str, 'Variable']):
         """
         Create a new snapshot object.
 
@@ -69,7 +69,7 @@ class EventSnapshot:
         if self.is_open():
             self.watches.append(watch_result)
 
-    def merge_var_lookup(self, lookup: dict[str, 'Variable']):
+    def merge_var_lookup(self, lookup: Dict[str, 'Variable']):
         """
         Merge additional variables into the var lookup.
 
@@ -298,7 +298,7 @@ class Variable:
         return self._hash
 
     @property
-    def children(self) -> list['VariableId']:
+    def children(self) -> List['VariableId']:
         """The children of this value."""
         return self._children
 
