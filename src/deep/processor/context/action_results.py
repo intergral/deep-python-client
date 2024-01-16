@@ -38,6 +38,9 @@
 #
 #      You should have received a copy of the GNU Affero General Public License
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Handler results of actions."""
+
 import abc
 
 from deep.logging.tracepoint_logger import TracepointLogger
@@ -45,12 +48,36 @@ from deep.push import PushService
 
 
 class ActionCallback:
+    """A call back to 'close' an action."""
+
     def process(self, frame, event) -> bool:
+        """
+        Process a callback.
+
+        :param frame: the frame data
+        :param event: the event
+        :return: True, to keep this callback until next match.
+        """
         pass
 
 
 class ActionResult(abc.ABC):
+    """
+    ActionResult represents the result of a trigger action.
+
+    This could be the snapshot to ship, logs to process or a span to close.
+    """
 
     @abc.abstractmethod
-    def collect(self, ctx_id: str, logger: TracepointLogger, service: PushService) -> ActionCallback | None:
+    def process(self, ctx_id: str, logger: TracepointLogger, service: PushService) -> ActionCallback | None:
+        """
+        Process this result.
+
+        Either log or ship the collected data to an endpoint.
+
+        :param ctx_id: the triggering context id
+        :param logger: the log service
+        :param service:the push service
+        :return: an action callback if we need to do something at the 'end', or None
+        """
         pass

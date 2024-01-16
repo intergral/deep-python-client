@@ -1,4 +1,3 @@
-
 #       Copyright (C) 2024  Intergral GmbH
 #
 #      This program is free software: you can redistribute it and/or modify
@@ -13,6 +12,8 @@
 #
 #      You should have received a copy of the GNU Affero General Public License
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""A context for the handling of a trigger."""
 
 import uuid
 from types import FrameType
@@ -32,7 +33,22 @@ from deep.utils import time_ns
 
 
 class TriggerContext:
+    """
+    Context for a trigger.
+
+    A context is created in a valid location is triggered. This context is then used to process all the actions,
+    collect the data and ship of the results.
+    """
+
     def __init__(self, config: ConfigService, push_service: PushService, frame: FrameType, event: str):
+        """
+        Create a new trigger context.
+
+        :param config: the config service
+        :param push_service: the push service
+        :param frame: the frame data
+        :param event: the trigger event
+        """
         self.__push_service = push_service
         self.__event = event
         self.__frame = frame
@@ -46,39 +62,53 @@ class TriggerContext:
         self.vars: dict[str: Variable] = {}
 
     def __enter__(self):
+        """Start the 'with' statement and open this context."""
         return self
 
     def __exit__(self, exception_type, exception_value, exception_traceback):
+        """Complete the 'with' statement, and close this context."""
         for result in self.__results:
-            new_callback = result.collect(self.__id, self.tracepoint_logger, self.push_service)
+            new_callback = result.process(self.__id, self.tracepoint_logger, self.push_service)
             if new_callback is not None:
                 self.callbacks.append(new_callback)
 
     @property
     def file_name(self):
+        """The trigger location source file name."""
         return self.__frame.f_code.co_filename
 
     @property
     def locals(self) -> dict[str, any]:
+        """The local frame variables."""
         return self.__frame.f_locals
 
     @property
     def ts(self):
+        """The timestamp in nanoseconds for this trigger."""
         return self.__ts
 
     @property
     def resource(self):
+        """The client resource information."""
         return self.__config.resource
 
     @property
     def frame(self):
+        """The raw frame data."""
         return self.__frame
 
     @property
     def config(self):
+        """The config service."""
         return self.__config
 
     def action_context(self, action: 'LocationAction') -> 'ActionContext':
+        """
+        Create an action context from this context, for the provided action.
+
+        :param action: the action
+        :return: the new action context.
+        """
         if action.action_type == LocationAction.ActionType.Snapshot:
             return SnapshotActionContext(self, action)
         if action.action_type == LocationAction.ActionType.Log:
@@ -90,18 +120,31 @@ class TriggerContext:
         return NoActionContext(self, action)
 
     def evaluate_expression(self, expression: str) -> any:
+        """
+        Evaluate an expression to a value.
+
+        :param expression: the expression
+        :return: the result of the expression, or the exception that was raised.
+        """
         try:
             return eval(expression, None, self.__frame.f_locals)
         except BaseException as e:
             return e
 
     def attach_result(self, result: ActionResult):
+        """
+        Attach a result for this context.
+
+        :param result: the new result
+        """
         self.__results.append(result)
 
     @property
     def tracepoint_logger(self) -> TracepointLogger:
+        """The tracepoint logger service."""
         return self.__config.tracepoint_logger
 
     @property
     def push_service(self) -> PushService:
+        """The push service."""
         return self.__push_service

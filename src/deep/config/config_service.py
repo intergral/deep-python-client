@@ -149,6 +149,12 @@ class ConfigService:
         self._tracepoint_logger.log_tracepoint(log_msg, tp_id, snap_id)
 
     def is_app_frame(self, filename: str) -> Tuple[bool, Optional[str]]:
+        """
+        Check if the current frame is a user application frame.
+
+        :param filename: the frame file name
+        :return: True if add frame, else False
+        """
         in_app_include = self.IN_APP_INCLUDE
         in_app_exclude = self.IN_APP_EXCLUDE
 

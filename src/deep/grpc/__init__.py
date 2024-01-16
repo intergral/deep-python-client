@@ -20,6 +20,7 @@ We do not use the protobuf types throughout the project as they do not autocompl
 have type definitions that work in IDE. It also makes it easier to deal with agent functionality by
 having local types we can modify.
 """
+from typing import List
 
 # noinspection PyUnresolvedReferences
 from deepproto.proto.common.v1.common_pb2 import KeyValue, AnyValue, ArrayValue, KeyValueList
@@ -27,7 +28,7 @@ from deepproto.proto.common.v1.common_pb2 import KeyValue, AnyValue, ArrayValue,
 from deepproto.proto.resource.v1.resource_pb2 import Resource
 
 from .grpc_service import GRPCService
-from ..api.tracepoint.tracepoint_config import TracePointConfig, LabelExpression, MetricDefinition
+from ..api.tracepoint.tracepoint_config import LabelExpression, MetricDefinition
 from ..api.tracepoint.trigger import build_trigger, Trigger
 
 
@@ -67,7 +68,7 @@ def __value_as_list(value):
 
 def convert_resource(resource):
     """
-    Convert a internal resource to GRPC type.
+    Convert an internal resource to GRPC type.
 
     :param resource: the resource to convert
     :return: the converted type as GRPC.
@@ -80,7 +81,7 @@ def __convert_attributes(attributes):
                     attributes=[KeyValue(key=k, value=convert_value(v)) for k, v in attributes.items()])
 
 
-def convert_static_value(value):
+def __convert_static_value(value):
     static_value = value.static
     set_field = static_value.WhichOneof("value")
     if set_field is None:
@@ -88,18 +89,26 @@ def convert_static_value(value):
     return getattr(static_value, set_field)
 
 
-def convert_label_expressions(label_expressions):
-    return [LabelExpression(label.key, convert_static_value(label), label.expression) for
+def convert_label_expressions(label_expressions) -> List[LabelExpression]:
+    """
+    Convert a label expression.
+
+    :param label_expressions: the expression to convert.
+    :return: the converted expression
+    """
+    return [LabelExpression(label.key, __convert_static_value(label), label.expression) for
             label in label_expressions]
 
 
-def convert_metric_definition(metrics):
+def __convert_metric_definition(metrics):
     return [MetricDefinition(m.name, convert_label_expressions(m.labelExpressions), m.type, m.expression, m.namespace,
                              m.help, m.unit) for m in metrics]
 
 
 def convert_response(response) -> list[Trigger]:
     """
+    Convert a response from GRPC to internal types.
+
     This function should create a list of Triggers from the incoming configuration. The Trigger should be a
     location with one or more actions to perform at that location.
 
@@ -110,7 +119,7 @@ def convert_response(response) -> list[Trigger]:
     for r in response:
         # from the incoming tracepoints create a Trigger with actions
         trigger = build_trigger(r.ID, r.path, r.line_number, dict(r.args), [w for w in r.watches],
-                                convert_metric_definition(r.metrics))
+                                __convert_metric_definition(r.metrics))
         location_id = trigger.id
         # if we already have a trigger for this location then merge the new actions into it
         if location_id in all_triggers:

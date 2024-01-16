@@ -78,7 +78,7 @@ class TriggerHandler:
 
     This is where we 'listen' for a hit, and determine if we should collect data.
     """
-    _tp_config: list[Trigger]
+
     __callbacks: ThreadLocal[deque[list[ActionCallback]]] = ThreadLocal(lambda: deque())
 
     def __init__(self, config: ConfigService, push_service: PushService):
@@ -91,7 +91,7 @@ class TriggerHandler:
         self.__old_thread_trace = None
         self.__old_sys_trace = None
         self._push_service = push_service
-        self._tp_config = []
+        self._tp_config: list[Trigger] = []
         self._config = config
         self._config.add_listener(TracepointHandlerUpdateListener(self))
 
@@ -135,14 +135,14 @@ class TriggerHandler:
         :return: None to ignore other calls, or our self to continue
         """
         if event in ["line", "return", "exception"] and self.__callbacks.is_set:
-            self.process_call_backs(frame, event)
+            self.__process_call_backs(frame, event)
 
         # return if we do not have any tracepoints
         if len(self._tp_config) == 0:
             return None
 
         event, file, line, function = self.location_from_event(event, frame)
-        actions = self.actions_for_location(event, file, line, function)
+        actions = self.__actions_for_location(event, file, line, function)
         if len(actions) == 0:
             return self.trace_call
 
@@ -188,14 +188,14 @@ class TriggerHandler:
     #         except Exception:
     #             logging.exception("Failed to collect snapshot")
 
-    def actions_for_location(self, event, file, line, function):
+    def __actions_for_location(self, event, file, line, function):
         actions = []
         for trigger in self._tp_config:
             if trigger.at_location(event, file, line, function):
                 actions += trigger.actions
         return actions
 
-    def process_call_backs(self, frame: FrameType, event: str):
+    def __process_call_backs(self, frame: FrameType, event: str):
         callbacks = self.__callbacks.value.pop()
         remaining: list[ActionCallback] = []
         for callback in callbacks:
@@ -208,6 +208,7 @@ class TriggerHandler:
     def location_from_event(event: str, frame: FrameType) -> Tuple[str, str, int, str | None]:
         """
         Convert an event into a location.
+
         The events are as follows:
             - line: a line is being executed
             - call: a function is being called
@@ -227,6 +228,10 @@ class TriggerHandler:
         return event, filename, line, function
 
     def shutdown(self):
+        """
+        Shutdown this handler.
+
+        Reset the settrace to the previous values.
+        """
         sys.settrace(self.__old_sys_trace)
         threading.settrace(self.__old_thread_trace)
-

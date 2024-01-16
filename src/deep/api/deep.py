@@ -14,11 +14,11 @@
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.from typing import Dict, List
 
 """The main services for Deep."""
+
 from typing import Dict, List
 
 from deep.api.plugin import load_plugins
 from deep.api.resource import Resource
-from deep.api.tracepoint import TracePointConfig
 from deep.config import ConfigService
 from deep.config.tracepoint_config import TracepointConfigService
 from deep.grpc import GRPCService
@@ -99,7 +99,7 @@ class TracepointRegistration:
         """
         Create a new registration.
 
-        :param cfg: the created config
+        :param _id: the created config id
         :param tracepoints: the config service
         """
         self.__id: str = _id

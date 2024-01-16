@@ -25,6 +25,9 @@
 #
 #      You should have received a copy of the GNU Affero General Public License
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Handling for action context."""
+
 import abc
 from typing import Tuple, TYPE_CHECKING
 
@@ -39,22 +42,32 @@ if TYPE_CHECKING:
 
 
 class ActionContext(abc.ABC):
+    """A context for the processing of an action."""
 
     def __init__(self, parent: 'TriggerContext', action: 'LocationAction'):
+        """
+        Create a new action context.
+
+        :param parent: the parent trigger
+        :param action: the action config
+        """
         self._parent: 'TriggerContext' = parent
         self._action: 'LocationAction' = action
         self._triggered = False
 
     def __enter__(self):
+        """Enter and open the context."""
         return self
 
     def __exit__(self, exception_type, exception_value, exception_traceback):
+        """Exit and close the context."""
         if self.has_triggered():
             self._action.record_triggered(self._parent.ts)
 
     def eval_watch(self, watch: str) -> Tuple[WatchResult, dict[str, Variable], str]:
         """
         Evaluate an expression in the current frame.
+
         :param watch: The watch expression to evaluate.
         :return: Tuple with WatchResult, collected variables, and the log string for the expression
         """
@@ -70,6 +83,7 @@ class ActionContext(abc.ABC):
             return WatchResult(watch, None, str(e)), {}, str(e)
 
     def process(self):
+        """Process the action."""
         try:
             return self._process_action()
         finally:
@@ -80,9 +94,20 @@ class ActionContext(abc.ABC):
         pass
 
     def has_triggered(self):
+        """
+        Check if we have triggerd during this context.
+
+        :return: True, if the trigger has been fired.
+        """
         return self._triggered
 
     def can_trigger(self) -> bool:
+        """
+        Check if the action can trigger.
+
+        Combine checks for rate limits, windows and condition.
+        :return: True, if the trigger can be triggered.
+        """
         if not self._action.can_trigger(self._parent.ts):
             return False
         if self._action.condition is None:
@@ -92,6 +117,7 @@ class ActionContext(abc.ABC):
 
 
 class MetricActionContext(ActionContext):
+    """Action for metrics."""
 
     def _process_action(self):
         print("metric action")
@@ -99,6 +125,7 @@ class MetricActionContext(ActionContext):
 
 
 class SpanActionContext(ActionContext):
+    """Action for spans."""
 
     def _process_action(self):
         print("span action")
@@ -106,6 +133,7 @@ class SpanActionContext(ActionContext):
 
 
 class NoActionContext(ActionContext):
+    """Default context if no action can be determined."""
 
     def _process_action(self):
         print("Unsupported action type: %s" % self._action)

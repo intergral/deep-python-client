@@ -17,7 +17,6 @@
 
 from typing import List, Optional
 
-
 from deep.api.tracepoint.constants import SINGLE_FRAME_TYPE, ALL_FRAME_TYPE, NO_FRAME_TYPE, FRAME_TYPE, STACK_TYPE, \
     STACK, FIRE_COUNT, CONDITION
 
@@ -78,27 +77,52 @@ class TracepointWindow:
 
 
 class LabelExpression:
+    """A metric label expression."""
+
     def __init__(self, key: str, static: Optional[any], expression: Optional[str]):
+        """
+        Create a new label expression.
+
+        :param key: the label key
+        :param static: the label static value
+        :param expression: the label expression
+        """
         self.__key = key
         self.__static = static
         self.__expression = expression
 
     @property
     def key(self):
+        """The label key."""
         return self.__key
 
     @property
     def static(self):
+        """The label static value."""
         return self.__static
 
     @property
     def expression(self):
+        """The label expression."""
         return self.__expression
 
 
 class MetricDefinition:
+    """The definition of a metric to collect."""
+
     def __init__(self, name: str, labels: list[LabelExpression], type_p: str, expression: Optional[str],
                  namespace: Optional[str], help_p: Optional[str], unit: Optional[str]):
+        """
+        Create a new metric definition.
+
+        :param name: the metric name
+        :param labels: the metric labels
+        :param type_p: the metrics type
+        :param expression: the metrics expression
+        :param namespace: the metric namespace
+        :param help_p: the metric help into
+        :param unit: the metric unit
+        """
         self.__name = name
         self.__labels = labels
         self.__type = type_p
@@ -115,7 +139,8 @@ class TracePointConfig:
     This is a python version of the GRPC data collected from the LongPoll.
     """
 
-    def __init__(self, tp_id: str, path: str, line_no: int, args: dict, watches: List[str], metrics: List[MetricDefinition]):
+    def __init__(self, tp_id: str, path: str, line_no: int, args: dict, watches: List[str],
+                 metrics: List[MetricDefinition]):
         """
         Create a new tracepoint config.
 

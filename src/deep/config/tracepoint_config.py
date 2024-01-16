@@ -20,7 +20,6 @@ import logging
 import uuid
 from typing import Dict, List, TYPE_CHECKING
 
-from deep.api.tracepoint import TracePointConfig
 from deep.api.tracepoint.tracepoint_config import MetricDefinition
 
 from deep.api.tracepoint.trigger import build_trigger
@@ -170,7 +169,7 @@ class TracepointConfigService:
         """
         Remove a custom tracepoint config.
 
-        :param config: the config to remove
+        :param _id: the id of the config to remove
         """
         for idx, cfg in enumerate(self._custom):
             if cfg.id == _id:

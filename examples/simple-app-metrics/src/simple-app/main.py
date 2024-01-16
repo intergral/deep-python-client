@@ -22,6 +22,9 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+
+"""Simple example showing usage with prometheus metrics."""
+
 import signal
 import time
 
@@ -32,17 +35,22 @@ from simple_test import SimpleTest
 
 
 class GracefulKiller:
+    """Ensure clean shutdown."""
+
     kill_now = False
 
     def __init__(self):
+        """Crate new killer."""
         signal.signal(signal.SIGINT, self.exit_gracefully)
         signal.signal(signal.SIGTERM, self.exit_gracefully)
 
     def exit_gracefully(self, *args):
+        """Exit example."""
         self.kill_now = True
 
 
 def main():
+    """Run the example."""
     killer = GracefulKiller()
     ts = SimpleTest("This is a test")
     while not killer.kill_now:
@@ -62,7 +70,11 @@ REQUEST_TIME = Summary('request_processing_seconds', 'Time spent processing requ
 # Decorate function with metric.
 @REQUEST_TIME.time()
 def process_request(t):
-    """A dummy function that takes some time."""
+    """
+    Sleep.
+
+    A dummy function that takes some time.
+    """
     time.sleep(t)
 
 

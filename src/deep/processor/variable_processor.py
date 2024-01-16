@@ -68,7 +68,8 @@ class Collector(abc.ABC):
     @abc.abstractmethod
     def max_string_length(self) -> int:
         """
-        Get the max length of a string
+        Get the max length of a string.
+
         :return int: the configured value
         """
         pass
@@ -77,7 +78,8 @@ class Collector(abc.ABC):
     @abc.abstractmethod
     def max_collection_size(self) -> int:
         """
-        Get the max size of a collection
+        Get the max size of a collection.
+
         :return int: the configured value
         """
         pass
@@ -86,7 +88,8 @@ class Collector(abc.ABC):
     @abc.abstractmethod
     def max_var_depth(self) -> int:
         """
-        Get the max depth to process
+        Get the max depth to process.
+
         :return int: the configured value
         """
         pass
@@ -114,7 +117,10 @@ class Collector(abc.ABC):
     @abc.abstractmethod
     def append_variable(self, var_id: str, variable: Variable):
         """
+        Append a variable to the var lookup.
+
         This is called when a variable has been processed
+
         :param var_id: the internal id of the variable
         :param variable: the internal value of the variable
         """
@@ -123,9 +129,11 @@ class Collector(abc.ABC):
     @abc.abstractmethod
     def append_child(self, variable_id: str, child: VariableId):
         """
-        Add a child variable existing variable.
+        Append a chile to existing variable.
+
         This is called when a child variable has been processed and the result should be attached to a
         variable that has already been processed.
+
         :param str variable_id: the internal variable id of the parent variable
         :param VariableId child: the internal variable id value to attach to the parent
         """

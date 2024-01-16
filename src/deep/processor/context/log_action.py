@@ -25,19 +25,26 @@
 #
 #      You should have received a copy of the GNU Affero General Public License
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Handling for log actions."""
+
 from typing import TYPE_CHECKING
 
 from .action_context import ActionContext
 from .action_results import ActionResult, ActionCallback
 from ...api.tracepoint.constants import LOG_MSG
+from ...api.tracepoint.trigger import LocationAction
 from ...logging.tracepoint_logger import TracepointLogger
 from ...push import PushService
 
 from typing import Tuple
+
 if TYPE_CHECKING:
-    from ...api.tracepoint import WatchResult, Variable, LocationAction
+    from ...api.tracepoint import WatchResult, Variable
+
 
 class LogActionContext(ActionContext):
+    """The context for processing a log action."""
 
     def _process_action(self):
         log_msg = self._action.config.get(LOG_MSG)
@@ -45,12 +52,22 @@ class LogActionContext(ActionContext):
         self._parent.attach_result(LogActionResult(self._action, log))
 
     def process_log(self, log_msg) -> Tuple[str, list['WatchResult'], dict[str, 'Variable']]:
+        """
+        Process the log message.
+
+        :param log_msg: the configure log message
+
+        :returns:
+            (str) process_log: the result of the processed log
+            (list) watch: the watch results from the expressions
+            (dic) vars: the collected variables
+        """
         ctx_self = self
         watch_results = []
         _var_lookup = {}
 
         class FormatDict(dict):
-            """This type is used in the log process to ensure that missing values are formatted don't error"""
+            """This type is used in the log process to ensure that missing values are formatted don't error."""
 
             def __missing__(self, key):
                 return "{%s}" % key
@@ -58,8 +75,12 @@ class LogActionContext(ActionContext):
         import string
 
         class FormatExtractor(string.Formatter):
-            """This type allows us to use watches within log strings and collect the watch
-            as well as interpolate the values"""
+            """
+            Allows logs to be formatted correctly.
+
+            This type allows us to use watches within log strings and collect the watch
+            as well as interpolate the values.
+            """
 
             def get_field(self, field_name, args, kwargs):
                 # evaluate watch
@@ -75,11 +96,28 @@ class LogActionContext(ActionContext):
 
 
 class LogActionResult(ActionResult):
+    """The result of a successful log action."""
 
     def __init__(self, action: 'LocationAction', log: str):
+        """
+        Create a new result of a log action.
+
+        :param action: the source action
+        :param log: the log result.
+        """
         self.action = action
         self.log = log
 
-    def collect(self, ctx_id: str, logger: TracepointLogger, service: PushService) -> ActionCallback | None:
+    def process(self, ctx_id: str, logger: TracepointLogger, service: PushService) -> ActionCallback | None:
+        """
+        Process this result.
+
+        Either log or ship the collected data to an endpoint.
+
+        :param ctx_id: the triggering context id
+        :param logger: the log service
+        :param service:the push service
+        :return: an action callback if we need to do something at the 'end', or None
+        """
         logger.log_tracepoint(self.log, ctx_id, self.action.id)
         return None

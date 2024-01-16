@@ -25,45 +25,64 @@ from .variable_set_processor import VariableCacheProvider, VariableSetProcessor,
 
 
 class FrameCollectorContext(abc.ABC):
+    """The context that is used to wrap a collection event."""
 
     @property
     @abc.abstractmethod
     def max_tp_process_time(self) -> int:
+        """The max time to spend processing a tracepoint."""
         pass
 
     @property
     @abc.abstractmethod
     def collection_config(self) -> VariableProcessorConfig:
+        """The variable processing config."""
         pass
 
     @property
     @abc.abstractmethod
     def ts(self) -> int:
+        """The timestamp in nanoseconds for this trigger."""
         pass
 
     @abc.abstractmethod
-    def should_collect_vars(self, frame_index: int) -> bool:
+    def should_collect_vars(self, current_frame_index: int) -> bool:
+        """
+        Check if we can collect data for a frame.
+
+        Frame indexes start from 0 (as the current frame) and increase as we go back up the stack.
+
+        :param (int) current_frame_index: the current frame index.
+        :return (bool): if we should collect the frame vars.
+        """
         pass
 
     @abc.abstractmethod
     def is_app_frame(self, filename: str) -> Tuple[bool, str]:
+        """
+        Check if the current frame is a user application frame.
+
+        :param filename: the frame file name
+        :return: True if add frame, else False
+        """
         pass
 
 
 class FrameCollector:
     """This deals with collecting data from the paused frames."""
+
     def __init__(self, source: FrameCollectorContext, frame: FrameType):
         """
         Create a new collector.
 
+        :param source: the collector context
         :param frame:  the frame data
-        :param config: the deep config service
         """
         self.__has_time_exceeded = False
         self.__source = source
         self.__frame = frame
 
-    def time_exceeded(self) -> bool:
+    def __time_exceeded(self) -> bool:
         if self.__has_time_exceeded:
             return self.__has_time_exceeded
 
@@ -72,6 +91,20 @@ class FrameCollector:
         return self.__has_time_exceeded
 
     def parse_short_name(self, filename) -> Tuple[str, bool]:
+        """
+        Process a file name into a shorter version.
+
+        By default, the file names in python are the absolute path to the file on disk. These can be quite long,
+        so we try to shorten the names by looking at the APP_ROOT and converting the file name into a relative path.
+
+        e.g. if the file name is '/dev/python/custom_service/api/handler.py' and the APP_ROOT is
+            '/dev/python/custom_service' then we shorten the path to 'custom_service/api/handler.py'.
+
+        :param (str) filename: the file name
+        :returns:
+            (str) filename: the new file name
+            (bool) is_app_frame: True if the file is an application frame file
+        """
         is_app_frame, match = self.__source.is_app_frame(filename)
         if match is not None:
             return filename[len(match):], is_app_frame
@@ -79,6 +112,13 @@ class FrameCollector:
 
     def collect(self, var_lookup: dict[str, Variable], var_cache: VariableCacheProvider) \
             -> Tuple[list[StackFrame], dict[str, Variable]]:
+        """
+        Collect the data from the current frame.
+
+        :param var_lookup: the var lookup to use
+        :param var_cache: the var cache to use
+        :return:
+        """
         current_frame = self.__frame
         collected_frames = []
         # while we still have frames process them
@@ -105,7 +145,7 @@ class FrameCollector:
 
         var_ids = []
         # only process vars if we are under the time limit
-        if collect_vars and not self.time_exceeded():
+        if collect_vars and not self.__time_exceeded():
             processor = VariableSetProcessor(var_lookup, var_cache, self.__source.collection_config)
             # we process the vars as a single dict of 'locals'
             variable, log_str = processor.process_variable("locals", f_locals)
