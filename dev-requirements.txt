@@ -8,3 +8,4 @@ build
 twine
 flake8-docstrings
 certifi>=2023.7.22 # not directly required, pinned by Snyk to avoid a vulnerability
+flake8-header-validator>=0.0.3

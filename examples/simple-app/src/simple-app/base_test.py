@@ -9,20 +9,29 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""A simple test object for examples."""
 
 import random
 import uuid
 
 
 class BaseTest:
+    """A basic test that is used in examples."""
 
     def new_id(self):
+        """Create new id."""
         return str(uuid.uuid4())
 
     def next_max(self):
+        """Create new random max."""
         return random.randint(1, 101)
 
     def make_char_count_map(self, in_str):
+        """Create char count map."""
         res = {}
 
         for i in range(0, len(in_str)):

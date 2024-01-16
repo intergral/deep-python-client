@@ -9,6 +9,10 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import unittest
 
 from parameterized import parameterized
@@ -21,9 +25,7 @@ from deep.processor.variable_processor import var_modifiers, variable_to_string,
 
 
 class MockVariable(Variable):
-    """
-    We do not want to test the hash as this is the memory address so hard to verify in the tests
-    """
+    """We do not want to test the hash as this is the memory address so hard to verify in the tests."""
 
     def __eq__(self, o: object) -> bool:
 

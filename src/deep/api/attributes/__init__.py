@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Check and create attributes."""
+
 import threading
 from collections import OrderedDict
 from typing import MutableMapping, Optional, Union, Sequence
@@ -43,7 +45,8 @@ def _clean_attribute_value(
 def _clean_attribute(
         key: str, value: types.AttributeValue, max_len: Optional[int]
 ) -> Optional[types.AttributeValue]:
-    """Checks if attribute value is valid and cleans it if required.
+    """
+    Check if attribute value is valid and cleans it if required.
 
     The function returns the cleaned value or None if the value is not valid.
 
@@ -57,7 +60,6 @@ def _clean_attribute(
         - Its length is greater than the maximum allowed length.
         - It needs to be encoded/decoded e.g, bytes to strings.
     """
-
     if not (key and isinstance(key, str)):
         logging.warning("invalid key `%s`. must be non-empty string.", key)
         return None
@@ -132,6 +134,14 @@ class BoundedAttributes(MutableMapping):
             immutable: bool = True,
             max_value_len: Optional[int] = None,
     ):
+        """
+        Create new attributes.
+
+        :param maxlen: max number of attributes
+        :param attributes: existing attributes to copy
+        :param immutable: are these attributes immutable
+        :param max_value_len: max length of the attribute values
+        """
         if maxlen is not None:
             if not isinstance(maxlen, int) or maxlen < 0:
                 raise ValueError(
@@ -148,14 +158,17 @@ class BoundedAttributes(MutableMapping):
         self._immutable = immutable
 
     def __repr__(self):
+        """Represent this as a string."""
         return (
             f"{type(self).__name__}({dict(self._dict)}, maxlen={self.maxlen})"
         )
 
     def __getitem__(self, key):
+        """Get attribute value."""
         return self._dict[key]
 
     def __setitem__(self, key, value):
+        """Set attribute value."""
         if getattr(self, "_immutable", False):
             raise TypeError
         with self._lock:
@@ -176,21 +189,26 @@ class BoundedAttributes(MutableMapping):
                 self._dict[key] = value
 
     def __delitem__(self, key):
+        """Delete item from attributes."""
         if getattr(self, "_immutable", False):
             raise TypeError
         with self._lock:
             del self._dict[key]
 
     def __iter__(self):
+        """Create iterator."""
         with self._lock:
             return iter(self._dict.copy())
 
     def __len__(self):
+        """Get number of attributes."""
         return len(self._dict)
 
     def copy(self):
+        """Create a copy of these attributes."""
         return self._dict.copy()
 
     def merge_in(self, attributes):
+        """Merge in another attributes object."""
         for k, v in attributes.items():
             self[k] = v

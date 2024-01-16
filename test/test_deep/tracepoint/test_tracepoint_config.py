@@ -9,6 +9,10 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import unittest
 
 from deep.api.tracepoint.tracepoint_config import TracepointWindow, TracePointConfig, FIRE_PERIOD, FIRE_COUNT

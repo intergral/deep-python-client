@@ -9,6 +9,19 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+Handle Frame data processing.
+
+When processing a frame we need to ensure that the matched tracepoints can fire and that we collect
+the appropriate information. We need to process the conditions and fire rates of the tracepoints, and check the
+configs to collect the smallest amount of data possible.
+"""
+
+from types import FrameType
 from typing import List
 
 from deep import logging
@@ -20,19 +33,26 @@ from deep.processor.frame_collector import FrameCollector
 
 
 class FrameProcessor(FrameCollector):
-    """
-    This handles a 'hit' and starts the process of collecting the data.
-    """
+    """This handles a 'hit' and starts the process of collecting the data."""
+
     _filtered_tracepoints: List[TracePointConfig]
 
-    def __init__(self, tracepoints: List[TracePointConfig], frame, config: ConfigService):
+    def __init__(self, tracepoints: List[TracePointConfig], frame: FrameType, config: ConfigService):
+        """
+        Create a new processor.
+
+        :param tracepoints: the tracepoints for the triggering event
+        :param frame: the frame data
+        :param config: the deep config service
+        """
         super().__init__(frame, config)
         self._tracepoints = tracepoints
         self._filtered_tracepoints = []
 
-    def collect(self):
+    def collect(self) -> list[EventSnapshot]:
         """
-        Here we start the data collection process
+        Collect the snapshot data for the available tracepoints.
+
         :return: list of completed snapshots
         """
         snapshots = []
@@ -69,7 +89,10 @@ class FrameProcessor(FrameCollector):
 
     def can_collect(self):
         """
+        Check if we can collect data.
+
         Check if the tracepoints can fire given their configs. Checking time windows, fire rates etc.
+
         :return: True, if any tracepoint can fire
         """
         for tp in self._tracepoints:
@@ -79,7 +102,13 @@ class FrameProcessor(FrameCollector):
 
         return len(self._filtered_tracepoints) > 0
 
-    def condition_passes(self, tp):
+    def condition_passes(self, tp: TracePointConfig) -> bool:
+        """
+        Check if the tracepoint condition passes.
+
+        :param (TracePointConfig) tp: the tracepoint to check
+        :return: True, if the condition passes
+        """
         condition = tp.condition
         if condition is None or condition == "":
             # There is no condition so return True
@@ -96,15 +125,18 @@ class FrameProcessor(FrameCollector):
             return False
 
     def configure_self(self):
-        """
-        Using the filtered tracepoints, re-configure the frame config for minimum collection
-        :return:
-        """
+        """Process the filtered tracepoints to configure this processor."""
         for tp in self._filtered_tracepoints:
             self._frame_config.process_tracepoint(tp)
         self._frame_config.close()
 
-    def process_attributes(self, tp):
+    def process_attributes(self, tp: TracePointConfig) -> BoundedAttributes:
+        """
+        Process the attributes for a tracepoint.
+
+        :param (TracePointConfig) tp: the tracepoint to process.
+        :return (BoundedAttributes): the attributes for the tracepoint
+        """
         attributes = {
             "tracepoint": tp.id,
             "path": tp.path,

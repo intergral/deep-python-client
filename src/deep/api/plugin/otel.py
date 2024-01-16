@@ -9,6 +9,11 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Provide plugin for Deep to connect to OTEL."""
 
 from typing import Optional
 
@@ -22,40 +27,19 @@ except ImportError as e:
     raise DidNotEnable("opentelemetry is not installed", e)
 
 
-def span_name(span):
-    # type: (_Span)-> Optional[str]
-    return span.name if span.name else None
-
-
-def span_id(span):
-    # type: (_Span)-> Optional[str]
-    return (format_span_id(span.context.span_id)) if span else None
-
-
-def trace_id(span):
-    # type: (_Span)-> Optional[str]
-    return (format_trace_id(span.context.trace_id)) if span else None
-
-
-def get_span():
-    # type: () -> Optional[_Span]
-    span = trace.get_current_span()
-    if isinstance(span, _Span):
-        return span
-    return None
-
-
-def format_span_id(_id):
-    return format(_id, "016x")
-
-
-def format_trace_id(_id):
-    return format(_id, "032x")
-
-
 class OTelPlugin(Plugin):
+    """
+    Deep Otel plugin.
+
+    Provide span and trace information to the snapshot.
+    """
 
     def load_plugin(self) -> Optional[BoundedAttributes]:
+        """
+        Load the plugin.
+
+        :return: any values to attach to the client resource.
+        """
         provider = trace.get_tracer_provider()
         if isinstance(provider, TracerProvider):
             # noinspection PyUnresolvedReferences
@@ -65,11 +49,47 @@ class OTelPlugin(Plugin):
         return None
 
     def collect_attributes(self) -> Optional[BoundedAttributes]:
-        span = get_span()
+        """
+        Collect attributes to attach to snapshot.
+
+        :return: the attributes to attach.
+        """
+        span = OTelPlugin.__get_span()
         if span is not None:
             return BoundedAttributes(attributes={
-                "span_name": span_name(span),
-                "trace_id": trace_id(span),
-                "span_id": span_id(span)
+                "span_name": OTelPlugin.__span_name(span),
+                "trace_id": OTelPlugin.__trace_id(span),
+                "span_id": OTelPlugin.__span_id(span)
             })
         return None
+
+    @staticmethod
+    def __span_name(span):
+        # type: (_Span)-> Optional[str]
+        return span.name if span.name else None
+
+    @staticmethod
+    def __span_id(span):
+        # type: (_Span)-> Optional[str]
+        return (OTelPlugin.__format_span_id(span.context.__span_id)) if span else None
+
+    @staticmethod
+    def __trace_id(span):
+        # type: (_Span)-> Optional[str]
+        return (OTelPlugin.__format_trace_id(span.context.__trace_id)) if span else None
+
+    @staticmethod
+    def __get_span():
+        # type: () -> Optional[_Span]
+        span = trace.get_current_span()
+        if isinstance(span, _Span):
+            return span
+        return None
+
+    @staticmethod
+    def __format_span_id(_id):
+        return format(_id, "016x")
+
+    @staticmethod
+    def __format_trace_id(_id):
+        return format(_id, "032x")
