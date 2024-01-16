@@ -10,21 +10,22 @@
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
 
-import logging
 import os
 import sys
 import threading
+from collections import deque
+from types import FrameType
+from typing import Tuple
 
+from deep import logging
+from deep.api.tracepoint.trigger import Trigger
 from deep.config import ConfigService
 from deep.config.tracepoint_config import ConfigUpdateListener
-from deep.processor.frame_processor import FrameProcessor
+from deep.processor.context.action_context import ActionContext
+from deep.processor.context.action_results import ActionCallback
+from deep.processor.context.trigger_context import TriggerContext
 from deep.push import PushService
-
-
-def add_or_get(target, key, default_value):
-    if key not in target:
-        target[key] = default_value
-    return target[key]
+from deep.thread_local import ThreadLocal
 
 
 class TracepointHandlerUpdateListener(ConfigUpdateListener):
@@ -36,15 +37,7 @@ class TracepointHandlerUpdateListener(ConfigUpdateListener):
         self._handler = handler
 
     def config_change(self, ts, old_hash, current_hash, old_config, new_config):
-        sorted_config = {}
-        for tracepoint in new_config:
-            path = os.path.basename(tracepoint.path)
-            line_no = tracepoint.line_no
-            by_file = add_or_get(sorted_config, path, {})
-            by_line = add_or_get(by_file, line_no, [])
-            by_line.append(tracepoint)
-
-        self._handler.new_config(sorted_config)
+        self._handler.new_config(new_config)
 
 
 class TriggerHandler:
@@ -52,8 +45,12 @@ class TriggerHandler:
     This is the handler for the tracepoints. This is where we 'listen' for a hit, and determine if we
     should collect data.
     """
+    _tp_config: list[Trigger]
+    __callbacks: ThreadLocal[deque[list[ActionCallback]]] = ThreadLocal(lambda: deque())
 
     def __init__(self, config: ConfigService, push_service: PushService):
+        self.__old_thread_trace = None
+        self.__old_sys_trace = None
         self._push_service = push_service
         self._tp_config = []
         self._config = config
@@ -64,65 +61,120 @@ class TriggerHandler:
         # so we allow the settrace to be disabled, so we can at least debug around it
         if self._config.NO_TRACE:
             return
+        self.__old_sys_trace = sys.gettrace()
+        self.__old_thread_trace = threading.gettrace()
         sys.settrace(self.trace_call)
         threading.settrace(self.trace_call)
 
-    def new_config(self, new_config):
+    def new_config(self, new_config: list['Trigger']):
         self._tp_config = new_config
 
-    def trace_call(self, frame, event, arg):
+    def trace_call(self, frame: FrameType, event: str, arg):
         """
         This is called by python with the current frame data
+        The events are as follows:
+        - line: a line is being executed
+        - call: a function is being called
+        - return: a function is being returned
+        - exception: an exception is being raised
         :param frame: the current frame
         :param event: the event 'line', 'call', etc. That we are processing.
         :param arg: the args
         :return: None to ignore other calls, or our self to continue
         """
+        if event in ["line", "return", "exception"] and self.__callbacks.is_set:
+            self.process_call_backs(frame, event)
 
         # return if we do not have any tracepoints
         if len(self._tp_config) == 0:
             return None
 
-        tracepoints_for_file, tracepoints_for_line = self.tracepoints_for(os.path.basename(frame.f_code.co_filename),
-                                                                          frame.f_lineno)
-
-        # return if this is not a 'line' event
-        if event != 'line':
-            if len(tracepoints_for_file) == 0:
-                return None
+        event, file, line, function = self.location_from_event(event, frame)
+        actions = self.actions_for_location(event, file, line, function)
+        if len(actions) == 0:
             return self.trace_call
 
-        if len(tracepoints_for_line) > 0:
-            self.process_tracepoints(tracepoints_for_line, frame)
+        trigger_context = TriggerContext(self._config, self._push_service, frame, event)
+        try:
+            with trigger_context:
+                for action in actions:
+                    try:
+                        ctx: ActionContext
+                        with trigger_context.action_context(action) as ctx:
+                            if ctx.can_trigger():
+                                ctx.process()
+                    except BaseException:
+                        logging.exception("Cannot process action %s", action)
+        except BaseException:
+            logging.exception("Cannot trigger at %s#%s %s", file, line, function)
+
+        self.__callbacks.get().append(trigger_context.callbacks)
+
         return self.trace_call
 
-    def tracepoints_for(self, filename, lineno):
-        if filename in self._tp_config:
-            filename_ = self._tp_config[filename]
-            if lineno in filename_:
-                return filename_, filename_[lineno]
-            return filename_, []
-        return [], []
+    # def process_tracepoints(self, ts, tracepoints_for, frame):
+    #     """
+    #     We have some tracepoints, now check if we can collect
+    #
+    #     :param ts: the nano epoch this trace started
+    #     :param tracepoints_for: tracepoints for the file/line
+    #     :param frame: the frame data
+    #     """
+    #     # create a new frame processor with the config
+    #     processor = FrameProcessor(ts, tracepoints_for, frame, self._config)
+    #     # check if we can collect anything
+    #     can_collect = processor.can_collect()
+    #     if can_collect:
+    #         # we can proceed so have the processor configure from active tracepoints
+    #         processor.configure_self()
+    #         try:
+    #             # collect the data - this can be more than one result
+    #             snapshots = processor.collect()
+    #             for snapshot in snapshots:
+    #                 # push each result to services - this is async to allow the program to resume
+    #                 self._push_service.push_snapshot(snapshot)
+    #         except Exception:
+    #             logging.exception("Failed to collect snapshot")
 
-    def process_tracepoints(self, tracepoints_for, frame):
-        """
-        We have some tracepoints, now check if we can collect
+    def actions_for_location(self, event, file, line, function):
+        actions = []
+        for trigger in self._tp_config:
+            if trigger.at_location(event, file, line, function):
+                actions += trigger.actions
+        return actions
 
-        :param tracepoints_for: tracepoints for the file/line
-        :param frame: the frame data
+    def process_call_backs(self, frame: FrameType, event: str):
+        callbacks = self.__callbacks.value.pop()
+        remaining: list[ActionCallback] = []
+        for callback in callbacks:
+            if callback.process(frame, event):
+                remaining.append(callback)
+
+        self.__callbacks.value.append(remaining)
+
+    @staticmethod
+    def location_from_event(event: str, frame: FrameType) -> Tuple[str, str, int, str | None]:
         """
-        # create a new frame processor with the config
-        processor = FrameProcessor(tracepoints_for, frame, self._config)
-        # check if we can collect anything
-        can_collect = processor.can_collect()
-        if can_collect:
-            # we can proceed so have the processor configure from active tracepoints
-            processor.configure_self()
-            try:
-                # collect the data - this can be more than one result
-                snapshots = processor.collect()
-                for snapshot in snapshots:
-                    # push each result to services - this is async to allow the program to resume
-                    self._push_service.push_snapshot(snapshot)
-            except Exception:
-                logging.exception("Failed to collect snapshot")
+        Convert an event into a location.
+        The events are as follows:
+            - line: a line is being executed
+            - call: a function is being called
+            - return: a function is being returned
+            - exception: an exception is being raised
+        :param event:
+        :param frame:
+        :returns:
+            - event
+            - file path
+            - line number
+            - function name
+        """
+        filename = os.path.basename(frame.f_code.co_filename)
+        line = frame.f_lineno
+        function = frame.f_code.co_name
+        return event, filename, line, function
+
+    def shutdown(self):
+        sys.settrace(self.__old_sys_trace)
+        threading.settrace(self.__old_thread_trace)
+

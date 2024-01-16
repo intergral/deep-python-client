@@ -11,114 +11,75 @@
 #      GNU Affero General Public License for more details.
 
 import abc
-from typing import Dict, Tuple, List, Optional
+from types import FrameType
+from typing import Tuple
 
-from deep import logging
-from deep.api.tracepoint import StackFrame, WatchResult, Variable, VariableId
-from deep.processor.bfs import Node, NodeValue, breadth_first_search, ParentNode
+from deep.api.tracepoint import StackFrame, Variable
 from deep.utils import time_ns
-from .frame_config import FrameProcessorConfig
-from .variable_processor import process_variable, process_child_nodes, variable_to_string, truncate_string, Collector
-from ..config import ConfigService
+from .variable_set_processor import VariableCacheProvider, VariableSetProcessor, VariableProcessorConfig
 
 
-class FrameCollector(Collector):
-    """
-    This deals with collecting data from the paused frames.
-    """
-
-    def __init__(self, frame, config: ConfigService):
-        self._var_cache: Dict[str, str] = {}
-        self._config = config
-        self._has_time_exceeded = False
-        self._ts = time_ns()
-        self._frame_config = FrameProcessorConfig()
-        self._frame = frame
-        self._var_lookup: Dict[str, Variable] = {}
-        self._var_id = 0
+class FrameCollectorContext(abc.ABC):
 
     @property
-    def frame_config(self) -> FrameProcessorConfig:
-        return self._frame_config
-
     @abc.abstractmethod
-    def configure_self(self):
+    def max_tp_process_time(self) -> int:
         pass
 
-    def add_child_to_lookup(self, parent_id: str, child: VariableId):
-        self._var_lookup[parent_id].children.append(child)
+    @property
+    @abc.abstractmethod
+    def collection_config(self) -> VariableProcessorConfig:
+        pass
 
-    def log_tracepoint(self, log_msg: str, tp_id: str, snap_id: str):
-        self._config.log_tracepoint(log_msg, tp_id, snap_id)
+    @property
+    @abc.abstractmethod
+    def ts(self) -> int:
+        pass
 
-    def process_log(self, tp, log_msg) -> Tuple[str, List[WatchResult], Dict[str, Variable]]:
-        frame_col = self
-        watch_results = []
-        _var_lookup = {}
+    @abc.abstractmethod
+    def should_collect_vars(self, frame_index: int) -> bool:
+        pass
 
-        class FormatDict(dict):
-            """This type is used in the log process to ensure that missing values are formatted don't error"""
+    @abc.abstractmethod
+    def is_app_frame(self, filename: str) -> Tuple[bool, str]:
+        pass
 
-            def __missing__(self, key):
-                return "{%s}" % key
 
-        import string
+class FrameCollector:
+    def __init__(self, source: FrameCollectorContext, frame: FrameType):
+        self.__has_time_exceeded = False
+        self.__source = source
+        self.__frame = frame
 
-        class FormatExtractor(string.Formatter):
-            """This type allows us to use watches within log strings and collect the watch
-            as well as interpolate the values"""
+    def time_exceeded(self) -> bool:
+        if self.__has_time_exceeded:
+            return self.__has_time_exceeded
 
-            def get_field(self, field_name, args, kwargs):
-                # evaluate watch
-                watch, var_lookup, log_str = frame_col.eval_watch(field_name)
-                # collect data
-                watch_results.append(watch)
-                _var_lookup.update(var_lookup)
+        duration = (time_ns() - self.__source.ts) / 1000000  # make duration ms not ns
+        self.__has_time_exceeded = duration > self.__source.max_tp_process_time
+        return self.__has_time_exceeded
 
-                return log_str, field_name
+    def parse_short_name(self, filename) -> Tuple[str, bool]:
+        is_app_frame, match = self.__source.is_app_frame(filename)
+        if match is not None:
+            return filename[len(match):], is_app_frame
+        return filename, is_app_frame
 
-        log_msg = "[deep] %s" % FormatExtractor().vformat(log_msg, (), FormatDict(self._frame.f_locals))
-        return log_msg, watch_results, _var_lookup
-
-    def eval_watch(self, watch: str) -> Tuple[WatchResult, Dict[str, Variable], str]:
-        """
-        Evaluate an expression in the current frame.
-        :param watch: The watch expression to evaluate.
-        :return: Tuple with WatchResult, collected variables, and the log string for the expression
-        """
-        # reset var lookup - var cache is still used to reduce duplicates
-        self._var_lookup = {}
-
-        try:
-            result = eval(watch, None, self._frame.f_locals)
-            watch_var, var_lookup, log_str = self.process_watch_result_breadth_first(watch, result)
-            # again we reset the local version of the var lookup.
-            self._var_lookup = {}
-            return WatchResult(watch, watch_var), var_lookup, log_str
-        except BaseException as e:
-            logging.exception("Error evaluating watch %s", watch)
-            return WatchResult(watch, None, str(e)), {}, str(e)
-
-    def process_frame(self):
-        """
-        This is the main variable processing
-        :return: Tuple of collected frames and variables
-        """
-        current_frame = self._frame
+    def collect(self, var_lookup: dict[str, Variable], var_cache: VariableCacheProvider) \
+            -> Tuple[list[StackFrame], dict[str, Variable]]:
+        current_frame = self.__frame
         collected_frames = []
         # while we still have frames process them
         while current_frame is not None:
             # process the current frame
-            frame = self._process_frame(current_frame, self._frame_config.should_collect_vars(len(collected_frames)))
+            frame = self._process_frame(var_lookup, var_cache, current_frame,
+                                        self.__source.should_collect_vars(len(collected_frames)))
             collected_frames.append(frame)
             current_frame = current_frame.f_back
-        # We want to clear the local collected var lookup now that we have processed the frame
-        # this is, so we can process watches later while maintaining independence between tracepoints
-        _vars = self._var_lookup
-        self._var_lookup = {}
-        return collected_frames, _vars
+        return collected_frames, var_lookup
 
-    def _process_frame(self, frame, process_vars):
+    def _process_frame(self, var_lookup: dict[str, Variable], var_cache: VariableCacheProvider,
+                       frame: FrameType, collect_vars: bool) -> StackFrame:
         # process the current frame info
         lineno = frame.f_lineno
         filename = frame.f_code.co_filename
@@ -127,143 +88,20 @@ class FrameCollector(Collector):
         f_locals = frame.f_locals
         _self = f_locals.get('self', None)
         class_name = None
-        if _self is not None:
+        if _self is not None and hasattr(_self, '__class__'):
             class_name = _self.__class__.__name__
 
         var_ids = []
         # only process vars if we are under the time limit
-        if process_vars and not self.time_exceeded():
-            var_ids = self.process_frame_variables_breadth_first(f_locals)
+        if collect_vars and not self.time_exceeded():
+            processor = VariableSetProcessor(var_lookup, var_cache, self.__source.collection_config)
+            # we process the vars as a single dict of 'locals'
+            variable, log_str = processor.process_variable("locals", f_locals)
+            # now ee 'unwrap' the locals, so they are on the frame directly.
+            if variable.vid in var_lookup:
+                variable_val = var_lookup[variable.vid]
+                del var_lookup[variable.vid]
+                var_ids = variable_val.children
         short_path, app_frame = self.parse_short_name(filename)
         return StackFrame(filename, short_path, func_name, lineno, var_ids, class_name,
                           app_frame=app_frame)
-
-    def time_exceeded(self):
-        if self._has_time_exceeded:
-            return self._has_time_exceeded
-
-        duration = (time_ns() - self._ts) / 1000000  # make duration ms not ns
-        self._has_time_exceeded = duration > self._frame_config.max_tp_process_time
-        return self._has_time_exceeded
-
-    def is_app_frame(self, filename: str) -> Tuple[bool, Optional[str]]:
-        in_app_include = self._config.IN_APP_INCLUDE
-        in_app_exclude = self._config.IN_APP_EXCLUDE
-
-        for path in in_app_exclude:
-            if filename.startswith(path):
-                return False, path
-
-        for path in in_app_include:
-            if filename.startswith(path):
-                return True, path
-
-        if filename.startswith(self._config.APP_ROOT):
-            return True, self._config.APP_ROOT
-
-        return False, None
-
-    def process_frame_variables_breadth_first(self, f_locals):
-        """
-        Here we start the BFS process for the frame.
-        :param f_locals: the frame locals.
-        :return: the list of var ids for the frame.
-        """
-        var_ids = []
-
-        class FrameParent(ParentNode):
-
-            def add_child(self, child):
-                var_ids.append(child)
-
-        root_parent = FrameParent()
-
-        initial_nodes = [Node(NodeValue(k, v), parent=root_parent) for k, v in f_locals.items()]
-        breadth_first_search(Node(None, initial_nodes, root_parent), self.search_function)
-
-        return var_ids
-
-    def search_function(self, node: Node) -> bool:
-        """
-        This is the search function to use during BFS
-        :param node: the current node we are process
-        :return: True, if we want to continue with the nodes children
-        """
-        if not self.check_var_count():
-            # we have exceeded the var count, so do not continue
-            return False
-
-        node_value = node.value
-        if node_value is None:
-            # this node has no value, continue with children
-            return True
-
-        # process this node variable
-        process_result = process_variable(self, node_value)
-        var_id = process_result.variable_id
-        # add the result to the parent - this maintains the hierarchy in the var look up
-        node.parent.add_child(var_id)
-
-        # some variables do not want the children processed (e.g. strings)
-        if process_result.process_children:
-            # process children and add to node
-            child_nodes = process_child_nodes(self, var_id.vid, node_value.value, node.depth)
-            node.add_children(child_nodes)
-        return True
-
-    def check_var_count(self):
-        if len(self._var_cache) > self._frame_config.max_variables:
-            return False
-        return True
-
-    def process_watch_result_breadth_first(self, watch: str, result: any) -> (
-            Tuple)[VariableId, Dict[str, Variable], str]:
-
-        identity_hash_id = str(id(result))
-        check_id = self.check_id(identity_hash_id)
-        if check_id is not None:
-            # this means the watch result is already in the var_lookup
-            return VariableId(check_id, watch), {}, str(result)
-
-        # else this is an unknown value so process breadth first
-        var_ids = []
-
-        class FrameParent(ParentNode):
-
-            def add_child(self, child):
-                var_ids.append(child)
-
-        root_parent = FrameParent()
-
-        initial_nodes = [Node(NodeValue(watch, result), parent=root_parent)]
-        breadth_first_search(Node(None, initial_nodes, root_parent), self.search_function)
-
-        var_id = self.check_id(identity_hash_id)
-
-        variable_type = type(result)
-        variable_value_str, truncated = truncate_string(variable_to_string(variable_type, result),
-                                                        self.frame_config.max_string_length)
-
-        self._var_lookup[var_id] = Variable(str(variable_type.__name__), variable_value_str, identity_hash_id, [],
-                                            truncated)
-        return VariableId(var_id, watch), self._var_lookup, str(result)
-
-    def check_id(self, identity_hash_id):
-        if identity_hash_id in self._var_cache:
-            return self._var_cache[identity_hash_id]
-        return None
-
-    def new_var_id(self, identity_hash_id: str) -> str:
-        var_count = len(self._var_cache)
-        new_id = str(var_count + 1)
-        self._var_cache[identity_hash_id] = new_id
-        return new_id
-
-    def append_variable(self, var_id, variable):
-        self._var_lookup[var_id] = variable
-
-    def parse_short_name(self, filename) -> Tuple[str, bool]:
-        is_app_frame, match = self.is_app_frame(filename)
-        if match is not None:
-            return filename[len(match):], is_app_frame
-        return filename, is_app_frame

@@ -80,5 +80,6 @@ def convert_snapshot(snapshot: EventSnapshot) -> Snapshot:
                                   snapshot.resource.attributes.items()],
                         log_msg=snapshot.log_msg)
     except Exception:
+        # todo should this return None?
         logging.exception("Error converting to protobuf")
         return Snapshot()

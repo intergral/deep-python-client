@@ -13,17 +13,42 @@
 import abc
 import logging
 import uuid
-from typing import Dict, List
+from typing import Dict, List, TYPE_CHECKING
 
 from deep.api.tracepoint import TracePointConfig
+from deep.api.tracepoint.tracepoint_config import MetricDefinition
+
+from deep.api.tracepoint.trigger import build_trigger
+
+if TYPE_CHECKING:
+    from deep.api.tracepoint.trigger import Trigger
+
+
+class ConfigUpdateListener(abc.ABC):
+    """
+    Class to describe a config listener
+    """
+
+    @abc.abstractmethod
+    def config_change(self, ts: int, old_hash: str, current_hash: str, old_config: list['Trigger'],
+                      new_config: list['Trigger']):
+        """
+        Called when the config has changed
+        :param ts: the ts of the new config
+        :param old_hash: the old config hash
+        :param current_hash: the new config hash
+        :param old_config: the old config
+        :param new_config: the new config
+        """
+        raise NotImplementedError
 
 
 class TracepointConfigService:
     """This service deals with new responses from the LongPoll"""
 
     def __init__(self) -> None:
-        self._custom = []
-        self._tracepoint_config = []
+        self._custom: list['Trigger'] = []
+        self._tracepoint_config: list['Trigger'] = []
         self._current_hash = None
         self._last_update = 0
         self._task_handler = None
@@ -36,7 +61,7 @@ class TracepointConfigService:
         """
         self._last_update = ts
 
-    def update_new_config(self, ts, new_hash, new_config):
+    def update_new_config(self, ts: int, new_hash: str, new_config: list['Trigger']):
         """
         This is called when there is a change in the config, this will trigger a call to all listeners
         :param ts: the ts of the last poll, in ms
@@ -61,7 +86,8 @@ class TracepointConfigService:
         """Link in task handler"""
         self._task_handler = task_handler
 
-    def update_listeners(self, ts, old_hash, current_hash, old_config, new_config):
+    def update_listeners(self, ts: int, old_hash: str, current_hash: str, old_config: list['Trigger'],
+                         new_config: list['Trigger']):
         """This is called to update any listeners that the config has changed"""
         listeners_copy = self._listeners.copy()
         for listeners in listeners_copy:
@@ -70,44 +96,27 @@ class TracepointConfigService:
             except Exception:
                 logging.exception("Error updating listener %s", listeners)
 
-    def add_listener(self, listener):
+    def add_listener(self, listener: ConfigUpdateListener):
         """Add a new listener to the config"""
         self._listeners.append(listener)
 
     @property
-    def current_config(self):
+    def current_config(self) -> list['Trigger']:
         return self._tracepoint_config
 
     @property
-    def current_hash(self):
+    def current_hash(self) -> str:
         return self._current_hash
 
-    def add_custom(self, path: str, line: int, args: Dict[str, str], watches: List[str]) -> TracePointConfig:
-        config = TracePointConfig(str(uuid.uuid4()), path, line, args, watches)
+    def add_custom(self, path: str, line: int, args: Dict[str, str], watches: List[str],
+                   metrics: list[MetricDefinition]) -> str:
+        config = build_trigger(str(uuid.uuid4()), path, line, args, watches, metrics)
         self._custom.append(config)
         self.trigger_update(None, None)
-        return config
+        return config.id
 
-    def remove_custom(self, config: TracePointConfig):
+    def remove_custom(self, _id: str):
         for idx, cfg in enumerate(self._custom):
-            if cfg.id == config.id:
+            if cfg.id == _id:
                 del self._custom[idx]
                 return
-
-
-class ConfigUpdateListener(abc.ABC):
-    """
-    Class to describe a config listener
-    """
-
-    @abc.abstractmethod
-    def config_change(self, ts, old_hash, current_hash, old_config, new_config):
-        """
-        Called when the config has changed
-        :param ts: the ts of the new config
-        :param old_hash: the old config hash
-        :param current_hash: the new config hash
-        :param old_config: the old config
-        :param new_config: the new config
-        """
-        raise NotImplementedError

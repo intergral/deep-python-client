@@ -16,7 +16,7 @@ from deep import logging, version
 from deep.api import Deep
 
 
-def start(config=None):
+def start(config=None) -> Deep:
     """
     Start DEEP.
     :param config: a custom config

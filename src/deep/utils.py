@@ -9,6 +9,11 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""A collection of util functions to perform common or repeated actions."""
 
 import logging
 import time
@@ -16,7 +21,7 @@ from threading import Event, Thread
 
 
 def snapshot_id_as_hex_str(snapshot_id):
-    """"Convert a snapshot if to a hex string."""
+    """Convert a snapshot if to a hex string."""
     return snapshot_id.to_bytes(16, 'big').hex()
 
 
@@ -50,7 +55,7 @@ def reduce_list(key, update_value, default_value, lst):
 
 def str2bool(string):
     """
-    Convert a string to a boolean
+    Convert a string to a boolean.
 
     :param string: the string to convert
     :return: True, if string is yes, true, t or 1. (case insensitive)
@@ -62,6 +67,15 @@ class RepeatedTimer:
     """Repeat `function` every `interval` seconds."""
 
     def __init__(self, name, interval, function, *args, **kwargs):
+        """
+        Create a new RepeatTimer.
+
+        :param name: the name of the timer
+        :param interval: the time in seconds between each execution
+        :param function: the function to repeat
+        :param args: the arguments for the function
+        :param kwargs: the kwargs for the function
+        """
         self.name = name
         self.interval = interval
         self.function = function
@@ -73,9 +87,11 @@ class RepeatedTimer:
         self.thread.daemon = True
 
     def start(self):
+        """Start the thread to run the timer."""
         self.thread.start()
 
     def stop(self):
+        """Stop and shutdown the timer."""
         self.event.set()
         self.thread.join()
 

@@ -16,7 +16,8 @@ from deepproto.proto.common.v1.common_pb2 import KeyValue, AnyValue, ArrayValue,
 from deepproto.proto.resource.v1.resource_pb2 import Resource
 
 from .grpc_service import GRPCService
-from ..api.tracepoint.tracepoint_config import TracePointConfig
+from ..api.tracepoint.tracepoint_config import TracePointConfig, LabelExpression, MetricDefinition
+from ..api.tracepoint.trigger import build_trigger, Trigger
 
 
 def convert_value(value):
@@ -56,5 +57,42 @@ def convert_attributes(attributes):
                     attributes=[KeyValue(key=k, value=convert_value(v)) for k, v in attributes.items()])
 
 
-def convert_response(response):
-    return [TracePointConfig(r.ID, r.path, r.line_number, dict(r.args), [w for w in r.watches]) for r in response]
+def convert_static_value(value):
+    static_value = value.static
+    set_field = static_value.WhichOneof("value")
+    if set_field is None:
+        return None
+    return getattr(static_value, set_field)
+
+
+def convert_label_expressions(label_expressions):
+    return [LabelExpression(label.key, convert_static_value(label), label.expression) for
+            label in label_expressions]
+
+
+def convert_metric_definition(metrics):
+    return [MetricDefinition(m.name, convert_label_expressions(m.labelExpressions), m.type, m.expression, m.namespace,
+                             m.help, m.unit) for m in metrics]
+
+
+def convert_response(response) -> list[Trigger]:
+    """
+    This function should create a list of Triggers from the incoming configuration. The Trigger should be a
+    location with one or more actions to perform at that location.
+
+    :param response: the response from the poll request
+    :return: a list of trigger locations with the appropriate actions
+    """
+    all_triggers: dict[str, Trigger] = {}
+    for r in response:
+        # from the incoming tracepoints create a Trigger with actions
+        trigger = build_trigger(r.ID, r.path, r.line_number, dict(r.args), [w for w in r.watches],
+                                convert_metric_definition(r.metrics))
+        location_id = trigger.id
+        # if we already have a trigger for this location then merge the new actions into it
+        if location_id in all_triggers:
+            all_triggers[location_id].merge_actions(trigger.actions)
+        else:
+            all_triggers[location_id] = trigger
+
+    return list(all_triggers.values())

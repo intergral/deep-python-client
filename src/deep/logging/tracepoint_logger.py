@@ -24,7 +24,7 @@ from deep import logging
 class TracepointLogger(abc.ABC):
 
     @abc.abstractmethod
-    def log_tracepoint(self, log_msg: str, tp_id: str, snap_id: str):
+    def log_tracepoint(self, log_msg: str, tp_id: str, ctx_id: str):
         pass
 
 
@@ -32,5 +32,5 @@ class DefaultLogger(TracepointLogger):
     def __init__(self, _config: 'ConfigService'):
         self._config = _config
 
-    def log_tracepoint(self, log_msg: str, tp_id: str, snap_id: str):
-        logging.info(log_msg + " snapshot=%s tracepoint=%s" % (snap_id, tp_id))
+    def log_tracepoint(self, log_msg: str, tp_id: str, ctx_id: str):
+        logging.info(log_msg + " ctx=%s tracepoint=%s" % (ctx_id, tp_id))

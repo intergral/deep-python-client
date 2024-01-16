@@ -54,31 +54,27 @@ class Deep:
     def shutdown(self):
         if not self.started:
             return
+        self.trigger_handler.shutdown()
         self.task_handler.flush()
         self.started = False
+
     def register_tracepoint(self, path: str, line: int, args: Dict[str, str] = None,
-                            watches: List[str] = None) -> 'TracepointRegistration':
+                            watches: List[str] = None, metrics=None) -> 'TracepointRegistration':
+        if metrics is None:
+            metrics = []
         if watches is None:
             watches = []
         if args is None:
             args = {}
-        tp_config = self.config.tracepoints.add_custom(path, line, args, watches)
-        return TracepointRegistration(tp_config, self.config.tracepoints)
+        tp_id = self.config.tracepoints.add_custom(path, line, args, watches, metrics)
+        return TracepointRegistration(tp_id, self.config.tracepoints)
 
 
 class TracepointRegistration:
-    _cfg: TracePointConfig
-    _tpServ: TracepointConfigService
 
-    def __init__(self, cfg: TracePointConfig, tracepoints: TracepointConfigService):
-        self._cfg = cfg
-        self._tpServ = tracepoints
-
-    def get(self) -> TracePointConfig:
-        return self._cfg
+    def __init__(self, _id: str, tracepoints: TracepointConfigService):
+        self.__id: str = _id
+        self.__tpServ: TracepointConfigService = tracepoints
 
     def unregister(self):
-        self._tpServ.remove_custom(self._cfg)
-
-    def tracepoint_logger(self, logger: 'TracepointLogger'):
-        self.config.tracepoint_logger = logger
+        self.__tpServ.remove_custom(self.__id)

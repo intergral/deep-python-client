@@ -11,12 +11,12 @@
 #      GNU Affero General Public License for more details.
 
 import os
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Tuple, Optional
 
 from deep import logging
 from deep.api.plugin import Plugin
 from deep.api.resource import Resource
-from deep.config.tracepoint_config import TracepointConfigService
+from deep.config.tracepoint_config import TracepointConfigService, ConfigUpdateListener
 from deep.logging.tracepoint_logger import DefaultLogger, TracepointLogger
 
 
@@ -100,7 +100,7 @@ class ConfigService:
     def tracepoints(self) -> 'TracepointConfigService':
         return self._tracepoint_config
 
-    def add_listener(self, listener):
+    def add_listener(self, listener: 'ConfigUpdateListener'):
         self._tracepoint_config.add_listener(listener)
 
     @property
@@ -113,3 +113,20 @@ class ConfigService:
 
     def log_tracepoint(self, log_msg: str, tp_id: str, snap_id: str):
         self._tracepoint_logger.log_tracepoint(log_msg, tp_id, snap_id)
+
+    def is_app_frame(self, filename: str) -> Tuple[bool, Optional[str]]:
+        in_app_include = self.IN_APP_INCLUDE
+        in_app_exclude = self.IN_APP_EXCLUDE
+
+        for path in in_app_exclude:
+            if filename.startswith(path):
+                return False, path
+
+        for path in in_app_include:
+            if filename.startswith(path):
+                return True, path
+
+        if filename.startswith(self.APP_ROOT):
+            return True, self.APP_ROOT
+
+        return False, None

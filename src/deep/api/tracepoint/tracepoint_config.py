@@ -9,48 +9,10 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
-from typing import List
+from typing import List, Optional
 
-# Below are constants used in the configuration of a tracepoint
-
-FIRE_COUNT = "fire_count"
-"""The number of times this tracepoint should fire"""
-
-WINDOW_START = "window_start"
-"""The start of the time period this tracepoint can fire in"""
-
-WINDOW_END = "window_end"
-"""The end of the time period this tracepoint can fire in"""
-
-FIRE_PERIOD = "fire_period"
-"""The minimum time between successive triggers, in ms"""
-
-CONDITION = "condition"
-"""The condition that has to be 'truthy' for this tracepoint to fire"""
-
-FRAME_TYPE = 'frame_type'
-"""This is the key to indicate the frame collection type"""
-
-STACK_TYPE = 'stack_type'
-"""This is the key to indicate the stack collection type"""
-
-SINGLE_FRAME_TYPE = 'single_frame'
-"""Collect only the frame we are on"""
-
-ALL_FRAME_TYPE = 'all_frame'
-"""Collect from all available frames"""
-
-NO_FRAME_TYPE = 'no_frame'
-"""Collect on frame data"""
-
-STACK = 'stack'
-"""Collect the full stack"""
-
-NO_STACK = 'no_stack'
-"""Do not collect the stack data"""
-
-LOG_MSG = 'log_msg'
-"""The log message to interpolate at position of tracepoint"""
+from deep.api.tracepoint.constants import SINGLE_FRAME_TYPE, ALL_FRAME_TYPE, NO_FRAME_TYPE, FRAME_TYPE, STACK_TYPE, \
+    STACK, FIRE_COUNT, CONDITION
 
 
 def frame_type_ordinal(frame_type) -> int:
@@ -100,20 +62,50 @@ class TracepointWindow:
         return self._start <= ts <= self._end
 
 
+class LabelExpression:
+    def __init__(self, key: str, static: Optional[any], expression: Optional[str]):
+        self.__key = key
+        self.__static = static
+        self.__expression = expression
+
+    @property
+    def key(self):
+        return self.__key
+
+    @property
+    def static(self):
+        return self.__static
+
+    @property
+    def expression(self):
+        return self.__expression
+
+
+class MetricDefinition:
+    def __init__(self, name: str, labels: list[LabelExpression], type_p: str, expression: Optional[str],
+                 namespace: Optional[str], help_p: Optional[str], unit: Optional[str]):
+        self.__name = name
+        self.__labels = labels
+        self.__type = type_p
+        self.__expression = expression
+        self.__namespace = namespace
+        self.__help = help_p
+        self.__unit = unit
+
+
 class TracePointConfig:
     """
     This represents the configuration of a single tracepoint, this is a python version of the GRPC
     data collected from the LongPoll.
     """
 
-    def __init__(self, tp_id: str, path: str, line_no: int, args: dict, watches: List[str]):
+    def __init__(self, tp_id: str, path: str, line_no: int, args: dict, watches: List[str],
+                 metrics: list[MetricDefinition]):
         self._id = tp_id
         self._path = path
         self._line_no = line_no
         self._args = args
         self._watches = watches
-        self._window = TracepointWindow(self.get_arg(WINDOW_START, 0), self.get_arg(WINDOW_END, 0))
-        self._stats = TracepointExecutionStats()
 
     @property
     def id(self):
@@ -166,33 +158,6 @@ class TracePointConfig:
             return int(self.get_arg(name, default_value))
         except ValueError:
             return default_value
-
-    def can_trigger(self, ts):
-        """
-        Check if the tracepoint can trigger, this is to check the config. e.g. fire count, fire windows etc
-        :param ts: the time the tracepoint has been triggered
-        :return: true, if we should collect data; else false
-        """
-        # Have we exceeded the fire count?
-        if self.fire_count != -1 and self.fire_count <= self._stats.fire_count:
-            return False
-
-        # Are we in the time window?
-        if not self._window.in_window(ts):
-            return False
-
-        # Have we fired too quickly?
-        last_fire = self._stats.last_fire
-        if last_fire != 0:
-            time_since_last = ts - last_fire
-            if time_since_last < self.get_arg_int(FIRE_PERIOD, 1000):
-                return False
-
-        return True
-
-    def record_triggered(self, ts):
-        """This is called when the tracepoint has been processed."""
-        self._stats.fire(ts)
 
     def __str__(self) -> str:
         return str({'id': self._id, 'path': self._path, 'line_no': self._line_no, 'args': self._args,

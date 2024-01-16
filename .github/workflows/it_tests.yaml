@@ -1,0 +1,26 @@
+name: IT Tests
+
+on:
+    workflow_dispatch:
+    schedule:
+        - cron: '0 0 * * *'
+
+jobs:
+    itTests:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+
+            - run: |
+                  echo "${{ github.event_name }}"
+                  NEW_COMMIT_COUNT=$(git log --oneline --since '24 hours ago' | wc -l)
+                  echo "$NEW_COMMIT_COUNT"
+                  echo "CHANGE_COUNT=$NEW_COMMIT_COUNT" >> $GITHUB_ENV
+
+            - name: Setup Python # Set Python version
+              uses: actions/setup-python@v4
+              with:
+                  python-version: 3.11
+            - name: Run IT Tests
+              if: ${{ github.event.event_name == 'workflow_dispatch' || env.CHANGE_COUNT > 0 }}
+              run: make it-tests

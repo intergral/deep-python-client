@@ -7,7 +7,9 @@
       <sourceFolder url="file://$MODULE_DIR$/deep-extractor/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/examples/simple-app/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/dev/test-server/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/venv" />
       <excludeFolder url="file://$MODULE_DIR$/venv/lib/python3.10/site-packages/deep" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.10 (deep-python-client)" jdkType="Python SDK" />
