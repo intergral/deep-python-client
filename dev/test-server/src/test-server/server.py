@@ -9,6 +9,11 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""This is a basic example of setting up a GRPC server to consume Deep protobuf messages."""
 
 from concurrent import futures
 
@@ -23,6 +28,7 @@ from deepproto.proto.tracepoint.v1.tracepoint_pb2_grpc import SnapshotServiceSer
 
 
 def serve():
+    """Set up and start a GRPC service on port 43315 to server Deep clients."""
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     deepproto.proto.poll.v1.poll_pb2_grpc.add_PollConfigServicer_to_server(
@@ -34,14 +40,19 @@ def serve():
 
 
 class SnapshotServicer(SnapshotServiceServicer):
+    """Create class to handle snapshot send events."""
 
     def send(self, request, context):
+        """Receive and process a snapshot request."""
         print("hit", request.ID, request.attributes)
         return SnapshotResponse()
 
 
 class PollServicer(PollConfigServicer):
+    """Create a class to handle poll requests."""
+
     def poll(self, request, context):
+        """Receive and process poll requests."""
         print(request, context, context.invocation_metadata())
         response = PollResponse(ts_nanos=request.ts_nanos, current_hash="123", response=[
             TracePointConfig(ID="17", path="/simple-app/simple_test.py", line_number=31,

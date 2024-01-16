@@ -9,6 +9,11 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Maintain the current config of the tracepoints."""
 
 import abc
 import logging
@@ -19,26 +24,33 @@ from deep.api.tracepoint import TracePointConfig
 
 
 class TracepointConfigService:
-    """This service deals with new responses from the LongPoll"""
+    """This service deals with new responses from the LongPoll."""
 
     def __init__(self) -> None:
+        """Create new tracepoint config service."""
         self._custom = []
         self._tracepoint_config = []
         self._current_hash = None
         self._last_update = 0
         self._task_handler = None
-        self._listeners = []
+        self._listeners: list[ConfigUpdateListener] = []
 
     def update_no_change(self, ts):
         """
+        Update no change detected.
+
         This is called when the response says the config has not changed
+
         :param ts: the ts of the last poll, in ms
         """
         self._last_update = ts
 
     def update_new_config(self, ts, new_hash, new_config):
         """
+        Update to the new config.
+
         This is called when there is a change in the config, this will trigger a call to all listeners
+
         :param ts: the ts of the last poll, in ms
         :param new_hash: the new config hash
         :param new_config: the new config values
@@ -48,9 +60,9 @@ class TracepointConfigService:
         self._last_update = ts
         self._current_hash = new_hash
         self._tracepoint_config = new_config
-        self.trigger_update(old_hash, old_config)
+        self.__trigger_update(old_hash, old_config)
 
-    def trigger_update(self, old_hash, old_config):
+    def __trigger_update(self, old_hash, old_config):
         ts = self._last_update
         if self._task_handler is not None:
             future = self._task_handler.submit_task(self.update_listeners, self._last_update, old_hash,
@@ -58,11 +70,25 @@ class TracepointConfigService:
             future.add_done_callback(lambda _: logging.debug("Completed processing new config %s", ts))
 
     def set_task_handler(self, task_handler):
-        """Link in task handler"""
+        """
+        Set the task handler to use.
+
+        :param task_handler: the taskhandler
+        """
         self._task_handler = task_handler
 
     def update_listeners(self, ts, old_hash, current_hash, old_config, new_config):
-        """This is called to update any listeners that the config has changed"""
+        """
+        Update the registered listeners.
+
+        This is called to update any listeners that the config has changed
+
+        :param ts: the ts of the update
+        :param old_hash: the old hash
+        :param current_hash: the new hash value
+        :param old_config: the old config
+        :param new_config: the new config
+        """
         listeners_copy = self._listeners.copy()
         for listeners in listeners_copy:
             try:
@@ -70,25 +96,56 @@ class TracepointConfigService:
             except Exception:
                 logging.exception("Error updating listener %s", listeners)
 
-    def add_listener(self, listener):
-        """Add a new listener to the config"""
+    def add_listener(self, listener: 'ConfigUpdateListener'):
+        """
+        Add a new listener to the config.
+
+        :param listener: the listener to add
+        """
         self._listeners.append(listener)
 
     @property
     def current_config(self):
+        """
+        The current tracepoint config.
+
+        :return: the config
+        """
         return self._tracepoint_config
 
     @property
     def current_hash(self):
+        """
+        The current hash.
+
+        The hash is updated only when the config is changed. It is used by the server and client to
+        reduce the number of updates.
+
+        :return: the current hash.
+        """
         return self._current_hash
 
     def add_custom(self, path: str, line: int, args: Dict[str, str], watches: List[str]) -> TracePointConfig:
+        """
+        Crate a new tracepoint from the input.
+
+        :param path: the source file name
+        :param line: the source line number
+        :param args: the tracepoint args
+        :param watches: the tracepoint watches
+        :return: the new TracePointConfig
+        """
         config = TracePointConfig(str(uuid.uuid4()), path, line, args, watches)
         self._custom.append(config)
-        self.trigger_update(None, None)
+        self.__trigger_update(None, None)
         return config
 
     def remove_custom(self, config: TracePointConfig):
+        """
+        Remove a custom tracepoint config.
+
+        :param config: the config to remove
+        """
         for idx, cfg in enumerate(self._custom):
             if cfg.id == config.id:
                 del self._custom[idx]
@@ -96,14 +153,13 @@ class TracepointConfigService:
 
 
 class ConfigUpdateListener(abc.ABC):
-    """
-    Class to describe a config listener
-    """
+    """Class to describe a config listener."""
 
     @abc.abstractmethod
     def config_change(self, ts, old_hash, current_hash, old_config, new_config):
         """
-        Called when the config has changed
+        Process an update to the tracepoint config.
+
         :param ts: the ts of the new config
         :param old_hash: the old config hash
         :param current_hash: the new config hash

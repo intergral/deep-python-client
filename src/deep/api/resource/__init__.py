@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Constant values for Resource data."""
+
 import abc
 import os
 import typing
@@ -108,6 +110,12 @@ class Resource:
     def __init__(
             self, attributes: Attributes, schema_url: typing.Optional[str] = None
     ):
+        """
+        Create new resource.
+
+        :param attributes: the attributes
+        :param schema_url: the schema url
+        """
         self._attributes = BoundedAttributes(attributes=attributes)
         if schema_url is None:
             schema_url = ""
@@ -118,7 +126,8 @@ class Resource:
             attributes: typing.Optional[Attributes] = None,
             schema_url: typing.Optional[str] = None,
     ) -> "Resource":
-        """Creates a new `Resource` from attributes.
+        """
+        Create a new `Resource` from attributes.
 
         Args:
             attributes: Optional zero or more key-value pairs.
@@ -146,18 +155,24 @@ class Resource:
 
     @staticmethod
     def get_empty() -> "Resource":
+        """Get an empty resource."""
         return _EMPTY_RESOURCE
 
     @property
     def attributes(self) -> BoundedAttributes:
+        """The underlying attributes for the resource."""
         return self._attributes
 
     @property
     def schema_url(self) -> str:
+        """The schema url for the resource."""
         return self._schema_url
 
     def merge(self, other: "Resource") -> "Resource":
-        """Merges this resource and an updating resource into a new `Resource`.
+        """
+        Merge another resource into this one.
+
+        Merges this resource and an updating resource into a new `Resource`.
 
         If a key exists on both the old and updating resource, the value of the
         updating resource will override the old resource value.
@@ -193,6 +208,7 @@ class Resource:
         return Resource(merged_attributes, schema_url)
 
     def __eq__(self, other: object) -> bool:
+        """Check if other object is equals to this one."""
         if not isinstance(other, Resource):
             return False
         return (
@@ -201,11 +217,13 @@ class Resource:
         )
 
     def __hash__(self):
+        """Create hash value for this object."""
         return hash(
             f"{dumps(self._attributes.copy(), sort_keys=True)}|{self._schema_url}"
         )
 
     def to_json(self, indent=4) -> str:
+        """Convert this object to json."""
         return dumps(
             {
                 "attributes": dict(self._attributes),
@@ -226,17 +244,35 @@ _DEFAULT_RESOURCE = Resource(
 
 
 class ResourceDetector(abc.ABC):
+    """Detect the resource information for Deep."""
+
     def __init__(self, raise_on_error=False):
+        """
+        Create a new detector.
+
+        :param raise_on_error: should raise exception on error
+        """
         self.raise_on_error = raise_on_error
 
     @abc.abstractmethod
     def detect(self) -> "Resource":
+        """
+        Create a resource.
+
+        :return: the created resrouce
+        """
         raise NotImplementedError()
 
 
 class DeepResourceDetector(ResourceDetector):
-    # pylint: disable=no-self-use
+    """Detect the resource information for Deep."""
+
     def detect(self) -> "Resource":
+        """
+        Create a resource from the discovered environment data.
+
+        :return: the created resource
+        """
         env_resources_items = os.environ.get(DEEP_RESOURCE_ATTRIBUTES)
         env_resource_map = {}
 

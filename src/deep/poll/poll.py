@@ -9,6 +9,16 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+Long poll service for maintaining tracepoint config.
+
+Deep needs to maintain a config of the tracepoints configured by the users. The clients do this by
+ periodically polling the long poll service.
+"""
 
 # noinspection PyUnresolvedReferences
 from deepproto.proto.poll.v1.poll_pb2 import PollRequest, ResponseType
@@ -16,36 +26,41 @@ from deepproto.proto.poll.v1.poll_pb2_grpc import PollConfigStub
 
 from deep import logging
 from deep.config import ConfigService
-from deep.grpc import convert_resource, convert_response
+from deep.grpc import convert_resource, convert_response, GRPCService
 from deep.utils import time_ns, RepeatedTimer
 
 
 class LongPoll(object):
-    """
-    This service deals with polling the remote service to get the tracepoint configs
-    """
-    config: ConfigService
+    """This service deals with polling the remote service to get the tracepoint configs."""
 
-    def __init__(self, config, grpc):
+    def __init__(self, config: ConfigService, grpc: GRPCService):
+        """
+        Create a new long poll service.
+
+        :param config: the deep config service
+        :param grpc: the grpc service being used
+        """
         self.config = config
         self.grpc = grpc
         self.timer = None
 
     def start(self):
+        """Start the long poll service."""
         logging.info("Starting Long Poll system")
         if self.timer is not None:
             self.timer.stop()
         self.timer = RepeatedTimer("Tracepoint Long Poll", self.config.POLL_TIMER, self.poll)
-        self.initial_poll()
+        self.__initial_poll()
         self.timer.start()
 
-    def initial_poll(self):
+    def __initial_poll(self):
         try:
             self.poll()
         except Exception:
             logging.exception("Initial poll failed. Will continue with interval.")
 
     def poll(self):
+        """Check with the Deep servers for changes to the tracepoint config."""
         stub = PollConfigStub(self.grpc.channel)
         request = PollRequest(ts_nanos=time_ns(), current_hash=self.config.tracepoints.current_hash,
                               resource=convert_resource(self.config.resource))

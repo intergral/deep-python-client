@@ -9,6 +9,17 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+A set of functions to collect and process variable data.
+
+There are many things to consider when collecting that data from a variable. Here we try to manage the collection
+as best we can without affecting the original data source. As a result we have different ways to collect the data
+and many options to consider when collecting.
+"""
 
 import abc
 from typing import List
@@ -28,6 +39,7 @@ NO_CHILD_TYPES = [
     'unicode',
     'long',
 ]
+"""A list of types that do not have child nodes, or only have child nodes we do not want to process."""
 
 LIST_LIKE_TYPES = [
     'frozenset',
@@ -35,6 +47,7 @@ LIST_LIKE_TYPES = [
     'list',
     'tuple',
 ]
+"""A list of types that we should handle like lists."""
 
 ITER_LIKE_TYPES = [
     'list_iterator',
@@ -42,25 +55,41 @@ ITER_LIKE_TYPES = [
     'list_reverseiterator',
     'listreverseiterator',
 ]
+"""A list of types that we should handle like iterators."""
 
+# We cannot process child nodes of iterators so add the iterator types to the no child types.
 NO_CHILD_TYPES += ITER_LIKE_TYPES
 
 
 class Collector(abc.ABC):
+    """A type that is used to manage variable collection."""
 
     @property
     @abc.abstractmethod
     def frame_config(self) -> FrameProcessorConfig:
+        """
+        The frame config.
+
+        :return: the frame config
+        """
         pass
 
     @abc.abstractmethod
-    def add_child_to_lookup(self, variable_id, child):
+    def add_child_to_lookup(self, parent_id: str, child: VariableId):
+        """
+        Add a child variable to the var lookup parent.
+
+        :param parent_id: the internal id of the parent
+        :param child: the child VariableId to append
+        :return:
+        """
         pass
 
     @abc.abstractmethod
     def check_id(self, identity_hash_id: str) -> str:
         """
-        Check if the identity_hash_id is known to us, and return the lookup id
+        Check if the identity_hash_id is known to us, and return the lookup id.
+
         :param identity_hash_id: the id of the object
         :return: the lookup id used
         """
@@ -69,33 +98,47 @@ class Collector(abc.ABC):
     @abc.abstractmethod
     def new_var_id(self, identity_hash_id: str) -> str:
         """
-        Create a new cache id for the lookup
+        Create a new cache id for the lookup.
+
         :param identity_hash_id: the id of the object
         :return: the new lookup id
         """
         pass
 
     @abc.abstractmethod
-    def append_variable(self, var_id, variable):
+    def append_variable(self, var_id: str, variable: Variable):
+        """
+        Append a variable to var lookup using the var id.
+
+        :param var_id: the internal variable id
+        :param variable: the variable data to append
+        """
         pass
 
 
 class VariableResponse:
+    """The response from processing a variable."""
+
     def __init__(self, variable_id, process_children=True):
+        """Create a new response object."""
         self.__variable_id = variable_id
         self.__process_children = process_children
 
     @property
     def variable_id(self):
+        """The variable id data for the processed variable."""
         return self.__variable_id
 
     @property
     def process_children(self):
+        """Can we process the children of the value."""
         return self.__process_children
 
 
 def var_modifiers(var_name: str) -> List[str]:
     """
+    Process access modifiers.
+
     Python does not have true access modifiers. The convention is to use leading underscores, one for
     protected, two for private.
 
@@ -113,7 +156,8 @@ def var_modifiers(var_name: str) -> List[str]:
 
 def variable_to_string(variable_type, var_value):
     """
-    Convert the variable to a string
+    Convert the variable to a string.
+
     :param variable_type: the variable type
     :param var_value: the variable value
     :return: a string of the value
@@ -134,11 +178,11 @@ def variable_to_string(variable_type, var_value):
 def process_variable(frame_collector: Collector, node: NodeValue) -> VariableResponse:
     """
     Process the variable into a serializable type.
+
     :param frame_collector: the collector being used
     :param node: the variable node to process
     :return: a response to determine if we continue
     """
-
     # get the variable hash id
     identity_hash_id = str(id(node.value))
     # guess the modifiers
@@ -173,7 +217,8 @@ def process_variable(frame_collector: Collector, node: NodeValue) -> VariableRes
 
 def truncate_string(string, max_length):
     """
-    Truncate the incoming string to the specified length
+    Truncate the incoming string to the specified length.
+
     :param string: the string to truncate
     :param max_length: the length to truncated to
     :return: a tuple of the new string, and if it was truncated
@@ -188,8 +233,9 @@ def process_child_nodes(
         frame_depth: int
 ) -> List[Node]:
     """
-    Processing the children how we get the list of new variables to process. The method changes depending on
-    the type we are processing.
+    Collect the child nodes for this variable.
+
+    Child node collection is performed via a variety of functions based on the type of the variable we are processing.
 
     :param frame_collector: the collector we are using
     :param variable_id: the variable if to attach children to
@@ -218,7 +264,8 @@ def process_child_nodes(
 
 def correct_names(name, val):
     """
-    If a value is 'private' then python will rename the value to be prefixed with the class name
+    If a value is 'private' then python will rename the value to be prefixed with the class name.
+
     :param name: the name of the class
     :param val: the variable name we are modifying
     :return: the new name to use
@@ -232,7 +279,8 @@ def correct_names(name, val):
 def find_children_for_parent(frame_collector: Collector, parent_node: ParentNode, value: any,
                              variable_type: type):
     """
-    Scan the parent for children based on the type
+    Scan the parent for children based on the type.
+
     :param frame_collector: the collector we are using
     :param parent_node: the parent node
     :param value: the variable value we are processing
@@ -254,14 +302,38 @@ def find_children_for_parent(frame_collector: Collector, parent_node: ParentNode
         return []
 
 
-def process_dict_breadth_first(parent_node, type_name, value, func=lambda x, y: y):
+def process_dict_breadth_first(parent_node, type_name, value, func=lambda x, y: y) -> List[Node]:
+    """
+    Process a dict value.
+
+    Take a dict and collect all the child nodes for the dict.
+
+    :param (ParentNode) parent_node: the node that represents the list, to be used as the parent for the returned nodes
+    :param (str) type_name: the name of the type we are processing
+    :param (any) value: the list value to process
+    :param (Callable) func: an optional function to preprocess values
+
+    :param func:
+    :return (list): the collected child nodes
+    """
     # we wrap the keys() in a call to list to prevent concurrent changes
     return [Node(value=NodeValue(func(type_name, key), value[key], key), parent=parent_node) for key in
             list(value.keys()) if
             key in value]
 
 
-def process_list_breadth_first(frame_collector: Collector, parent_node: ParentNode, value):
+def process_list_breadth_first(frame_collector: Collector, parent_node: ParentNode, value) -> List[Node]:
+    """
+    Process a list value.
+
+    Take a list and collect all the child nodes for the list. Returned list is
+    limited by the config 'max_collection_size'.
+
+    :param (Collector) frame_collector: the collector that is managing this collection
+    :param (ParentNode) parent_node: the node that represents the list, to be used as the parent for the returned nodes
+    :param (any) value: the list value to process
+    :return (list): the collected child nodes
+    """
     nodes = []
     total = 0
     for val_ in tuple(value):

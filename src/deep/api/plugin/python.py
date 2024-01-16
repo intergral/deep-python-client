@@ -11,7 +11,11 @@
 #      GNU Affero General Public License for more details.
 #
 #      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.#
+#      You should have received a copy of the GNU Affero General Public License
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Simple plugin for deep, decorating some python information."""
 
 import platform
 import threading
@@ -21,12 +25,28 @@ from deep.api.plugin import Plugin
 
 
 class PythonPlugin(Plugin):
+    """
+    Deep python plugin.
+
+    This plugin provides the python version to the resource, and the thread name to the attributes.
+    """
+
     def load_plugin(self):
+        """
+        Load the plugin.
+
+        :return: any values to attach to the client resource.
+        """
         return BoundedAttributes(attributes={
             "python_version": platform.python_version(),
         })
 
     def collect_attributes(self):
+        """
+        Collect attributes to attach to snapshot.
+
+        :return: the attributes to attach.
+        """
         thread = threading.current_thread()
 
         return BoundedAttributes(attributes={
