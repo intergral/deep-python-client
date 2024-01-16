@@ -9,6 +9,11 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Provides processing options for tasks on background threads."""
 
 import logging
 import threading
@@ -17,11 +22,16 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 class IllegalStateException(BaseException):
+    """This is raised when we are in an incompatible state."""
+
     pass
 
 
 class TaskHandler:
+    """Allow processing of tasks without blocking the current thread."""
+
     def __init__(self):
+        """Create a new TaskHandler to process tasks in a separate thread."""
         self._pool = ThreadPoolExecutor(max_workers=2)
         self._pending = {}
         self._job_id = 0
@@ -34,12 +44,19 @@ class TaskHandler:
             next_id = self._job_id
         return next_id
 
-    def check_open(self):
+    def __check_open(self):
         if not self._open:
             raise IllegalStateException
 
     def submit_task(self, task, *args) -> Future:
-        self.check_open()
+        """
+        Submit a task to be processed in the task thread.
+
+        :param task: the task function to process
+        :param args: the args to pass to the function
+        :return: a future that can be listened to for completion
+        """
+        self.__check_open()
         next_id = self._next_id()
         # there is an at exit in threading that prevents submitting tasks after shutdown, but no api to check this
         future = self._pool.submit(task, *args)
@@ -56,6 +73,7 @@ class TaskHandler:
         return future
 
     def flush(self):
+        """Await completion of all pending tasks."""
         self._open = False
         if len(self._pending) > 0:
             for key in dict(self._pending).keys():

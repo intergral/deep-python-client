@@ -4,8 +4,9 @@ exclude =
     __pycache__,
     docs,
     .idea,
-    venv
-    out
+    venv,
+    out,
+    scripts,
 max-line-length = 120
 per-file-ignores =
     # ignore unused imports in __init__ files
@@ -19,14 +20,19 @@ per-file-ignores =
     tests/it_tests/it_test_*.py: D102,D107
     tests/deep_tests/test_target.py: D102,D107,D103
     test_target.py: D102,D107,D103
+    # these files are from OTEL so should use OTEL license.
+    */deep/api/types.py: NCF102
+    */deep/api/resource/__init__.py: NCF102
+    */deep/api/attributes/__init__.py: NCF102
 
-copyright-text =
-    '#       Copyright (C) 2023  Intergral GmbH'
+detailed-output = True
+copyright-regex =
+    '#       Copyright \(C\) [0-9]{4}  Intergral GmbH'
     '#'
     '#      This program is free software: you can redistribute it and/or modify'
     '#      it under the terms of the GNU Affero General Public License as published by'
     '#      the Free Software Foundation, either version 3 of the License, or'
-    '#      (at your option) any later version.'
+    '#      \(at your option\) any later version.'
     '#'
     '#      This program is distributed in the hope that it will be useful,'
     '#      but WITHOUT ANY WARRANTY; without even the implied warranty of'

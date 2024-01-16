@@ -12,25 +12,43 @@
 #
 #      You should have received a copy of the GNU Affero General Public License
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
-import abc
 
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from deep.config import ConfigService
+"""Service for customizing the tracepoint logging."""
+
+import abc
 
 from deep import logging
 
 
 class TracepointLogger(abc.ABC):
+    """
+    This defines how a tracepoint logger should interact with Deep.
+
+    This can be registered with Deep to provide customization to the way Deep will log dynamic log
+    messages injected via tracepoints.
+    """
 
     @abc.abstractmethod
     def log_tracepoint(self, log_msg: str, tp_id: str, ctx_id: str):
+        """
+        Log the dynamic log message.
+
+        :param (str) log_msg: the log message to log
+        :param (str) tp_id:  the id of the tracepoint that generated this log
+        :param (str) snap_id: the is of the snapshot that was created by this tracepoint
+        """
         pass
 
 
 class DefaultLogger(TracepointLogger):
-    def __init__(self, _config: 'ConfigService'):
-        self._config = _config
+    """The default tracepoint logger used by Deep."""
 
     def log_tracepoint(self, log_msg: str, tp_id: str, ctx_id: str):
+        """
+        Log the dynamic log message.
+
+        :param (str) log_msg: the log message to log
+        :param (str) tp_id:  the id of the tracepoint that generated this log
+        :param (str) snap_id: the is of the snapshot that was created by this tracepoint
+        """
         logging.info(log_msg + " ctx=%s tracepoint=%s" % (ctx_id, tp_id))

@@ -6,5 +6,7 @@ pdoc3
 mkdocstrings-python
 build
 twine
-certifi>=2023.7.22 # not directly required, pinned by Snyk to avoid a vulnerability
 flake8-docstrings
+certifi>=2023.7.22 # not directly required, pinned by Snyk to avoid a vulnerability
+flake8-header-validator>=0.0.3
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability

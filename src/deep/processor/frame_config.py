@@ -9,6 +9,11 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Configuration options for tracepoint processing."""
 
 from deep.api.tracepoint.tracepoint_config import SINGLE_FRAME_TYPE, STACK, \
     frame_type_ordinal, STACK_TYPE, FRAME_TYPE, \
@@ -16,9 +21,8 @@ from deep.api.tracepoint.tracepoint_config import SINGLE_FRAME_TYPE, STACK, \
 
 
 class FrameProcessorConfig:
-    """
-    This is the config for a data collection.
-    """
+    """This is the config for a data collection."""
+
     DEFAULT_MAX_VAR_DEPTH = 5
     DEFAULT_MAX_VARIABLES = 1000
     DEFAULT_MAX_COLLECTION_SIZE = 10
@@ -29,6 +33,7 @@ class FrameProcessorConfig:
     DEFAULT_PROFILE_INTERVAL = 10
 
     def __init__(self):
+        """Create a new config."""
         self._frame_type = None
         self._stack_type = None
         self._max_var_depth = -1
@@ -40,19 +45,22 @@ class FrameProcessorConfig:
 
     def process_tracepoint(self, tp: TracePointConfig):
         """
+        Process a tracepoint into this config.
+
         Each tracepoint can have a different  config we want to re-configure to the lowest impact. e.g. if all
         tracepoints are single frame, then do not collect all frames.
         :param tp: the tracepoint to process
         """
-        self._max_var_depth = FrameProcessorConfig.get_max_or_default(tp.args, 'MAX_VAR_DEPTH', self._max_var_depth)
-        self._max_variables = FrameProcessorConfig.get_max_or_default(tp.args, 'MAX_VARIABLES', self._max_variables)
-        self._max_collection_size = FrameProcessorConfig.get_max_or_default(tp.args, 'MAX_COLLECTION_SIZE',
-                                                                            self._max_collection_size)
-        self._max_string_length = FrameProcessorConfig.get_max_or_default(tp.args, 'MAX_STRING_LENGTH',
-                                                                          self._max_string_length)
-        self._max_watch_vars = FrameProcessorConfig.get_max_or_default(tp.args, 'MAX_WATCH_VARS', self._max_watch_vars)
-        self._max_tp_process_time = FrameProcessorConfig.get_max_or_default(tp.args, 'MAX_TP_PROCESS_TIME',
-                                                                            self._max_tp_process_time)
+        self._max_var_depth = FrameProcessorConfig.__get_max_or_default(tp.args, 'MAX_VAR_DEPTH', self._max_var_depth)
+        self._max_variables = FrameProcessorConfig.__get_max_or_default(tp.args, 'MAX_VARIABLES', self._max_variables)
+        self._max_collection_size = FrameProcessorConfig.__get_max_or_default(tp.args, 'MAX_COLLECTION_SIZE',
+                                                                              self._max_collection_size)
+        self._max_string_length = FrameProcessorConfig.__get_max_or_default(tp.args, 'MAX_STRING_LENGTH',
+                                                                            self._max_string_length)
+        self._max_watch_vars = FrameProcessorConfig.__get_max_or_default(tp.args, 'MAX_WATCH_VARS',
+                                                                         self._max_watch_vars)
+        self._max_tp_process_time = FrameProcessorConfig.__get_max_or_default(tp.args, 'MAX_TP_PROCESS_TIME',
+                                                                              self._max_tp_process_time)
 
         # use the highest collection type - results can be trimmed during pre upload processing
         frame_type = tp.get_arg(FRAME_TYPE, None)
@@ -72,7 +80,6 @@ class FrameProcessorConfig:
 
     def close(self):
         """Close the config, to check for any unconfirmed parts, and set them to defaults."""
-
         # todo: What if one tp has 'MAX_VARS' as 10, but others do not have it set.
 
         self._max_var_depth = FrameProcessorConfig.DEFAULT_MAX_VAR_DEPTH if self._max_var_depth == -1 \
@@ -97,44 +104,100 @@ class FrameProcessorConfig:
             self._stack_type = STACK
 
     @staticmethod
-    def get_max_or_default(config, key, default_value):
+    def __get_max_or_default(config, key, default_value):
         if key in config:
             return max(int(config[key]), default_value)
         return default_value
 
     @property
-    def frame_type(self):
+    def frame_type(self) -> str:
+        """
+        Get the frame type.
+
+        :return: the frame type
+        """
         return self._frame_type
 
     @property
-    def stack_type(self):
+    def stack_type(self) -> str:
+        """
+        Get the stack type.
+
+        :return: the stack type
+        """
         return self._stack_type
 
     @property
-    def max_var_depth(self):
+    def max_var_depth(self) -> int:
+        """
+        Get the maximum depth of variables to process.
+
+        Values deeper than this will be ignored.
+
+        :return: the maximum variable depth
+        """
         return self._max_var_depth
 
     @property
-    def max_variables(self):
+    def max_variables(self) -> int:
+        """
+        Get the maximum number of variables to process.
+
+        Any additional variables will not be processed or attached to the snapshots.
+
+        :return: the maximum number of variables
+        """
         return self._max_variables
 
     @property
-    def max_collection_size(self):
+    def max_collection_size(self) -> int:
+        """
+        Get the maximum size of a collection.
+
+        Collections larger than this should be truncated.
+
+        :return: the maximum collection size
+        """
         return self._max_collection_size
 
     @property
-    def max_string_length(self):
+    def max_string_length(self) -> int:
+        """
+        Get the maximum length of a string.
+
+        Strings longer than this value should be truncated.
+
+        :return: the maximum string length
+        """
         return self._max_string_length
 
     @property
-    def max_watch_vars(self):
+    def max_watch_vars(self) -> int:
+        """
+        Get the maximum number of variables to collect for a watch.
+
+        :return: the max variables
+        """
         return self._max_watch_vars
 
     @property
-    def max_tp_process_time(self):
+    def max_tp_process_time(self) -> int:
+        """
+        Get the maximum time we should spend processing a tracepoint.
+
+        :return: the max time
+        """
         return self._max_tp_process_time
 
-    def should_collect_vars(self, current_frame_index):
+    def should_collect_vars(self, current_frame_index: int) -> bool:
+        """
+        Check if we can collect data for a frame.
+
+        Frame indexes start from 0 (as the current frame) and increase as we go back up the stack.
+
+        :param (int) current_frame_index: the current frame index.
+        :return (bool): if we should collect the frame vars.
+        """
         if self._frame_type == NO_FRAME_TYPE:
             return False
         if current_frame_index == 0:

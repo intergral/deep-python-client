@@ -9,14 +9,21 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+Config values for deep.
+
+Here we have the initial values for the config, there can be set as either static values, environment values
+ or functions.
+"""
 
 import os
 import sys
 
 from .config_service import ConfigService
-
-# Here we have the initial values for the config, there can be set as either static values, environment
-# values or functions.
 
 LOGGING_CONF = os.getenv('DEEP_LOGGING_CONF', None)
 '''The path to the logging config file to use'''
@@ -39,7 +46,11 @@ APP_ROOT = ""
 
 # noinspection PyPep8Naming
 def IN_APP_INCLUDE():
-    """The packages to mark as in app packages. (default: ''). Must be a command (,) seperated list."""
+    """
+    Get the included app packages.
+
+    The packages to mark as in app packages. (default: ''). Must be a command (,) seperated list.
+    """
     user_defined = os.getenv('DEEP_IN_APP_INCLUDE', None)
     if user_defined is None:
         return []
@@ -50,7 +61,11 @@ def IN_APP_INCLUDE():
 
 # noinspection PyPep8Naming
 def IN_APP_EXCLUDE():
-    """The packages to mark as NOT in app packages. (default: ''). Must be a command (,) seperated list."""
+    """
+    Get the exclude app packages.
+
+    The packages to mark as NOT in app packages. (default: ''). Must be a command (,) seperated list.
+    """
     user_defined = os.getenv('DEEP_IN_APP_EXCLUDE', None)
     if user_defined is None:
         user_defined = []

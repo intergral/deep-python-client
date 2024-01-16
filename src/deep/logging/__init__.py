@@ -9,6 +9,11 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Deep client logging api."""
 
 import logging
 import logging.config
@@ -16,25 +21,65 @@ import os
 
 
 def warning(msg, *args, **kwargs):
+    """
+    Log a message at warning level.
+
+    :param msg: the message to log
+    :param args:  the args for the log
+    :param kwargs: the kwargs
+    """
     logging.getLogger("deep").warning(msg, *args, **kwargs)
 
 
 def info(msg, *args, **kwargs):
+    """
+    Log a message at info level.
+
+    :param msg: the message to log
+    :param args:  the args for the log
+    :param kwargs: the kwargs
+    """
     logging.getLogger("deep").info(msg, *args, **kwargs)
 
 
 def debug(msg, *args, **kwargs):
+    """
+    Log a message at debug level.
+
+    :param msg: the message to log
+    :param args:  the args for the log
+    :param kwargs: the kwargs
+    """
     logging.getLogger("deep").debug(msg, *args, **kwargs)
 
 
 def error(msg, *args, **kwargs):
+    """
+    Log a message at error level.
+
+    :param msg: the message to log
+    :param args:  the args for the log
+    :param kwargs: the kwargs
+    """
     logging.getLogger("deep").debug(msg, *args, **kwargs)
 
 
 def exception(msg, *args, exc_info=True, **kwargs):
+    """
+    Log a message with the exception data.
+
+    :param msg: the message to log
+    :param args:  the args for the log
+    :param kwargs: the kwargs
+    """
     logging.getLogger("deep").exception(msg, *args, exc_info=exc_info, **kwargs)
 
 
 def init(cfg):
+    """
+    Configure the deep log provider.
+
+    :param cfg: the config for deep.
+    """
     log_conf = cfg.LOGGING_CONF or "%s/logging.conf" % os.path.dirname(os.path.realpath(__file__))
     logging.config.fileConfig(fname=log_conf, disable_existing_loggers=False)

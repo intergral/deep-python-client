@@ -9,6 +9,11 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.from typing import Dict, List
+
+"""The main services for Deep."""
 from typing import Dict, List
 
 from deep.api.plugin import load_plugins
@@ -17,7 +22,6 @@ from deep.api.tracepoint import TracePointConfig
 from deep.config import ConfigService
 from deep.config.tracepoint_config import TracepointConfigService
 from deep.grpc import GRPCService
-from deep.logging.tracepoint_logger import TracepointLogger
 from deep.poll import LongPoll
 from deep.processor import TriggerHandler
 from deep.push import PushService
@@ -26,11 +30,18 @@ from deep.task import TaskHandler
 
 class Deep:
     """
+    The main service for deep.
+
     This type acts as the main service for DEEP. It will initialise the other services and bind then together.
     DEEP is so small there is no need for service injection work.
     """
 
     def __init__(self, config: 'ConfigService'):
+        """
+        Create new deep service.
+
+        :param config: the config to use.
+        """
         self.started = False
         self.config = config
         self.grpc = GRPCService(self.config)
@@ -41,17 +52,19 @@ class Deep:
         self.trigger_handler = TriggerHandler(config, self.push)
 
     def start(self):
+        """Start Deep."""
         if self.started:
             return
         plugins, attributes = load_plugins()
         self.config.plugins = plugins
-        self.config.resource = Resource.create(attributes)
+        self.config.resource = Resource.create(attributes.copy())
         self.trigger_handler.start()
         self.grpc.start()
         self.poll.start()
         self.started = True
 
     def shutdown(self):
+        """Shutdown deep."""
         if not self.started:
             return
         self.trigger_handler.shutdown()
@@ -60,6 +73,15 @@ class Deep:
 
     def register_tracepoint(self, path: str, line: int, args: Dict[str, str] = None,
                             watches: List[str] = None, metrics=None) -> 'TracepointRegistration':
+        """
+        Register a new tracepoint.
+
+        :param path: the source path
+        :param line: the line number
+        :param args: the args
+        :param watches: the watches
+        :return: the new registration
+        """
         if metrics is None:
             metrics = []
         if watches is None:
@@ -71,10 +93,18 @@ class Deep:
 
 
 class TracepointRegistration:
+    """Registration of a new tracepoint."""
 
     def __init__(self, _id: str, tracepoints: TracepointConfigService):
+        """
+        Create a new registration.
+
+        :param cfg: the created config
+        :param tracepoints: the config service
+        """
         self.__id: str = _id
         self.__tpServ: TracepointConfigService = tracepoints
 
     def unregister(self):
+        """Remove this custom tracepoint."""
         self.__tpServ.remove_custom(self.__id)

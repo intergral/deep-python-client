@@ -13,7 +13,7 @@
 #      You should have received a copy of the GNU Affero General Public License
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Contains the version information about Deep."""
+"""Version information about deep."""
 
 __version__ = "0.0.13"  # this version is set by the build, but not updated in the code.
 """The version of the agent that is running."""

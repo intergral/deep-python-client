@@ -9,7 +9,14 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Internal type for configured tracepoints."""
+
 from typing import List, Optional
+
 
 from deep.api.tracepoint.constants import SINGLE_FRAME_TYPE, ALL_FRAME_TYPE, NO_FRAME_TYPE, FRAME_TYPE, STACK_TYPE, \
     STACK, FIRE_COUNT, CONDITION
@@ -17,7 +24,10 @@ from deep.api.tracepoint.constants import SINGLE_FRAME_TYPE, ALL_FRAME_TYPE, NO_
 
 def frame_type_ordinal(frame_type) -> int:
     """
-    Convert a frame type to an ordinal (essentially making it an enum). This is useful for ordering.
+    Convert a frame type to an ordinal (essentially making it an enum).
+
+     This is useful for ordering.
+
     :param frame_type: the frame type
     :return: the ordinal of the type
     """
@@ -32,17 +42,22 @@ def frame_type_ordinal(frame_type) -> int:
 
 
 class TracepointWindow:
-    """
-    This is used to handle validating the time frame for the tracepoint
-    """
+    """This is used to handle validating the time frame for the tracepoint."""
 
-    def __init__(self, start, end):
+    def __init__(self, start: int, end: int):
+        """
+        Create a new tracepoint window.
+
+        :param start: the window start time
+        :param end: the window end time
+        """
         self._start = start
         self._end = end
 
     def in_window(self, ts):
         """
-        Is the provided time in the configured window
+        Is the provided time in the configured window.
+
         :param ts: time in ms
         :return: true, if the time is within the configured window, else false
         """
@@ -95,12 +110,21 @@ class MetricDefinition:
 
 class TracePointConfig:
     """
-    This represents the configuration of a single tracepoint, this is a python version of the GRPC
-    data collected from the LongPoll.
+    This represents the configuration of a single tracepoint.
+
+    This is a python version of the GRPC data collected from the LongPoll.
     """
 
-    def __init__(self, tp_id: str, path: str, line_no: int, args: dict, watches: List[str],
-                 metrics: list[MetricDefinition]):
+    def __init__(self, tp_id: str, path: str, line_no: int, args: dict, watches: List[str], metrics: List[MetricDefinition]):
+        """
+        Create a new tracepoint config.
+
+        :param tp_id: the tracepoint id
+        :param path: the tracepoint source file
+        :param line_no: the tracepoint line number
+        :param args: the tracepoint args
+        :param watches: the tracepoint watches
+        """
         self._id = tp_id
         self._path = path
         self._line_no = line_no
@@ -109,36 +133,43 @@ class TracePointConfig:
 
     @property
     def id(self):
+        """The tracepoint id."""
         return self._id
 
     @property
     def path(self):
+        """The tracepoint source file."""
         return self._path
 
     @property
     def line_no(self):
+        """The tracepoint line number."""
         return self._line_no
 
     @property
     def args(self):
+        """The tracepoint args."""
         return self._args
 
     @property
     def watches(self):
+        """The tracepoint watches."""
         return self._watches
 
     @property
     def frame_type(self):
+        """The tracepoint frame type."""
         return self.get_arg(FRAME_TYPE, SINGLE_FRAME_TYPE)
 
     @property
     def stack_type(self):
+        """The tracepoint stack type."""
         return self.get_arg(STACK_TYPE, STACK)
 
     @property
     def fire_count(self):
         """
-        Get the allowed number of triggers
+        Get the allowed number of triggers.
 
         :return: the configured number of triggers, or -1 for unlimited triggers
         """
@@ -146,44 +177,77 @@ class TracePointConfig:
 
     @property
     def condition(self):
+        """The tracepoint condition."""
         return self.get_arg(CONDITION, None)
 
     def get_arg(self, name: str, default_value: any):
+        """
+        Get an arg from tracepoint args.
+
+        :param name: the argument name
+        :param default_value: the default value
+        :return: the value, or the default value
+        """
         if name in self._args:
             return self._args[name]
         return default_value
 
     def get_arg_int(self, name: str, default_value: int):
+        """
+        Get an argument from the args as an int.
+
+        :param name: the argument name
+        :param default_value: the default value to use.
+        :return: the value as an int, or the default value
+        """
         try:
             return int(self.get_arg(name, default_value))
         except ValueError:
             return default_value
 
     def __str__(self) -> str:
+        """Represent this object as a string."""
         return str({'id': self._id, 'path': self._path, 'line_no': self._line_no, 'args': self._args,
                     'watches': self._watches})
 
     def __repr__(self) -> str:
+        """Represent this object as a string."""
         return self.__str__()
 
 
 class TracepointExecutionStats:
-    """
-    This keeps track of the tracepoint stats, so we can check fire counts etc
-    """
+    """This keeps track of the tracepoint stats, so we can check fire counts etc."""
 
     def __init__(self):
+        """Create a new stats object."""
         self._fire_count = 0
         self._last_fire = 0
 
-    def fire(self, ts):
+    def fire(self, ts: int):
+        """
+        Record a fire.
+
+        Call this to record this tracepoint being triggered.
+
+        :param ts: the time in nanoseconds
+        """
         self._fire_count += 1
         self._last_fire = ts
 
     @property
     def fire_count(self):
+        """
+        The number of times this tracepoint has fired.
+
+        :return: the number of times this has fired.
+        """
         return self._fire_count
 
     @property
     def last_fire(self):
+        """
+        The time this tracepoint last fired.
+
+        :return: the time in nanoseconds.
+        """
         return self._last_fire

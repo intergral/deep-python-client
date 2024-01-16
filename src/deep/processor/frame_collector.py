@@ -9,6 +9,11 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Processing for frame collection."""
 
 import abc
 from types import FrameType
@@ -46,7 +51,14 @@ class FrameCollectorContext(abc.ABC):
 
 
 class FrameCollector:
+    """This deals with collecting data from the paused frames."""
     def __init__(self, source: FrameCollectorContext, frame: FrameType):
+        """
+        Create a new collector.
+
+        :param frame:  the frame data
+        :param config: the deep config service
+        """
         self.__has_time_exceeded = False
         self.__source = source
         self.__frame = frame

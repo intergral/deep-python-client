@@ -9,6 +9,12 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Main entry for Deep Client."""
+
 import inspect
 import os
 
@@ -19,6 +25,7 @@ from deep.api import Deep
 def start(config=None) -> Deep:
     """
     Start DEEP.
+
     :param config: a custom config
     :return: the created Deep instance
     """

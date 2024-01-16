@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Types used for attributes in resources."""
+
 from typing import Mapping, Optional, Sequence, Tuple, Union
 
 AttributeValue = Union[

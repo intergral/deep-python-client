@@ -9,6 +9,17 @@
 #      but WITHOUT ANY WARRANTY; without even the implied warranty of
 #      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""
+Collection of functions to convert to protobuf version of types.
+
+We do not use the protobuf types throughout the project as they do not autocomplete or
+have type definitions that work in IDE. It also makes it easier to deal with agent functionality by
+having local types we can modify.
+"""
 
 # noinspection PyUnresolvedReferences
 from deepproto.proto.common.v1.common_pb2 import KeyValue, AnyValue, ArrayValue, KeyValueList
@@ -21,6 +32,12 @@ from ..api.tracepoint.trigger import build_trigger, Trigger
 
 
 def convert_value(value):
+    """
+    Convert a value from the python type.
+
+    :param value: the value to convert
+    :return: the value wrapped in the appropriate AnyValue type.
+    """
     """Convert the attributes to jaeger tags."""
     if isinstance(value, bool):
         return AnyValue(bool_value=value)
@@ -33,26 +50,32 @@ def convert_value(value):
     if isinstance(value, bytes):
         return AnyValue(bytes_value=value)
     if isinstance(value, dict):
-        return AnyValue(kvlist_value=value_as_dict(value))
+        return AnyValue(kvlist_value=__value_as_dict(value))
     if isinstance(value, list):
-        return AnyValue(array_value=value_as_list(value))
+        return AnyValue(array_value=__value_as_list(value))
 
     return None
 
 
-def value_as_dict(value):
+def __value_as_dict(value):
     return KeyValueList(values=[KeyValue(key=k, value=convert_value(v)) for k, v in value.items()])
 
 
-def value_as_list(value):
+def __value_as_list(value):
     return ArrayValue(values=[convert_value(val) for val in value])
 
 
 def convert_resource(resource):
-    return convert_attributes(resource.attributes)
+    """
+    Convert a internal resource to GRPC type.
+
+    :param resource: the resource to convert
+    :return: the converted type as GRPC.
+    """
+    return __convert_attributes(resource.attributes)
 
 
-def convert_attributes(attributes):
+def __convert_attributes(attributes):
     return Resource(dropped_attributes_count=attributes.dropped,
                     attributes=[KeyValue(key=k, value=convert_value(v)) for k, v in attributes.items()])
 
