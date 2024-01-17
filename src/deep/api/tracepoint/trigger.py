@@ -67,7 +67,7 @@ class LocationAction(object):
             """Represent this as a string."""
             return self.name
 
-    def __init__(self, tp_id: str, condition: Optional[str] , config: Dict[str, any], action_type: ActionType):
+    def __init__(self, tp_id: str, condition: Optional[str], config: Dict[str, any], action_type: ActionType):
         """
         Create a new location action.
 

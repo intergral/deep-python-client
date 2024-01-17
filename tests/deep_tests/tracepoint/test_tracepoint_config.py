@@ -15,7 +15,6 @@
 
 import unittest
 
-from deep.api.tracepoint.constants import FIRE_PERIOD, FIRE_COUNT
 from deep.api.tracepoint.tracepoint_config import TracepointWindow, TracePointConfig
 
 

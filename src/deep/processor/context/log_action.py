@@ -108,7 +108,7 @@ class LogActionResult(ActionResult):
         self.action = action
         self.log = log
 
-    def process(self, ctx_id: str, logger: TracepointLogger, service: PushService) ->  Optional[ActionCallback]:
+    def process(self, ctx_id: str, logger: TracepointLogger, service: PushService) -> Optional[ActionCallback]:
         """
         Process this result.
 

@@ -205,7 +205,7 @@ class TriggerHandler:
         self.__callbacks.value.append(remaining)
 
     @staticmethod
-    def location_from_event(event: str, frame: FrameType) -> Tuple[str, str, int, Optional[str] ]:
+    def location_from_event(event: str, frame: FrameType) -> Tuple[str, str, int, Optional[str]]:
         """
         Convert an event into a location.
 
