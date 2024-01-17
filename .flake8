@@ -13,11 +13,11 @@ per-file-ignores =
     */__init__.py: F401
     # supress some docstring requirements in tests
     test/__init__.py: D104
-    test/test_deep/__init__.py: D104
-    test/test_deep/*/__init__.py: D104,D107
-    test/test_deep/*/test_*.py: D101,D102,D107,D100,D105
-    test/test_deep/test_*.py: D101,D102,D107,D100,D105
-    test/test_deep/test_target.py: D102,D107,D103
+    test/unit_tests/__init__.py: D104
+    test/unit_tests/*/__init__.py: D104,D107
+    test/unit_tests/*/test_*.py: D101,D102,D107,D100,D105
+    test/unit_tests/test_*.py: D101,D102,D107,D100,D105
+    test/unit_tests/test_target.py: D102,D107,D103
     # these files are from OTEL so should use OTEL license.
     */deep/api/types.py: NCF102
     */deep/api/resource/__init__.py: NCF102

@@ -61,7 +61,7 @@ def error(msg, *args, **kwargs):
     :param args:  the args for the log
     :param kwargs: the kwargs
     """
-    logging.getLogger("deep").debug(msg, *args, **kwargs)
+    logging.getLogger("deep").error(msg, *args, **kwargs)
 
 
 def exception(msg, *args, exc_info=True, **kwargs):

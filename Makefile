@@ -16,7 +16,11 @@ endif
 
 .PHONY: test
 test:
-	pytest test
+	pytest tests/unit_tests
+
+.PHONY: coverage
+coverage:
+	pytest tests/unit_tests --cov=deep  --cov-report term --cov-fail-under=77 --cov-report html --cov-branch
 
 .PHONY: lint
 lint:

@@ -33,7 +33,7 @@ class TracepointConfigService:
         self._current_hash = None
         self._last_update = 0
         self._task_handler = None
-        self._listeners: list[ConfigUpdateListener] = []
+        self._listeners: List[ConfigUpdateListener] = []
 
     def update_no_change(self, ts):
         """
@@ -149,6 +149,7 @@ class TracepointConfigService:
         for idx, cfg in enumerate(self._custom):
             if cfg.id == config.id:
                 del self._custom[idx]
+                self.__trigger_update(None, None)
                 return
 
 

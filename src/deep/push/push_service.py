@@ -47,6 +47,9 @@ class PushService:
     def _push_task(self, snapshot):
         from deep.push import convert_snapshot
         converted = convert_snapshot(snapshot)
+        if converted is None:
+            return
+
         logging.debug("Uploading snapshot: %s", snapshot_id_as_hex_str(snapshot.id))
 
         stub = SnapshotServiceStub(self.grpc.channel)

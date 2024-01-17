@@ -71,12 +71,12 @@ class OTelPlugin(Plugin):
     @staticmethod
     def __span_id(span):
         # type: (_Span)-> Optional[str]
-        return (OTelPlugin.__format_span_id(span.context.__span_id)) if span else None
+        return (OTelPlugin.__format_span_id(span.context.span_id)) if span else None
 
     @staticmethod
     def __trace_id(span):
         # type: (_Span)-> Optional[str]
-        return (OTelPlugin.__format_trace_id(span.context.__trace_id)) if span else None
+        return (OTelPlugin.__format_trace_id(span.context.trace_id)) if span else None
 
     @staticmethod
     def __get_span():

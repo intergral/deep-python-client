@@ -63,8 +63,8 @@ class TaskHandler:
         self._pending[next_id] = future
 
         # cannot use 'del' in lambda: https://stackoverflow.com/a/41953232/5151254
-        def callback(future: Future):
-            if future.exception() is not None:
+        def callback(_future: Future):
+            if _future.exception() is not None:
                 logging.exception("Submitted task failed %s", task)
             if next_id in self._pending:
                 del self._pending[next_id]
