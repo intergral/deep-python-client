@@ -16,7 +16,7 @@
 """Service for handling deep config."""
 
 import os
-from typing import Any, List, Dict
+from typing import Any, List
 
 from deep import logging
 from deep.api.plugin import Plugin
@@ -28,16 +28,18 @@ from deep.logging.tracepoint_logger import DefaultLogger, TracepointLogger
 class ConfigService:
     """This is the main service that handles config for DEEP."""
 
-    def __init__(self, custom: Dict[str, any]):
+    def __init__(self, custom=None, tracepoints=TracepointConfigService()):
         """
         Create a new config object.
 
         :param custom: any custom values that are passed to DEEP
         """
+        if custom is None:
+            custom = {}
         self._plugins = []
         self.__custom = custom
         self._resource = None
-        self._tracepoint_config = TracepointConfigService()
+        self._tracepoint_config = tracepoints
         self._tracepoint_logger: 'TracepointLogger' = DefaultLogger()
 
     def __getattribute__(self, name: str) -> Any:

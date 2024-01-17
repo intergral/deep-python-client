@@ -38,14 +38,14 @@ def __plugin_generator(configured):
         try:
             module, cls = plugin.rsplit(".", 1)
             yield getattr(import_module(module), cls)
-            logging.debug('Did import default integration %s', plugin)
-        except (DidNotEnable, SyntaxError) as e:
+            logging.debug('Did import integration %s', plugin)
+        except (DidNotEnable, Exception) as e:
             logging.debug(
-                "Did not import default integration %s: %s", plugin, e
+                "Did not import integration %s: %s", plugin, e
             )
 
 
-def load_plugins() -> 'Tuple[list[Plugin], BoundedAttributes]':
+def load_plugins(custom=None) -> 'Tuple[list[Plugin], BoundedAttributes]':
     """
     Load all the deep plugins.
 
@@ -53,9 +53,11 @@ def load_plugins() -> 'Tuple[list[Plugin], BoundedAttributes]':
 
     :return: the loaded plugins and attributes.
     """
+    if custom is None:
+        custom = []
     bounded_attributes = BoundedAttributes(immutable=False)
     loaded = []
-    for plugin in __plugin_generator(DEEP_PLUGINS):
+    for plugin in __plugin_generator(DEEP_PLUGINS + custom):
         try:
             plugin_instance = plugin()
             if not plugin_instance.is_active():

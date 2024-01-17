@@ -142,12 +142,14 @@ class Resource:
             DeepResourceDetector().detect()
         ).merge(Resource(attributes, schema_url))
         if not resource.attributes.get(SERVICE_NAME, None):
-            default_service_name = "unknown_service:python"
+            default_service_name = "unknown_service"
             process_executable_name = resource.attributes.get(
                 PROCESS_EXECUTABLE_NAME, None
             )
             if process_executable_name:
                 default_service_name += ":" + process_executable_name
+            else:
+                default_service_name += ":python"
             resource = resource.merge(
                 Resource({SERVICE_NAME: default_service_name}, schema_url)
             )
@@ -294,3 +296,40 @@ class DeepResourceDetector(ResourceDetector):
         if service_name:
             env_resource_map[SERVICE_NAME] = service_name
         return Resource(env_resource_map)
+
+
+def get_aggregated_resources(
+        detectors: typing.List["ResourceDetector"],
+        initial_resource: typing.Optional[Resource] = None,
+        timeout=5,
+) -> "Resource":
+    """Retrieve resources from detectors in the order that they were passed.
+
+    :param detectors: List of resources in order of priority
+    :param initial_resource: Static resource. This has the highest priority
+    :param timeout: Number of seconds to wait for each detector to return
+    :return:
+    """
+    detectors_merged_resource = initial_resource or Resource.create()
+    import concurrent.futures
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [executor.submit(detector.detect) for detector in detectors]
+        for detector_ind, future in enumerate(futures):
+            detector = detectors[detector_ind]
+            try:
+                detected_resource = future.result(timeout=timeout)
+            # pylint: disable=broad-except
+            except Exception as ex:
+                detected_resource = _EMPTY_RESOURCE
+                if detector.raise_on_error:
+                    raise ex
+                logging.warning(
+                    "Exception %s in detector %s, ignoring", ex, detector
+                )
+            finally:
+                detectors_merged_resource = detectors_merged_resource.merge(
+                    detected_resource
+                )
+
+    return detectors_merged_resource

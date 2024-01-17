@@ -47,3 +47,15 @@ path = "src/deep/version.py"
 # read dependencies from reuirements.txt
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "./src",
+    "./tests"
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "if TYPE_CHECKING:",
+    "@abc.abstractmethod"
+]

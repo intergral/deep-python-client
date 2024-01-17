@@ -1,4 +1,17 @@
-#       Copyright (C) 2023  Intergral GmbH
+#       Copyright (C) 2024  Intergral GmbH
+#
+#      This program is free software: you can redistribute it and/or modify
+#      it under the terms of the GNU Affero General Public License as published by
+#      the Free Software Foundation, either version 3 of the License, or
+#      (at your option) any later version.
+#
+#      This program is distributed in the hope that it will be useful,
+#      but WITHOUT ANY WARRANTY; without even the implied warranty of
+#      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#      GNU Affero General Public License for more details.
+#
+#      You should have received a copy of the GNU Affero General Public License
+#      along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 #      This program is free software: you can redistribute it and/or modify
 #      it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +31,7 @@ from parameterized import parameterized
 
 from deep.config import ConfigService
 from deep.processor.frame_processor import FrameProcessor
-from test_deep.processor import MockFrame
+from unit_tests.processor import MockFrame
 
 
 class TestLogMessages(unittest.TestCase):
@@ -33,6 +46,8 @@ class TestLogMessages(unittest.TestCase):
         ["some log message: {person['name']}", "[deep] some log message: bob", {'person': {'name': 'bob'}}, ["bob"]],
     ])
     def test_simple_log_interpolation(self, log_msg, expected_msg, _locals, expected_watches):
+        # noinspection PyTypeChecker
+        # Frame type is final, so we cannot check the type here
         processor = FrameProcessor([], MockFrame(_locals), ConfigService({}))
         processor.configure_self()
         log, watches, _vars = processor.process_log({}, log_msg)

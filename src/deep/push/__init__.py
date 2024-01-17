@@ -98,4 +98,4 @@ def convert_snapshot(snapshot: EventSnapshot) -> Snapshot:
                         log_msg=snapshot.log_msg)
     except Exception:
         logging.exception("Error converting to protobuf")
-        return Snapshot()
+        return None
