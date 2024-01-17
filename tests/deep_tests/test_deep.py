@@ -15,7 +15,8 @@
 
 import unittest
 
-from deep import start, Deep
+from deep import start
+from deep.api import Deep
 
 
 class DeepTest(unittest.TestCase):

@@ -17,6 +17,7 @@
 
 import uuid
 from types import FrameType
+from typing import Dict
 
 from deep.api.tracepoint import Variable
 from deep.api.tracepoint.trigger import LocationAction
@@ -78,7 +79,7 @@ class TriggerContext:
         return self.__frame.f_code.co_filename
 
     @property
-    def locals(self) -> dict[str, any]:
+    def locals(self) -> Dict[str, any]:
         """The local frame variables."""
         return self.__frame.f_locals
 

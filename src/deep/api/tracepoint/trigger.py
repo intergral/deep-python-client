@@ -31,7 +31,7 @@
 import abc
 from enum import Enum
 
-from typing import Optional
+from typing import Optional, Dict, List
 
 from deep.api.tracepoint.constants import WINDOW_START, WINDOW_END, FIRE_COUNT, FIRE_PERIOD, LOG_MSG, WATCHES, \
     LINE_START, METHOD_START, METHOD_END, LINE_END, LINE_CAPTURE, METHOD_CAPTURE, NO_COLLECT, SNAPSHOT, CONDITION, \
@@ -67,7 +67,7 @@ class LocationAction(object):
             """Represent this as a string."""
             return self.name
 
-    def __init__(self, tp_id: str, condition: str | None, config: dict[str, any], action_type: ActionType):
+    def __init__(self, tp_id: str, condition: Optional[str] , config: Dict[str, any], action_type: ActionType):
         """
         Create a new location action.
 
@@ -94,7 +94,7 @@ class LocationAction(object):
         return self.__id
 
     @property
-    def condition(self) -> str | None:
+    def condition(self) -> Optional[str]:
         """
         The condition that is set on the tracepoint.
 
@@ -103,7 +103,7 @@ class LocationAction(object):
         return self.__condition
 
     @property
-    def config(self) -> dict[str, any]:
+    def config(self) -> Dict[str, any]:
         """
         The config for this action.
 
@@ -290,7 +290,7 @@ class Location(abc.ABC):
 class Trigger(Location):
     """A trigger is a location with action."""
 
-    def __init__(self, location: Location, actions: list[LocationAction]):
+    def __init__(self, location: Location, actions: List[LocationAction]):
         """
         Create new trigger.
 
@@ -314,7 +314,7 @@ class Trigger(Location):
         return self.__location.at_location(event, file, line, method)
 
     @property
-    def actions(self) -> list[LocationAction]:
+    def actions(self) -> List[LocationAction]:
         """The actions that are attached to this location."""
         return [action.with_location(self) for action in self.__actions]
 
@@ -350,7 +350,7 @@ class Trigger(Location):
             return True
         return False
 
-    def merge_actions(self, actions: list[LocationAction]):
+    def merge_actions(self, actions: List[LocationAction]):
         """Merge more actions into this location."""
         self.__actions += actions
 
@@ -473,7 +473,7 @@ class MethodLocation(Location):
         return False
 
 
-def build_snapshot_action(tp_id: str, args: dict[str, str], watches: list[str]) -> Optional[LocationAction]:
+def build_snapshot_action(tp_id: str, args: Dict[str, str], watches: List[str]) -> Optional[LocationAction]:
     """
     Create an action to create a snapshot.
 
@@ -496,12 +496,12 @@ def build_snapshot_action(tp_id: str, args: dict[str, str], watches: list[str]) 
     }, LocationAction.ActionType.Snapshot)
 
 
-def build_log_action(tp_id: str, args: dict[str, str]) -> Optional[LocationAction]:
+def build_log_action(tp_id: str, args: Dict[str, str]) -> Optional[LocationAction]:
     """
     Create a log action from the tracepoint arguments.
 
     :param str tp_id: the tracepoint id
-    :param dict[str, str] args: the tracepoint arguments
+    :param Dict[str, str] args: the tracepoint arguments
     :return: the new action, or None
     """
     if LOG_MSG not in args:
@@ -517,7 +517,7 @@ def build_log_action(tp_id: str, args: dict[str, str]) -> Optional[LocationActio
     }, LocationAction.ActionType.Log)
 
 
-def build_metric_action(tp_id: str, args: dict[str, str], metrics: list[MetricDefinition]) -> Optional[LocationAction]:
+def build_metric_action(tp_id: str, args: Dict[str, str], metrics: List[MetricDefinition]) -> Optional[LocationAction]:
     """
     Create an action to create a metric.
 
@@ -536,7 +536,7 @@ def build_metric_action(tp_id: str, args: dict[str, str], metrics: list[MetricDe
     }, LocationAction.ActionType.Metric)
 
 
-def build_span_action(tp_id: str, args: dict[str, str]) -> Optional[LocationAction]:
+def build_span_action(tp_id: str, args: Dict[str, str]) -> Optional[LocationAction]:
     """
     Create an action to create a span.
 
@@ -555,8 +555,8 @@ def build_span_action(tp_id: str, args: dict[str, str]) -> Optional[LocationActi
     }, LocationAction.ActionType.Snapshot)
 
 
-def build_trigger(tp_id: str, path: str, line_no: int, args: dict[str, str], watches: list[str],
-                  metrics: list[MetricDefinition]) -> Optional[Trigger]:
+def build_trigger(tp_id: str, path: str, line_no: int, args: Dict[str, str], watches: List[str],
+                  metrics: List[MetricDefinition]) -> Optional[Trigger]:
     """
     Buidl a trigger definition.
 

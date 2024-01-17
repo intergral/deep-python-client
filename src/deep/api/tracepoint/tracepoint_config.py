@@ -110,7 +110,7 @@ class LabelExpression:
 class MetricDefinition:
     """The definition of a metric to collect."""
 
-    def __init__(self, name: str, labels: list[LabelExpression], type_p: str, expression: Optional[str],
+    def __init__(self, name: str, labels: List[LabelExpression], type_p: str, expression: Optional[str],
                  namespace: Optional[str], help_p: Optional[str], unit: Optional[str]):
         """
         Create a new metric definition.

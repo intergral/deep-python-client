@@ -28,7 +28,7 @@
 
 """Handle the processing of variables sets."""
 
-from typing import Tuple
+from typing import Tuple, Optional, Dict
 
 from deep.api.tracepoint import Variable, VariableId
 from deep.processor.bfs import ParentNode, Node, NodeValue, breadth_first_search
@@ -43,13 +43,13 @@ class VariableCacheProvider:
     Manage the caching of variables for a trigger context.
     """
 
-    __cache: dict[str, str]
+    __cache: Dict[str, str]
 
     def __init__(self):
         """Create new cache."""
         self.__cache = {}
 
-    def check_id(self, identity_hash_id) -> None | str:
+    def check_id(self, identity_hash_id) -> Optional[str]:
         """
         Check if id is in the cache.
 
@@ -106,7 +106,7 @@ class VariableProcessorConfig:
 class VariableSetProcessor(Collector):
     """Handle the processing of variables."""
 
-    def __init__(self, var_lookup: dict[str, 'Variable'], var_cache: VariableCacheProvider,
+    def __init__(self, var_lookup: Dict[str, 'Variable'], var_cache: VariableCacheProvider,
                  config: VariableProcessorConfig = VariableProcessorConfig()):
         """
         Create a new variable set processor.

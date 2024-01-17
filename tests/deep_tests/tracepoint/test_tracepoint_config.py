@@ -59,22 +59,3 @@ class TestTracePointConfig(unittest.TestCase):
         self.assertEqual(config.get_arg_int('some', 'thing'), 'thing')
         self.assertEqual(config.get_arg_int('other', 123), 123)
         self.assertEqual(config.get_arg_int('num', 123), 321)
-
-    def test_fire_count(self):
-        config = TracePointConfig('tp_id', 'path', 123, {'some': 'value', 'num': 321}, [], [])
-        self.assertEqual(config.fire_count, 1)
-
-        self.assertTrue(config.can_trigger(1000))
-        config.record_triggered(1000)
-
-        self.assertFalse(config.can_trigger(1001))
-
-    def test_fire_period(self):
-        config = TracePointConfig('tp_id', 'path', 123, {FIRE_PERIOD: 10_000, FIRE_COUNT: 10}, [], [])
-
-        self.assertEqual(config.fire_count, 10)
-
-        self.assertTrue(config.can_trigger(1000))
-        config.record_triggered(1000)
-
-        self.assertFalse(config.can_trigger(1001))

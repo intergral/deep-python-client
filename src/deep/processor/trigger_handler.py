@@ -27,19 +27,19 @@ import sys
 import threading
 from collections import deque
 from types import FrameType
-from typing import Tuple
+from typing import Tuple, TYPE_CHECKING, List, Deque, Optional
 
 from deep import logging
 from deep.api.tracepoint.trigger import Trigger
 from deep.config import ConfigService
 from deep.config.tracepoint_config import ConfigUpdateListener
-from deep.processor.context.action_context import ActionContext
 from deep.processor.context.action_results import ActionCallback
 from deep.processor.context.trigger_context import TriggerContext
 from deep.push import PushService
-
-
 from deep.thread_local import ThreadLocal
+
+if TYPE_CHECKING:
+    from deep.processor.context.action_context import ActionContext
 
 
 class TracepointHandlerUpdateListener(ConfigUpdateListener):
@@ -79,7 +79,7 @@ class TriggerHandler:
     This is where we 'listen' for a hit, and determine if we should collect data.
     """
 
-    __callbacks: ThreadLocal[deque[list[ActionCallback]]] = ThreadLocal(lambda: deque())
+    __callbacks: ThreadLocal[Deque[List[ActionCallback]]] = ThreadLocal(lambda: deque())
 
     def __init__(self, config: ConfigService, push_service: PushService):
         """
@@ -91,7 +91,7 @@ class TriggerHandler:
         self.__old_thread_trace = None
         self.__old_sys_trace = None
         self._push_service = push_service
-        self._tp_config: list[Trigger] = []
+        self._tp_config: List[Trigger] = []
         self._config = config
         self._config.add_listener(TracepointHandlerUpdateListener(self))
 
@@ -106,7 +106,7 @@ class TriggerHandler:
         sys.settrace(self.trace_call)
         threading.settrace(self.trace_call)
 
-    def new_config(self, new_config: list['Trigger']):
+    def new_config(self, new_config: List['Trigger']):
         """
         Process a new tracepoint config.
 
@@ -205,7 +205,7 @@ class TriggerHandler:
         self.__callbacks.value.append(remaining)
 
     @staticmethod
-    def location_from_event(event: str, frame: FrameType) -> Tuple[str, str, int, str | None]:
+    def location_from_event(event: str, frame: FrameType) -> Tuple[str, str, int, Optional[str] ]:
         """
         Convert an event into a location.
 

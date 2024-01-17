@@ -28,7 +28,7 @@
 
 """Handling for log actions."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Dict, Optional
 
 from .action_context import ActionContext
 from .action_results import ActionResult, ActionCallback
@@ -51,7 +51,7 @@ class LogActionContext(ActionContext):
         log, watches, vars_ = self.process_log(log_msg)
         self._parent.attach_result(LogActionResult(self._action, log))
 
-    def process_log(self, log_msg) -> Tuple[str, list['WatchResult'], dict[str, 'Variable']]:
+    def process_log(self, log_msg) -> Tuple[str, List['WatchResult'], Dict[str, 'Variable']]:
         """
         Process the log message.
 
@@ -108,7 +108,7 @@ class LogActionResult(ActionResult):
         self.action = action
         self.log = log
 
-    def process(self, ctx_id: str, logger: TracepointLogger, service: PushService) -> ActionCallback | None:
+    def process(self, ctx_id: str, logger: TracepointLogger, service: PushService) ->  Optional[ActionCallback]:
         """
         Process this result.
 

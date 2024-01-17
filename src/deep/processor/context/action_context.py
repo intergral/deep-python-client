@@ -29,16 +29,16 @@
 """Handling for action context."""
 
 import abc
-from typing import Tuple, TYPE_CHECKING
+from typing import Tuple, TYPE_CHECKING, Dict
 
-from deep import logging
+from deep.logging import logging
 from deep.api.tracepoint import WatchResult, Variable
-from deep.api.tracepoint.trigger import LocationAction
 from deep.processor.variable_set_processor import VariableSetProcessor
 from deep.utils import str2bool
 
 if TYPE_CHECKING:
     from deep.processor.context.trigger_context import TriggerContext
+    from deep.api.tracepoint.trigger import LocationAction
 
 
 class ActionContext(abc.ABC):
@@ -64,7 +64,7 @@ class ActionContext(abc.ABC):
         if self.has_triggered():
             self._action.record_triggered(self._parent.ts)
 
-    def eval_watch(self, watch: str) -> Tuple[WatchResult, dict[str, Variable], str]:
+    def eval_watch(self, watch: str) -> Tuple[WatchResult, Dict[str, Variable], str]:
         """
         Evaluate an expression in the current frame.
 

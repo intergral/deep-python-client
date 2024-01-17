@@ -105,7 +105,7 @@ def __convert_metric_definition(metrics):
                              m.help, m.unit) for m in metrics]
 
 
-def convert_response(response) -> list[Trigger]:
+def convert_response(response) -> List[Trigger]:
     """
     Convert a response from GRPC to internal types.
 

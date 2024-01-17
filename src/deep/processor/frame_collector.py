@@ -17,7 +17,7 @@
 
 import abc
 from types import FrameType
-from typing import Tuple
+from typing import Tuple, Dict, List
 
 from deep.api.tracepoint import StackFrame, Variable
 from deep.utils import time_ns
@@ -110,8 +110,8 @@ class FrameCollector:
             return filename[len(match):], is_app_frame
         return filename, is_app_frame
 
-    def collect(self, var_lookup: dict[str, Variable], var_cache: VariableCacheProvider) \
-            -> Tuple[list[StackFrame], dict[str, Variable]]:
+    def collect(self, var_lookup: Dict[str, Variable], var_cache: VariableCacheProvider) \
+            -> Tuple[List[StackFrame], Dict[str, Variable]]:
         """
         Collect the data from the current frame.
 
@@ -130,7 +130,7 @@ class FrameCollector:
             current_frame = current_frame.f_back
         return collected_frames, var_lookup
 
-    def _process_frame(self, var_lookup: dict[str, Variable], var_cache: VariableCacheProvider,
+    def _process_frame(self, var_lookup: Dict[str, Variable], var_cache: VariableCacheProvider,
                        frame: FrameType, collect_vars: bool) -> StackFrame:
         # process the current frame info
         lineno = frame.f_lineno

@@ -23,7 +23,7 @@ from deep.config import ConfigService
 from deep.config.tracepoint_config import TracepointConfigService
 from deep.grpc import GRPCService
 from deep.poll import LongPoll
-from deep.processor import TriggerHandler
+from deep.processor.trigger_handler import TriggerHandler
 from deep.push import PushService
 from deep.task import TaskHandler
 

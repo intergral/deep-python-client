@@ -32,8 +32,8 @@ class ConfigUpdateListener(abc.ABC):
     """Class to describe a config listener."""
 
     @abc.abstractmethod
-    def config_change(self, ts: int, old_hash: str, current_hash: str, old_config: list['Trigger'],
-                      new_config: list['Trigger']):
+    def config_change(self, ts: int, old_hash: str, current_hash: str, old_config: List['Trigger'],
+                      new_config: List['Trigger']):
         """
         Process an update to the tracepoint config.
 
@@ -51,12 +51,12 @@ class TracepointConfigService:
 
     def __init__(self) -> None:
         """Create new tracepoint config service."""
-        self._custom: list['Trigger'] = []
-        self._tracepoint_config: list['Trigger'] = []
+        self._custom: List['Trigger'] = []
+        self._tracepoint_config: List['Trigger'] = []
         self._current_hash = None
         self._last_update = 0
         self._task_handler = None
-        self._listeners: list[ConfigUpdateListener] = []
+        self._listeners: List[ConfigUpdateListener] = []
 
     def update_no_change(self, ts):
         """
@@ -68,7 +68,7 @@ class TracepointConfigService:
         """
         self._last_update = ts
 
-    def update_new_config(self, ts: int, new_hash: str, new_config: list['Trigger']):
+    def update_new_config(self, ts: int, new_hash: str, new_config: List['Trigger']):
         """
         Update to the new config.
 
@@ -100,8 +100,8 @@ class TracepointConfigService:
         """
         self._task_handler = task_handler
 
-    def update_listeners(self, ts: int, old_hash: str, current_hash: str, old_config: list['Trigger'],
-                         new_config: list['Trigger']):
+    def update_listeners(self, ts: int, old_hash: str, current_hash: str, old_config: List['Trigger'],
+                         new_config: List['Trigger']):
         """
         Update the registered listeners.
 
@@ -129,7 +129,7 @@ class TracepointConfigService:
         self._listeners.append(listener)
 
     @property
-    def current_config(self) -> list['Trigger']:
+    def current_config(self) -> List['Trigger']:
         """
         The current tracepoint config.
 
@@ -150,7 +150,7 @@ class TracepointConfigService:
         return self._current_hash
 
     def add_custom(self, path: str, line: int, args: Dict[str, str], watches: List[str],
-                   metrics: list[MetricDefinition]) -> str:
+                   metrics: List[MetricDefinition]) -> str:
         """
         Crate a new tracepoint from the input.
 

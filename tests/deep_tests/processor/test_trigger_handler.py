@@ -89,14 +89,17 @@ class TestTriggerHandler(unittest.TestCase):
     def call_and_capture(self, location, func, args, capture):
         # here we execute the real code using a mock trace call that will capture the args to trace call
         # we cannot debug this section of the code
-        current = threading.gettrace()
+
+        # we use the _trace_hook and nopt gettrace() as gettrace() is not available in all tested versions of pythong
+        # noinspection PyUnresolvedReferences
+        current = threading._trace_hook
         threading.settrace(capture.capture_trace_call(location))
         thread = Thread(target=func, args=args)
         thread.start()
         thread.join(10)
+
+        # reset the set trace to the original one
         threading.settrace(current)
-        # now we call our real version of the trace_call with the captured data
-        # we can now debug the code we cannot normally debug
 
         if capture.captured_frame is None:
             self.fail("Did not capture")
@@ -107,7 +110,7 @@ class TestTriggerHandler(unittest.TestCase):
         push = MockPushService(None, None, None)
         handler = TriggerHandler(config, push)
 
-        location = LineLocation('test_target.py', 19, Location.Position.START)
+        location = LineLocation('test_target.py', 27, Location.Position.START)
         handler.new_config(
             [Trigger(location, [LocationAction("tp_id", None, {LOG_MSG: "some log"}, LocationAction.ActionType.Log)])])
 
@@ -125,7 +128,7 @@ class TestTriggerHandler(unittest.TestCase):
         push = MockPushService(None, None, None)
         handler = TriggerHandler(config, push)
 
-        location = LineLocation('test_target.py', 19, Location.Position.START)
+        location = LineLocation('test_target.py', 27, Location.Position.START)
         handler.new_config([Trigger(location, [
             LocationAction("tp_id", None, {LOG_MSG: "some log {val}"}, LocationAction.ActionType.Log)])])
 
@@ -143,7 +146,7 @@ class TestTriggerHandler(unittest.TestCase):
         push = MockPushService(None, None, None)
         handler = TriggerHandler(config, push)
 
-        location = LineLocation('test_target.py', 19, Location.Position.START)
+        location = LineLocation('test_target.py', 27, Location.Position.START)
         handler.new_config([Trigger(location, [
             LocationAction("tp_id", None, {WATCHES: ['arg']}, LocationAction.ActionType.Snapshot)])])
 
@@ -169,7 +172,7 @@ class TestTriggerHandler(unittest.TestCase):
         push = MockPushService(None, None, None)
         handler = TriggerHandler(config, push)
 
-        location = LineLocation('test_target.py', 19, Location.Position.START)
+        location = LineLocation('test_target.py', 27, Location.Position.START)
         handler.new_config([Trigger(location, [
             LocationAction("tp_id", "arg == None", {}, LocationAction.ActionType.Snapshot)])])
 

@@ -28,7 +28,7 @@
 
 """Handling for snapshot actions."""
 
-from typing import Tuple
+from typing import Tuple, Optional
 
 from deep.api.attributes import BoundedAttributes
 from deep.api.tracepoint import EventSnapshot
@@ -143,7 +143,7 @@ class SendSnapshotActionResult(ActionResult):
         self.action = action
         self.snapshot = snapshot
 
-    def process(self, ctx_id: str, logger: TracepointLogger, service: PushService) -> ActionCallback | None:
+    def process(self, ctx_id: str, logger: TracepointLogger, service: PushService) -> Optional[ActionCallback]:
         """
         Process this result.
 

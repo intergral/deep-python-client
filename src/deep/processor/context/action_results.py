@@ -42,6 +42,7 @@
 """Handler results of actions."""
 
 import abc
+from typing import Optional
 
 from deep.logging.tracepoint_logger import TracepointLogger
 from deep.push import PushService
@@ -69,7 +70,7 @@ class ActionResult(abc.ABC):
     """
 
     @abc.abstractmethod
-    def process(self, ctx_id: str, logger: TracepointLogger, service: PushService) -> ActionCallback | None:
+    def process(self, ctx_id: str, logger: TracepointLogger, service: PushService) -> Optional[ActionCallback]:
         """
         Process this result.
 
