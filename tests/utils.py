@@ -12,6 +12,9 @@
 #
 #      You should have received a copy of the GNU Affero General Public License
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Utils used for making testing easier."""
+
 from mockito.matchers import Matcher
 
 from deep.api.resource import Resource
@@ -19,7 +22,13 @@ from deep.api.tracepoint import TracePointConfig, EventSnapshot, StackFrame, Var
 from deep.utils import time_ns
 
 
-def mock_tracepoint(**kwargs):
+def mock_tracepoint(**kwargs) -> TracePointConfig:
+    """
+    Create a tracepoint while defaulting arguments if not set.
+
+    :param kwargs: the arguments to set on the tracepoint
+    :return: the new tracepoint
+    """
     if 'tp_id' not in kwargs:
         kwargs['tp_id'] = "tp_id"
     if 'path' not in kwargs:
@@ -34,7 +43,13 @@ def mock_tracepoint(**kwargs):
     return TracePointConfig(**kwargs)
 
 
-def mock_snapshot(**kwargs):
+def mock_snapshot(**kwargs) -> EventSnapshot:
+    """
+    Create a snapshot while defaulting arguments if not set.
+
+    :param kwargs: the arguments to set on the snapshot
+    :return: the new snapshot
+    """
     if 'tracepoint' not in kwargs:
         kwargs['tracepoint'] = mock_tracepoint()
     if 'ts' not in kwargs:
@@ -49,7 +64,13 @@ def mock_snapshot(**kwargs):
     return EventSnapshot(**kwargs)
 
 
-def mock_frame(**kwargs):
+def mock_frame(**kwargs) -> StackFrame:
+    """
+    Create a frame while defaulting arguments if not set.
+
+    :param kwargs: the arguments to set on the frame
+    :return: the new frame
+    """
     if 'file_name' not in kwargs:
         kwargs['file_name'] = 'file_name'
     if 'short_path' not in kwargs:
@@ -66,7 +87,13 @@ def mock_frame(**kwargs):
     return StackFrame(**kwargs)
 
 
-def mock_variable_id(**kwargs):
+def mock_variable_id(**kwargs) -> VariableId:
+    """
+    Create a variable id while defaulting arguments if not set.
+
+    :param kwargs: the arguments to set on the variable id
+    :return: the new variable id
+    """
     if 'vid' not in kwargs:
         kwargs['vid'] = 'vid'
     if 'name' not in kwargs:
@@ -75,7 +102,13 @@ def mock_variable_id(**kwargs):
     return VariableId(**kwargs)
 
 
-def mock_variable(**kwargs):
+def mock_variable(**kwargs) -> Variable:
+    """
+    Create a variable while defaulting arguments if not set.
+
+    :param kwargs: the arguments to set on the variable
+    :return: the new variable
+    """
     if 'var_type' not in kwargs:
         kwargs['var_type'] = 'str'
     if 'value' not in kwargs:
@@ -89,13 +122,17 @@ def mock_variable(**kwargs):
 
     return Variable(**kwargs)
 
+
 class Captor(Matcher):
+    """Use with mockito to capture values passed ot mocks."""
 
     def __init__(self, to_dict=False):
+        """Create new Captor."""
         self.values = []
         self.to_dict = to_dict
 
     def matches(self, arg):
+        """Validate the value matches the expected value."""
         if self.to_dict:
             self.values.append(arg.as_dict())
         else:
@@ -103,9 +140,11 @@ class Captor(Matcher):
         return True
 
     def get_value(self):
+        """Get the captured value."""
         if len(self.values) > 0:
             return self.values[len(self.values) - 1]
         return None
 
     def get_values(self):
+        """Get all captured values."""
         return self.values

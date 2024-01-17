@@ -303,10 +303,10 @@ def get_aggregated_resources(
         initial_resource: typing.Optional[Resource] = None,
         timeout=5,
 ) -> "Resource":
-    """Retrieves resources from detectors in the order that they were passed
+    """Retrieve resources from detectors in the order that they were passed.
 
     :param detectors: List of resources in order of priority
-    :param initial_resource: Static resource. This has highest priority
+    :param initial_resource: Static resource. This has the highest priority
     :param timeout: Number of seconds to wait for each detector to return
     :return:
     """

@@ -31,7 +31,6 @@ from deep.utils import snapshot_id_as_hex_str, time_ms, time_ns, str2bool, Repea
 
 
 def test_snapshot_id_as_hex_str():
-
     assert "0000000000000000000000000000007b" == snapshot_id_as_hex_str(123)
     assert "000000000000000000000000499602d2" == snapshot_id_as_hex_str(1234567890)
     assert "0000000000000000000000003ade68b1" == snapshot_id_as_hex_str(987654321)
@@ -45,6 +44,7 @@ def test_time_ms():
 def test_time_ns():
     assert time_ns()
     assert len(str(time_ns())) == 19
+
 
 def test_str2bool():
     assert str2bool("yes")
@@ -61,10 +61,13 @@ def test_str2bool():
     assert not str2bool("no")
     assert not str2bool("No")
 
+
 count = 0
+
 
 def test_repeated_timer():
     global count
+
     def repeated(val):
         global count
         val += 1
@@ -76,9 +79,12 @@ def test_repeated_timer():
     timer.stop()
 
     assert count > 0
+
+
 def test_repeated_timer_error():
     global count
     count = 0
+
     def repeated(val):
         raise Exception("test")
 

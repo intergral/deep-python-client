@@ -162,4 +162,3 @@ class TestPushService(unittest.TestCase):
 
         self.assertIsNotNone(task)
         self.assertIsNotNone(snapshot)
-

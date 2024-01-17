@@ -20,9 +20,9 @@ from unittest.mock import Mock, patch
 
 from deep import version, logging
 from deep.api.attributes import BoundedAttributes
-from deep.api.resource import Resource, TELEMETRY_SDK_NAME, TELEMETRY_SDK_LANGUAGE, TELEMETRY_SDK_VERSION, SERVICE_NAME, \
-    DEEP_SERVICE_NAME, DEEP_RESOURCE_ATTRIBUTES, ResourceDetector, _DEFAULT_RESOURCE, get_aggregated_resources, \
-    _DEEP_SDK_VERSION, _EMPTY_RESOURCE, PROCESS_EXECUTABLE_NAME
+from deep.api.resource import Resource, TELEMETRY_SDK_NAME, TELEMETRY_SDK_LANGUAGE, TELEMETRY_SDK_VERSION, \
+    SERVICE_NAME, DEEP_SERVICE_NAME, DEEP_RESOURCE_ATTRIBUTES, ResourceDetector, _DEFAULT_RESOURCE, \
+    get_aggregated_resources, _DEEP_SDK_VERSION, _EMPTY_RESOURCE, PROCESS_EXECUTABLE_NAME
 from deep.config import ConfigService
 
 

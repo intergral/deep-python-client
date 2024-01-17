@@ -24,6 +24,7 @@ from deep.poll import LongPoll
 # noinspection PyUnresolvedReferences
 from deepproto.proto.poll.v1.poll_pb2 import PollResponse, ResponseType
 
+
 class TestPoll(unittest.TestCase):
 
     def setUp(self):
@@ -41,6 +42,7 @@ class TestPoll(unittest.TestCase):
         poll = LongPoll(self.config, self.grpc_service)
 
         self.poll_request = None
+
         def mock_poll(request, **kwargs):
             self.poll_request = request
             return PollResponse(response_type=ResponseType.NO_CHANGE)
@@ -65,6 +67,7 @@ class TestPoll(unittest.TestCase):
         poll = LongPoll(self.config, self.grpc_service)
 
         self.poll_request = None
+
         def mock_poll(request, **kwargs):
             self.poll_request = request
             return PollResponse(response_type=ResponseType.UPDATE)
@@ -84,4 +87,4 @@ class TestPoll(unittest.TestCase):
         self.assertEqual("test_poll", self.poll_request.resource.attributes[3].value.string_value)
 
         mockito.verify(self.tracepoints, mockito.times(0)).update_no_change(mockito.ANY)
-        mockito.verify(self.tracepoints, mockito.times(1)).update_new_config(mockito.ANY,mockito.ANY, mockito.ANY)
+        mockito.verify(self.tracepoints, mockito.times(1)).update_new_config(mockito.ANY, mockito.ANY, mockito.ANY)

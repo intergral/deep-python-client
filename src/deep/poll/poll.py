@@ -72,6 +72,7 @@ class LongPoll(object):
                                                       convert_response(response.response))
 
     def shutdown(self):
+        """Shutdown the timer."""
         if self.timer:
             self.timer.stop()
         self.timer = None

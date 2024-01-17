@@ -56,7 +56,7 @@ def test_convert_snapshot_with_watch():
 
     snapshot = convert_snapshot(event_snapshot)
 
-    assert snapshot.watches[0].error_result is ''
+    assert snapshot.watches[0].error_result == ''
     assert snapshot.watches[0].good_result is not None
     assert snapshot.watches[0].good_result.ID == "vid"
     assert "good_result" == snapshot.watches[0].WhichOneof("result")

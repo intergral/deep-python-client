@@ -25,24 +25,26 @@ class TestTask(unittest.TestCase):
 
     def task_function(self):
         self.count += 1
+
     def task_function_sleep(self):
         sleep(2)
         self.count += 1
 
     def call_back(self, expected):
         return lambda x: self.assertEqual(self.count, expected)
+
     def test_handle_task(self):
         handler = TaskHandler()
         future = handler.submit_task(self.task_function)
         future.add_done_callback(self.call_back(1))
         handler.flush()
-    def test_handle_task_with_error(self):
 
+    def test_handle_task_with_error(self):
         def raise_exception():
             raise Exception("test")
 
         handler = TaskHandler()
-        future = handler.submit_task(raise_exception)
+        handler.submit_task(raise_exception)
         handler.flush()
 
     def test_post_flush(self):
