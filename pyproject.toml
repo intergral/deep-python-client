@@ -25,13 +25,9 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Typing :: Typed",
 ]
-dependencies = [
-    "grpcio>=1.51.3",
-    "deep-proto>=1.0.0",
-    "protobuf>=3.20.3"
-]
 dynamic = [
-    "version"
+    "version",
+    "dependencies"
 ]
 
 [tool.hatch.build.targets.sdist]
@@ -46,3 +42,7 @@ packages = ["src/deep"]
 
 [tool.hatch.version]
 path = "src/deep/version.py"
+
+# read dependencies from reuirements.txt
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
