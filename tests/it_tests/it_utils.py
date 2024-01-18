@@ -99,10 +99,10 @@ class MockServer:
         with self.__poll_service.condition:
             self.__poll_service.condition.wait(10)
 
-    def await_snapshot(self):
+    def await_snapshot(self, timeout=10):
         """Await for the next snapshot to be received. Time out after 10 seconds."""
         with self.__snapshot_service.condition:
-            self.__snapshot_service.condition.wait(10)
+            self.__snapshot_service.condition.wait(timeout)
         return self.__snapshot_service.snapshot
 
 

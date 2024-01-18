@@ -14,9 +14,9 @@
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.from typing import Dict, List
 
 """The main services for Deep."""
-
 from typing import Dict, List
 
+import deep.logging
 from deep.api.plugin import load_plugins
 from deep.api.resource import Resource
 from deep.config import ConfigService
@@ -70,6 +70,7 @@ class Deep:
         self.trigger_handler.shutdown()
         self.task_handler.flush()
         self.poll.shutdown()
+        deep.logging.info("Deep is shutdown.")
         self.started = False
 
     def register_tracepoint(self, path: str, line: int, args: Dict[str, str] = None,
