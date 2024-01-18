@@ -38,7 +38,7 @@ class EventSnapshot:
         """
         self._id = random.getrandbits(128)
         self._tracepoint = tracepoint
-        self._var_lookup: dict[str, 'Variable'] = var_lookup
+        self._var_lookup: Dict[str, 'Variable'] = var_lookup
         self._ts_nanos = ts
         self._frames = frames
         self._watches = []

@@ -47,8 +47,6 @@ class LongPoll(object):
     def start(self):
         """Start the long poll service."""
         logging.info("Starting Long Poll system")
-        if self.timer is not None:
-            self.timer.stop()
         self.timer = RepeatedTimer("Tracepoint Long Poll", self.config.POLL_TIMER, self.poll)
         self.__initial_poll()
         self.timer.start()
@@ -72,3 +70,9 @@ class LongPoll(object):
         else:
             self.config.tracepoints.update_new_config(response.ts_nanos, response.current_hash,
                                                       convert_response(response.response))
+
+    def shutdown(self):
+        """Shutdown the timer."""
+        if self.timer:
+            self.timer.stop()
+        self.timer = None

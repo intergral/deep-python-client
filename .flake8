@@ -12,18 +12,16 @@ per-file-ignores =
     # ignore unused imports in __init__ files
     */__init__.py: F401
     # supress some docstring requirements in tests
-    tests/__init__.py: D104
-    tests/deep_tests/__init__.py: D104
-    tests/deep_tests/*/__init__.py: D104,D107
-    tests/deep_tests/*/test_*.py: D101,D102,D107,D100,D105
-    tests/deep_tests/test_*.py: D101,D102,D107,D100,D105
-    tests/it_tests/it_test_*.py: D102,D107
-    tests/deep_tests/test_target.py: D102,D107,D103
-    test_target.py: D102,D107,D103
+    tests/unit_tests/*.py: D
+    tests/unit_tests/**/*.py: D
+    tests/it_tests/*.py: D
+    tests/it_tests/**/*.py: D
     # these files are from OTEL so should use OTEL license.
     */deep/api/types.py: NCF102
     */deep/api/resource/__init__.py: NCF102
     */deep/api/attributes/__init__.py: NCF102
+    tests/unit_tests/api/attributes/*.py: NCF102,D
+    tests/unit_tests/api/resource/*.py: NCF102,D
 
 detailed-output = True
 copyright-regex =

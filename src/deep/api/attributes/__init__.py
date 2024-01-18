@@ -43,7 +43,7 @@ def _clean_attribute_value(
 
 
 def _clean_attribute(
-        key: str, value: types.AttributeValue, max_len: Optional[int]
+        key: str, value: Union[types.AttributeValue, Sequence[types.AttributeValue]], max_len: Optional[int]
 ) -> Optional[types.AttributeValue]:
     """
     Check if attribute value is valid and cleans it if required.

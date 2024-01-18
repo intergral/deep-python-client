@@ -22,6 +22,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r dev-requirements.txt
+
       - name: Flake8
         run: make lint
 
@@ -32,14 +33,14 @@ jobs:
       - name: Setup Python # Set Python version
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: 3.12
       # Install pip and pytest
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r dev-requirements.txt
-      - run: | 
+      - run: |
           make coverage
 
   tests:
@@ -61,8 +62,7 @@ jobs:
           pip install -r requirements.txt
           pip install -r dev-requirements.txt
       - name: Test with pytest
-        run: pytest tests/deep_tests --doctest-modules --junitxml=junit/test-results-${{ matrix.python-version }}.xml
-
+        run: pytest tests/unit_tests --doctest-modules --junitxml=junit/test-results-${{ matrix.python-version }}.xml
       - name: Upload pytest test results
         uses: actions/upload-artifact@v3
         with:

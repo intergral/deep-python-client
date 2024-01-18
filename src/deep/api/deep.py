@@ -69,6 +69,7 @@ class Deep:
             return
         self.trigger_handler.shutdown()
         self.task_handler.flush()
+        self.poll.shutdown()
         self.started = False
 
     def register_tracepoint(self, path: str, line: int, args: Dict[str, str] = None,

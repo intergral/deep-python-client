@@ -99,4 +99,4 @@ def convert_snapshot(snapshot: EventSnapshot) -> Snapshot:
     except Exception:
         # todo should this return None?
         logging.exception("Error converting to protobuf")
-        return Snapshot()
+        return None

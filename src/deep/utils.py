@@ -35,24 +35,6 @@ def time_ns():
     return time.time_ns()
 
 
-def reduce_list(key, update_value, default_value, lst):
-    """Reduce a list to a dict.
-
-    key :: list_item -> dict_key
-    update_value :: key * existing_value -> updated_value
-    default_value :: initial value passed to update_value
-    lst :: The list
-
-    default_value comes before l. This is different from functools.reduce,
-    because functools.reduce's order is wrong.
-    """
-    d = {}
-    for k in lst:
-        j = key(k)
-        d[j] = update_value(k, d.get(j, default_value))
-    return d
-
-
 def str2bool(string):
     """
     Convert a string to a boolean.
@@ -60,7 +42,7 @@ def str2bool(string):
     :param string: the string to convert
     :return: True, if string is yes, true, t or 1. (case insensitive)
     """
-    return string.lower() in ("yes", "true", "t", "1")
+    return string.lower() in ("yes", "true", "t", "1", "y")
 
 
 class RepeatedTimer:

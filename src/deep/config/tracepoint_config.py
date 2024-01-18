@@ -174,4 +174,5 @@ class TracepointConfigService:
         for idx, cfg in enumerate(self._custom):
             if cfg.id == _id:
                 del self._custom[idx]
+                self.__trigger_update(None, None)
                 return
