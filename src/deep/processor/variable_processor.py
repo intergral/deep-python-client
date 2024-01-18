@@ -28,7 +28,6 @@ from deep import logging
 from deep.api.tracepoint import VariableId, Variable
 from .bfs import Node, ParentNode, NodeValue
 
-
 NO_CHILD_TYPES = [
     'str',
     'int',
@@ -195,8 +194,12 @@ def variable_to_string(variable_type, var_value):
         # large, and quite pointless, instead we just get the size of the collection
         return 'Size: %s' % len(var_value)
     else:
-        # everything else just gets a string value
-        return str(var_value)
+        try:
+            # everything else just gets a string value
+            return str(var_value)
+        except Exception:
+            # it is possible for str to fail if there is a custom __str__ function
+            return f'{type(var_value)}@{id(var_value)}'
 
 
 def process_variable(var_collector: Collector, node: NodeValue) -> VariableResponse:

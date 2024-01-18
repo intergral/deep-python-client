@@ -20,6 +20,7 @@ from typing import Any, List, Dict, Tuple, Optional
 
 from deep import logging
 from deep.api.plugin import Plugin
+from deep.api.plugin.metric import MetricProcessor
 from deep.api.resource import Resource
 from deep.config.tracepoint_config import TracepointConfigService, ConfigUpdateListener
 from deep.logging.tracepoint_logger import DefaultLogger, TracepointLogger
@@ -41,6 +42,7 @@ class ConfigService:
         self._resource = None
         self._tracepoint_config = tracepoints
         self._tracepoint_logger: 'TracepointLogger' = DefaultLogger()
+        self._metrics = None
 
     def __getattribute__(self, name: str) -> Any:
         """
@@ -172,3 +174,18 @@ class ConfigService:
             return True, self.APP_ROOT
 
         return False, None
+
+    def metric_processor(self) -> List[MetricProcessor]:
+        """
+        Check the loaded plugins for the metric processors.
+
+        :return: the list of loaded processors
+        """
+        if self._metrics:
+            return self._metrics
+        metrics = []
+        for plugin in self._plugins:
+            if isinstance(plugin, MetricProcessor):
+                metrics.append(plugin)
+        self._metrics = metrics
+        return self._metrics

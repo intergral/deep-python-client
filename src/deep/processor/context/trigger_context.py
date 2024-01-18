@@ -23,9 +23,10 @@ from deep.api.tracepoint import Variable
 from deep.api.tracepoint.trigger import LocationAction
 from deep.config import ConfigService
 from deep.logging.tracepoint_logger import TracepointLogger
-from deep.processor.context.action_context import MetricActionContext, SpanActionContext, NoActionContext, ActionContext
+from deep.processor.context.action_context import SpanActionContext, NoActionContext, ActionContext
 from deep.processor.context.action_results import ActionResult, ActionCallback
 from deep.processor.context.log_action import LogActionContext
+from deep.processor.context.metric_action import MetricActionContext
 from deep.processor.context.snapshot_action import SnapshotActionContext
 from deep.processor.frame_collector import FrameCollector
 from deep.processor.variable_set_processor import VariableCacheProvider
@@ -99,7 +100,7 @@ class TriggerContext:
         return self.__frame
 
     @property
-    def config(self):
+    def config(self) -> ConfigService:
         """The config service."""
         return self.__config
 

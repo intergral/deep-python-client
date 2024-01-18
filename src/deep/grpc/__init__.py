@@ -101,7 +101,7 @@ def convert_label_expressions(label_expressions) -> List[LabelExpression]:
 
 
 def __convert_metric_definition(metrics):
-    return [MetricDefinition(m.name, convert_label_expressions(m.labelExpressions), m.type, m.expression, m.namespace,
+    return [MetricDefinition(m.name, m.type, convert_label_expressions(m.labelExpressions), m.expression, m.namespace,
                              m.help, m.unit) for m in metrics]
 
 

@@ -30,6 +30,7 @@ from deep.utils import str2bool
 DEEP_PLUGINS = [
     'deep.api.plugin.otel.OTelPlugin',
     'deep.api.plugin.python.PythonPlugin',
+    'deep.api.plugin.metric.prometheus_metrics.PrometheusPlugin',
 ]
 
 

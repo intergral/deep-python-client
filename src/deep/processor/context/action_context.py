@@ -116,14 +116,6 @@ class ActionContext(abc.ABC):
         return str2bool(str(result))
 
 
-class MetricActionContext(ActionContext):
-    """Action for metrics."""
-
-    def _process_action(self):
-        print("metric action")
-        pass
-
-
 class SpanActionContext(ActionContext):
     """Action for spans."""
 

@@ -76,11 +76,15 @@ def exception(msg, *args, exc_info=True, **kwargs):
     logging.getLogger("deep").exception(msg, *args, exc_info=exc_info, **kwargs)
 
 
-def init(cfg):
+def init(cfg=None):
     """
     Configure the deep log provider.
 
     :param cfg: the config for deep.
     """
-    log_conf = cfg.LOGGING_CONF or "%s/logging.conf" % os.path.dirname(os.path.realpath(__file__))
+    log_conf = "%s/logging.conf" % os.path.dirname(os.path.realpath(__file__))
+
+    if cfg is not None and cfg.LOGGING_CONF:
+        log_conf = cfg.LOGGING_CONF
+
     logging.config.fileConfig(fname=log_conf, disable_existing_loggers=False)
