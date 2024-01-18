@@ -30,7 +30,7 @@ class BasicITTest(unittest.TestCase):
     def test_simple_it(self):
         server: MockServer
         with start_server() as server:
-            server.add_tp("test_target.py", 29, {}, [], [])
+            server.add_tp("test_target.py", 40, {}, [], [])
             _deep = deep.start(server.config({}))
             server.await_poll()
             test = BPTargetTest("name", 123)
@@ -41,7 +41,7 @@ class BasicITTest(unittest.TestCase):
             frames = snapshot.frames
             self.assertEqual(it_tests.test_target.__file__, frames[0].file_name)
             self.assertEqual("/it_tests/test_target.py", frames[0].short_path)
-            self.assertEqual(29, frames[0].line_number)
+            self.assertEqual(40, frames[0].line_number)
             self.assertEqual(4, len(frames[0].variables))
             self.assertEqual(6, len(snapshot.var_lookup))
 

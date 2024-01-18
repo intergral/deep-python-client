@@ -102,7 +102,9 @@ class TriggerHandler:
         if self._config.NO_TRACE:
             return
         self.__old_sys_trace = sys.gettrace()
-        self.__old_thread_trace = threading.gettrace()
+        # gettrace was added in 3.10, so use it if we can, else try to get from property
+        # noinspection PyUnresolvedReferences,PyProtectedMember
+        self.__old_thread_trace = threading.gettrace() if hasattr(threading, 'gettrace') else threading._trace_hook
         sys.settrace(self.trace_call)
         threading.settrace(self.trace_call)
 
@@ -197,7 +199,7 @@ class TriggerHandler:
 
     def __process_call_backs(self, frame: FrameType, event: str):
         callbacks = self.__callbacks.value.pop()
-        remaining: list[ActionCallback] = []
+        remaining: List[ActionCallback] = []
         for callback in callbacks:
             if callback.process(frame, event):
                 remaining.append(callback)
