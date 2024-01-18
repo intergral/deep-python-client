@@ -14,7 +14,6 @@
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.from typing import Dict, List
 
 """The main services for Deep."""
-import logging
 from typing import Dict, List
 
 import deep.logging
