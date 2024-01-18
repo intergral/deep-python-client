@@ -70,6 +70,7 @@ def exception(msg, *args, exc_info=True, **kwargs):
 
     :param msg: the message to log
     :param args:  the args for the log
+    :param exc_info: include exc info in log
     :param kwargs: the kwargs
     """
     logging.getLogger("deep").exception(msg, *args, exc_info=exc_info, **kwargs)

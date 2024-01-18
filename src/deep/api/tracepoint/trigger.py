@@ -152,7 +152,7 @@ class LocationAction(object):
         """
         Check if the tracepoint can trigger.
 
-        This is to check the config. e.g. fire count, fire windows etc
+        This is to check the config. e.g. fire count, fire windows etc.
         :param ts: the time the tracepoint has been triggered
         :return: true, if we should collect data; else false
         """
@@ -479,6 +479,7 @@ def build_snapshot_action(tp_id: str, args: Dict[str, str], watches: List[str]) 
 
     :param tp_id: the tracepoint id
     :param args: the args
+    :param watches: the watch expressions
     :return: the location action
     """
     if SNAPSHOT in args:

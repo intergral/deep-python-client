@@ -129,7 +129,7 @@ class BoundedAttributes(MutableMapping):
 
     def __init__(
             self,
-            maxlen: Optional[int] = None,
+            max_length: Optional[int] = None,
             attributes: types.Attributes = None,
             immutable: bool = True,
             max_value_len: Optional[int] = None,
@@ -137,17 +137,17 @@ class BoundedAttributes(MutableMapping):
         """
         Create new attributes.
 
-        :param maxlen: max number of attributes
+        :param max_length: max number of attributes
         :param attributes: existing attributes to copy
         :param immutable: are these attributes immutable
         :param max_value_len: max length of the attribute values
         """
-        if maxlen is not None:
-            if not isinstance(maxlen, int) or maxlen < 0:
+        if max_length is not None:
+            if not isinstance(max_length, int) or max_length < 0:
                 raise ValueError(
-                    "maxlen must be valid int greater or equal to 0"
+                    "max_length must be valid int greater or equal to 0"
                 )
-        self.maxlen = maxlen
+        self.max_length = max_length
         self.dropped = 0
         self.max_value_len = max_value_len
         self._dict = OrderedDict()  # type: OrderedDict
@@ -160,7 +160,7 @@ class BoundedAttributes(MutableMapping):
     def __repr__(self):
         """Represent this as a string."""
         return (
-            f"{type(self).__name__}({dict(self._dict)}, maxlen={self.maxlen})"
+            f"{type(self).__name__}({dict(self._dict)}, max_length={self.max_length})"
         )
 
     def __getitem__(self, key):
@@ -172,7 +172,7 @@ class BoundedAttributes(MutableMapping):
         if getattr(self, "_immutable", False):
             raise TypeError
         with self._lock:
-            if self.maxlen is not None and self.maxlen == 0:
+            if self.max_length is not None and self.max_length == 0:
                 self.dropped += 1
                 return
 
@@ -181,7 +181,7 @@ class BoundedAttributes(MutableMapping):
                 if key in self._dict:
                     del self._dict[key]
                 elif (
-                        self.maxlen is not None and len(self._dict) == self.maxlen
+                        self.max_length is not None and len(self._dict) == self.max_length
                 ):
                     self._dict.popitem(last=False)
                     self.dropped += 1

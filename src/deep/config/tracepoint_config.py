@@ -158,6 +158,7 @@ class TracepointConfigService:
         :param line: the source line number
         :param args: the tracepoint args
         :param watches: the tracepoint watches
+        :param metrics: the tracepoint metrics
         :return: the new TracePointConfig
         """
         config = build_trigger(str(uuid.uuid4()), path, line, args, watches, metrics)

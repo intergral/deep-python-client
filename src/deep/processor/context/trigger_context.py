@@ -17,7 +17,7 @@
 
 import uuid
 from types import FrameType
-from typing import Dict
+from typing import Dict, Optional, List
 
 from deep.api.tracepoint import Variable
 from deep.api.tracepoint.trigger import LocationAction
@@ -54,13 +54,13 @@ class TriggerContext:
         self.__event = event
         self.__frame = frame
         self.__config = config
-        self.__results: list[ActionResult] = []
+        self.__results: List[ActionResult] = []
         self.__ts: int = time_ns()
         self.__id: str = str(uuid.uuid4())
-        self.__frame_collector: FrameCollector | None = None
+        self.__frame_collector: Optional[FrameCollector] = None
         self.var_cache = VariableCacheProvider()
-        self.callbacks: list[ActionCallback] = []
-        self.vars: dict[str: Variable] = {}
+        self.callbacks: List[ActionCallback] = []
+        self.vars: Dict[str: Variable] = {}
 
     def __enter__(self):
         """Start the 'with' statement and open this context."""

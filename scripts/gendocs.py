@@ -25,13 +25,13 @@ import sys
 import yaml
 
 
-def dump_nav(nav, depth=0):
+def dump_nav(_nav, depth=0):
     keys = []
-    for key in nav.keys():
+    for key in _nav.keys():
         keys.append(key)
     keys.sort()
     for k in keys:
-        val = nav[k]
+        val = _nav[k]
         if type(val) is dict:
             print("%s - %s:" % (' ' * (depth * 2), k))
             dump_nav(val, depth + 1)
@@ -44,24 +44,24 @@ def covert_nav(new_nav):
     for k in new_nav:
         val = new_nav[k]
         if type(val) is dict:
-            nav = covert_nav(val)
-            as_list.append({k: nav})
+            _nav = covert_nav(val)
+            as_list.append({k: _nav})
         else:
             as_list.append({k: val})
     # sort the nav alphabetically (each list item is a single element dict, so use first key to sort)
     return sorted(as_list, key=lambda x: list(x.keys())[0])
 
 
-def update_nav(project_root, new_nav):
+def update_nav(_project_root, new_nav):
     loaded = None
-    with open("%s/mkdocs.yml" % project_root, 'r') as mkdocs:
+    with open("%s/mkdocs.yml" % _project_root, 'r') as mkdocs:
         read = mkdocs.read()
         loaded = yaml.load(read, Loader=yaml.Loader)
     if loaded is None:
         print("Cannot load mkdocs.yml")
         exit()
     loaded['nav'].append({'apidocs': covert_nav(new_nav)})
-    with open("%s/mkdocs-mod.yml" % project_root, 'w') as mkdocs:
+    with open("%s/mkdocs-mod.yml" % _project_root, 'w') as mkdocs:
         yaml.dump(loaded, mkdocs)
 
 

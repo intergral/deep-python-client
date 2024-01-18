@@ -62,6 +62,7 @@ class TestPushService(unittest.TestCase):
 
         self.sent_snap = None
 
+        # noinspection PyUnusedLocal
         def mock_send(snap, **kwargs):
             self.sent_snap = snap
 
@@ -98,6 +99,7 @@ class TestPushService(unittest.TestCase):
 
         self.sent_snap = None
 
+        # noinspection PyUnusedLocal
         def mock_send(snap, **kwargs):
             self.sent_snap = snap
 

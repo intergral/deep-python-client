@@ -289,7 +289,7 @@ class Variable:
 
     @property
     def value(self):
-        """The string value of variable.."""
+        """The string value of variable."""
         return self._value
 
     @property

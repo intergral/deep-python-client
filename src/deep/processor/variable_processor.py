@@ -155,7 +155,7 @@ class VariableResponse:
 
     @property
     def process_children(self):
-        """Can we process the children of the value."""
+        """Continue with the child nodes."""
         return self.__process_children
 
 
@@ -192,7 +192,7 @@ def variable_to_string(variable_type, var_value):
     elif variable_type is dict \
             or variable_type.__name__ in LIST_LIKE_TYPES:
         # if we are a collection then we do not want to use built in string as this can be very
-        # large, and quite pointless, in stead we just get the size of the collection
+        # large, and quite pointless, instead we just get the size of the collection
         return 'Size: %s' % len(var_value)
     else:
         # everything else just gets a string value

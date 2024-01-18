@@ -15,6 +15,7 @@
 
 """Utils used for making testing easier."""
 
+# noinspection PyProtectedMember
 from mockito.matchers import Matcher
 
 from deep.api.resource import Resource

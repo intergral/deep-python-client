@@ -166,30 +166,6 @@ class TriggerHandler:
 
         return self.trace_call
 
-    # def process_tracepoints(self, ts, tracepoints_for, frame):
-    #     """
-    #     We have some tracepoints, now check if we can collect
-    #
-    #     :param ts: the nano epoch this trace started
-    #     :param tracepoints_for: tracepoints for the file/line
-    #     :param frame: the frame data
-    #     """
-    #     # create a new frame processor with the config
-    #     processor = FrameProcessor(ts, tracepoints_for, frame, self._config)
-    #     # check if we can collect anything
-    #     can_collect = processor.can_collect()
-    #     if can_collect:
-    #         # we can proceed so have the processor configure from active tracepoints
-    #         processor.configure_self()
-    #         try:
-    #             # collect the data - this can be more than one result
-    #             snapshots = processor.collect()
-    #             for snapshot in snapshots:
-    #                 # push each result to services - this is async to allow the program to resume
-    #                 self._push_service.push_snapshot(snapshot)
-    #         except Exception:
-    #             logging.exception("Failed to collect snapshot")
-
     def __actions_for_location(self, event, file, line, function):
         actions = []
         for trigger in self._tp_config:

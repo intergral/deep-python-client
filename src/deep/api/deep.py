@@ -81,6 +81,7 @@ class Deep:
         :param line: the line number
         :param args: the args
         :param watches: the watches
+        :param metrics: the metrics
         :return: the new registration
         """
         if metrics is None:

@@ -43,6 +43,7 @@ class TestPoll(unittest.TestCase):
 
         self.poll_request = None
 
+        # noinspection PyUnusedLocal
         def mock_poll(request, **kwargs):
             self.poll_request = request
             return PollResponse(response_type=ResponseType.NO_CHANGE)
@@ -68,6 +69,7 @@ class TestPoll(unittest.TestCase):
 
         self.poll_request = None
 
+        # noinspection PyUnusedLocal
         def mock_poll(request, **kwargs):
             self.poll_request = request
             return PollResponse(response_type=ResponseType.UPDATE)

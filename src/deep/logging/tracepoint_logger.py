@@ -35,7 +35,7 @@ class TracepointLogger(abc.ABC):
 
         :param (str) log_msg: the log message to log
         :param (str) tp_id:  the id of the tracepoint that generated this log
-        :param (str) snap_id: the is of the snapshot that was created by this tracepoint
+        :param (str) ctx_id: the id of the context that was created by this tracepoint
         """
         pass
 
@@ -49,6 +49,6 @@ class DefaultLogger(TracepointLogger):
 
         :param (str) log_msg: the log message to log
         :param (str) tp_id:  the id of the tracepoint that generated this log
-        :param (str) snap_id: the is of the snapshot that was created by this tracepoint
+        :param (str) ctx_id: the id of the context that was created by this tracepoint
         """
         logging.info(log_msg + " ctx=%s tracepoint=%s" % (ctx_id, tp_id))

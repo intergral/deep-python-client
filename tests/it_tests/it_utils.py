@@ -60,7 +60,7 @@ class MockServer:
     def __await(self):
         self.__server.wait_for_termination()
 
-    def __exit__(self, ex, expt, expts):
+    def __exit__(self, exception_type, exception_value, exception_traceback):
         """Stop and shutdown GRPC service when 'with' statement completes."""
         self.__server.stop(10)
         self.__thread.join()
@@ -90,7 +90,8 @@ class MockServer:
                                                         path=path,
                                                         line_number=line,
                                                         args=args,
-                                                        watches=watches))
+                                                        watches=watches,
+                                                        metrics=metrics))
         self.__poll_service.hash = str(uuid.uuid4())
 
     def await_poll(self):

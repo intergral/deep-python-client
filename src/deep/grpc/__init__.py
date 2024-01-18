@@ -20,7 +20,7 @@ We do not use the protobuf types throughout the project as they do not autocompl
 have type definitions that work in IDE. It also makes it easier to deal with agent functionality by
 having local types we can modify.
 """
-from typing import List
+from typing import List, Dict
 
 # noinspection PyUnresolvedReferences
 from deepproto.proto.common.v1.common_pb2 import KeyValue, AnyValue, ArrayValue, KeyValueList
@@ -115,7 +115,7 @@ def convert_response(response) -> List[Trigger]:
     :param response: the response from the poll request
     :return: a list of trigger locations with the appropriate actions
     """
-    all_triggers: dict[str, Trigger] = {}
+    all_triggers: Dict[str, Trigger] = {}
     for r in response:
         # from the incoming tracepoints create a Trigger with actions
         trigger = build_trigger(r.ID, r.path, r.line_number, dict(r.args), [w for w in r.watches],

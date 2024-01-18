@@ -29,6 +29,7 @@
 import threading
 import unittest
 from threading import Thread
+from typing import List
 
 from deep import logging
 from deep.api.resource import Resource
@@ -46,7 +47,7 @@ from unit_tests.test_target import some_test_function
 class MockPushService(PushService):
     def __init__(self, config, grpc, task_handler):
         super().__init__(config, grpc, task_handler)
-        self.pushed: list[EventSnapshot] = []
+        self.pushed: List[EventSnapshot] = []
 
     def push_snapshot(self, snapshot: EventSnapshot):
         self.pushed.append(snapshot)
