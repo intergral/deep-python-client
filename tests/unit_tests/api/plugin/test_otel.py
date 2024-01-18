@@ -32,14 +32,14 @@ class TestOtel(unittest.TestCase):
 
     def test_load_plugin(self):
         plugin = OTelPlugin()
-        load_plugin = plugin.load_plugin()
+        load_plugin = plugin.resource()
         self.assertIsNotNone(load_plugin)
-        self.assertEqual("your-service-name", load_plugin.get(SERVICE_NAME))
+        self.assertEqual("your-service-name", load_plugin.attributes.get(SERVICE_NAME))
 
     def test_collect_attributes(self):
         with trace.get_tracer_provider().get_tracer("test").start_as_current_span("test-span"):
             plugin = OTelPlugin()
-            attributes = plugin.collect_attributes()
+            attributes = plugin.decorate(None)
             self.assertIsNotNone(attributes)
             self.assertEqual("test-span", attributes.get("span_name"))
             self.assertIsNotNone(attributes.get("span_id"))

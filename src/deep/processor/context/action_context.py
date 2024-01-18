@@ -31,6 +31,7 @@
 import abc
 from typing import Tuple, TYPE_CHECKING, Dict
 
+import deep.logging
 from deep.logging import logging
 from deep.api.tracepoint import WatchResult, Variable
 from deep.processor.variable_set_processor import VariableSetProcessor
@@ -51,8 +52,8 @@ class ActionContext(abc.ABC):
         :param parent: the parent trigger
         :param action: the action config
         """
-        self._parent: 'TriggerContext' = parent
-        self._action: 'LocationAction' = action
+        self.tigger_context: 'TriggerContext' = parent
+        self.location_action: 'LocationAction' = action
         self._triggered = False
 
     def __enter__(self):
@@ -62,7 +63,7 @@ class ActionContext(abc.ABC):
     def __exit__(self, exception_type, exception_value, exception_traceback):
         """Exit and close the context."""
         if self.has_triggered():
-            self._action.record_triggered(self._parent.ts)
+            self.location_action.record_triggered(self.tigger_context.ts)
 
     def eval_watch(self, watch: str) -> Tuple[WatchResult, Dict[str, Variable], str]:
         """
@@ -71,10 +72,10 @@ class ActionContext(abc.ABC):
         :param watch: The watch expression to evaluate.
         :return: Tuple with WatchResult, collected variables, and the log string for the expression
         """
-        var_processor = VariableSetProcessor({}, self._parent.var_cache)
+        var_processor = VariableSetProcessor({}, self.tigger_context.var_cache)
 
         try:
-            result = self._parent.evaluate_expression(watch)
+            result = self.tigger_context.evaluate_expression(watch)
             variable_id, log_str = var_processor.process_variable(watch, result)
 
             return WatchResult(watch, variable_id), var_processor.var_lookup, log_str
@@ -108,11 +109,11 @@ class ActionContext(abc.ABC):
         Combine checks for rate limits, windows and condition.
         :return: True, if the trigger can be triggered.
         """
-        if not self._action.can_trigger(self._parent.ts):
+        if not self.location_action.can_trigger(self.tigger_context.ts):
             return False
-        if self._action.condition is None:
+        if self.location_action.condition is None:
             return True
-        result = self._parent.evaluate_expression(self._action.condition)
+        result = self.tigger_context.evaluate_expression(self.location_action.condition)
         return str2bool(str(result))
 
 
@@ -120,7 +121,6 @@ class MetricActionContext(ActionContext):
     """Action for metrics."""
 
     def _process_action(self):
-        print("metric action")
         pass
 
 
@@ -128,7 +128,6 @@ class SpanActionContext(ActionContext):
     """Action for spans."""
 
     def _process_action(self):
-        print("span action")
         pass
 
 
@@ -136,4 +135,4 @@ class NoActionContext(ActionContext):
     """Default context if no action can be determined."""
 
     def _process_action(self):
-        print("Unsupported action type: %s" % self._action)
+        deep.logging.error("Unsupported action type: %s", self.location_action)

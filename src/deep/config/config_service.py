@@ -16,13 +16,12 @@
 """Service for handling deep config."""
 
 import os
-from typing import Any, List, Dict, Tuple, Optional
+from typing import Any, List, Dict, Tuple, Optional, Generator
 
 from deep import logging
-from deep.api.plugin import Plugin
+from deep.api.plugin import Plugin, ResourceProvider, PLUGIN_TYPE, SnapshotDecorator, TracepointLogger
 from deep.api.resource import Resource
 from deep.config.tracepoint_config import TracepointConfigService, ConfigUpdateListener
-from deep.logging.tracepoint_logger import DefaultLogger, TracepointLogger
 
 
 class ConfigService:
@@ -40,7 +39,6 @@ class ConfigService:
         self.__custom = custom
         self._resource = None
         self._tracepoint_config = tracepoints
-        self._tracepoint_logger: 'TracepointLogger' = DefaultLogger()
 
     def __getattribute__(self, name: str) -> Any:
         """
@@ -129,26 +127,19 @@ class ConfigService:
         self._tracepoint_config.add_listener(listener)
 
     @property
-    def tracepoint_logger(self) -> 'TracepointLogger':
+    def tracepoint_logger(self) -> TracepointLogger:
         """Get the tracepoint logger."""
-        return self._tracepoint_logger
+        return self._find_plugin(TracepointLogger)
 
-    @tracepoint_logger.setter
-    def tracepoint_logger(self, logger: 'TracepointLogger'):
-        """Set the tracepoint logger."""
-        self._tracepoint_logger = logger
+    @property
+    def resource_providers(self) -> Generator[ResourceProvider, None, None]:
+        """Generator for available resource providers."""
+        return self.__plugin_generator(ResourceProvider)
 
-    def log_tracepoint(self, log_msg: str, tp_id: str, snap_id: str):
-        """
-        Log the dynamic log message.
-
-        Pass the processed log to the tracepoint logger.
-
-        :param (str) log_msg: the log message to log
-        :param (str) tp_id:  the id of the tracepoint that generated this log
-        :param (str) snap_id: the is of the snapshot that was created by this tracepoint
-        """
-        self._tracepoint_logger.log_tracepoint(log_msg, tp_id, snap_id)
+    @property
+    def snapshot_decorators(self) -> Generator[SnapshotDecorator, None, None]:
+        """Generator for snapshot decorators."""
+        return self.__plugin_generator(SnapshotDecorator)
 
     def is_app_frame(self, filename: str) -> Tuple[bool, Optional[str]]:
         """
@@ -172,3 +163,17 @@ class ConfigService:
             return True, self.APP_ROOT
 
         return False, None
+
+    def _find_plugin(self, plugin_type) -> PLUGIN_TYPE:
+        return next(self.__plugin_generator(plugin_type))
+
+    def _find_plugins(self, plugin_type) -> List[PLUGIN_TYPE]:
+        plugins = []
+        for plugin in self.__plugin_generator(plugin_type):
+            plugins.append(plugin)
+        return plugins
+
+    def __plugin_generator(self, plugin_type) -> Generator[PLUGIN_TYPE, None, None]:
+        for plugin in self._plugins:
+            if isinstance(plugin, plugin_type):
+                yield plugin

@@ -14,3 +14,4 @@ pytest-cov
 mockito
 opentelemetry-api
 opentelemetry-sdk
+flake8-no-print

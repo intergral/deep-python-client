@@ -21,12 +21,12 @@ class TestPython(unittest.TestCase):
 
     def test_load_plugin(self):
         plugin = PythonPlugin()
-        load_plugin = plugin.load_plugin()
+        load_plugin = plugin.resource()
         self.assertIsNotNone(load_plugin)
-        self.assertIsNotNone(load_plugin.get('python_version'))
+        self.assertIsNotNone(load_plugin.attributes.get('python_version'))
 
     def test_collect_attributes(self):
         plugin = PythonPlugin()
-        attributes = plugin.collect_attributes()
+        attributes = plugin.decorate(None)
         self.assertIsNotNone(attributes)
         self.assertEqual("MainThread", attributes.get("thread_name"))

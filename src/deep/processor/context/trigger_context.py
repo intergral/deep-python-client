@@ -19,10 +19,11 @@ import uuid
 from types import FrameType
 from typing import Dict, Optional, List
 
+import deep.logging
+from deep.api.plugin import TracepointLogger
 from deep.api.tracepoint import Variable
 from deep.api.tracepoint.trigger import LocationAction
 from deep.config import ConfigService
-from deep.logging.tracepoint_logger import TracepointLogger
 from deep.processor.context.action_context import MetricActionContext, SpanActionContext, NoActionContext, ActionContext
 from deep.processor.context.action_results import ActionResult, ActionCallback
 from deep.processor.context.log_action import LogActionContext
@@ -69,9 +70,17 @@ class TriggerContext:
     def __exit__(self, exception_type, exception_value, exception_traceback):
         """Complete the 'with' statement, and close this context."""
         for result in self.__results:
-            new_callback = result.process(self.__id, self.tracepoint_logger, self.push_service)
-            if new_callback is not None:
-                self.callbacks.append(new_callback)
+            try:
+                new_callback = result.process(self)
+                if new_callback is not None:
+                    self.callbacks.append(new_callback)
+            except Exception:
+                deep.logging.exception("failed to process result {}", result)
+
+    @property
+    def id(self):
+        """The trigger context id."""
+        return self.__id
 
     @property
     def file_name(self):

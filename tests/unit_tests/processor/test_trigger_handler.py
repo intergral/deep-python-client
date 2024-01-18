@@ -32,21 +32,21 @@ from threading import Thread
 from typing import List
 
 from deep import logging
+from deep.api.plugin import TracepointLogger
 from deep.api.resource import Resource
 from deep.api.tracepoint.constants import LOG_MSG, WATCHES
 from deep.api.tracepoint.eventsnapshot import EventSnapshot
 
 from deep.api.tracepoint.trigger import Location, LocationAction, LineLocation, Trigger
 from deep.config import ConfigService
-from deep.logging.tracepoint_logger import TracepointLogger
 from deep.processor.trigger_handler import TriggerHandler
 from deep.push.push_service import PushService
 from unit_tests.test_target import some_test_function
 
 
 class MockPushService(PushService):
-    def __init__(self, config, grpc, task_handler):
-        super().__init__(config, grpc, task_handler)
+    def __init__(self, grpc, task_handler):
+        super().__init__(grpc, task_handler)
         self.pushed: List[EventSnapshot] = []
 
     def push_snapshot(self, snapshot: EventSnapshot):
@@ -121,7 +121,7 @@ class TestTriggerHandler(unittest.TestCase):
     def test_log_action(self):
         capture = TraceCallCapture()
         config = MockConfigService({})
-        push = MockPushService(None, None, None)
+        push = MockPushService(None, None)
         handler = TriggerHandler(config, push)
 
         location = LineLocation('test_target.py', 27, Location.Position.START)
@@ -139,7 +139,7 @@ class TestTriggerHandler(unittest.TestCase):
     def test_log_action_with_watch(self):
         capture = TraceCallCapture()
         config = MockConfigService({})
-        push = MockPushService(None, None, None)
+        push = MockPushService(None, None)
         handler = TriggerHandler(config, push)
 
         location = LineLocation('test_target.py', 27, Location.Position.START)
@@ -157,7 +157,7 @@ class TestTriggerHandler(unittest.TestCase):
     def test_snapshot_action(self):
         capture = TraceCallCapture()
         config = MockConfigService({})
-        push = MockPushService(None, None, None)
+        push = MockPushService(None, None)
         handler = TriggerHandler(config, push)
 
         location = LineLocation('test_target.py', 27, Location.Position.START)
@@ -183,7 +183,7 @@ class TestTriggerHandler(unittest.TestCase):
     def test_snapshot_action_with_condition(self):
         capture = TraceCallCapture()
         config = MockConfigService({})
-        push = MockPushService(None, None, None)
+        push = MockPushService(None, None)
         handler = TriggerHandler(config, push)
 
         location = LineLocation('test_target.py', 27, Location.Position.START)
