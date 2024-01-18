@@ -2,6 +2,7 @@
 
 - **[CHANGE]**: change(build): add doc string check to flake8 [#14](https://github.com/intergral/deep/pull/14) [@Umaaz](https://github.com/Umaaz)
 - **[FEATURE]**: feat(logging): initial implementation of log points [#3](https://github.com/intergral/deep/pull/3) [@Umaaz](https://github.com/Umaaz)
+- **[FEATURE]**: feat(metrics): initial implementation of metric points [#21](https://github.com/intergral/deep/pull/21) [@Umaaz](https://github.com/Umaaz)
 - **[ENHANCEMENT]**: enhancement(trigger): change tracepoint handling to use triggers [#16](https://github.com/intergral/deep/pull/16) [@Umaaz](https://github.com/Umaaz)
 - **[BUGFIX]**: feat(api): add api function to register tracepoint directly [#8](https://github.com/intergral/deep/pull/8) [@Umaaz](https://github.com/Umaaz)
 
