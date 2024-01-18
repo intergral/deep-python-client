@@ -16,6 +16,7 @@ import collections
 import unittest
 from typing import MutableSequence
 
+# noinspection PyProtectedMember
 from deep.api.attributes import _clean_attribute, BoundedAttributes
 
 
@@ -97,7 +98,7 @@ class TestBoundedAttributes(unittest.TestCase):
         ]
     )
 
-    def test_negative_maxlen(self):
+    def test_negative_max_length(self):
         with self.assertRaises(ValueError):
             BoundedAttributes(-1)
 
@@ -170,7 +171,7 @@ class TestBoundedAttributes(unittest.TestCase):
             _ = bdict["new-name"]
 
     def test_no_limit_code(self):
-        bdict = BoundedAttributes(maxlen=None, immutable=False)
+        bdict = BoundedAttributes(max_length=None, immutable=False)
         for num in range(100):
             bdict[str(num)] = num
 

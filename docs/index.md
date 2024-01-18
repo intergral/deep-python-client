@@ -2,7 +2,7 @@
 This is the python client for Deep, a dynamic monitor and debugging tool.
 
 # Getting started
-You will need to have a running version of the [DEEP server](#) to connect this client to.
+You will need to have a running version of the [DEEP server](https://github.com/intergral/deep) to connect this client to.
 
 ## Install Agent
 To install the python agent just add the dependency 'deep-agent' to your project.
@@ -12,7 +12,7 @@ pip install deep-agent
 ```
 
 ## Setup
-Once installed you need to setup the agent. At the earliest part of the code you should add the following code:
+Once installed you need to set up the agent. At the earliest part of the code you should add the following code:
 
 ```python
 import deep

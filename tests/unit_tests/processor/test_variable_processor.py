@@ -54,6 +54,18 @@ class MockNodeValue(NodeValue):
 
 
 class MockCollector(Collector):
+    @property
+    def max_string_length(self) -> int:
+        return self._config.max_string_length
+
+    @property
+    def max_collection_size(self) -> int:
+        return self._config.max_collection_size
+
+    @property
+    def max_var_depth(self) -> int:
+        return self._config.max_var_depth
+
     def __init__(self):
         self._var_cache = {}
         self._var_lookup = {}
@@ -72,7 +84,7 @@ class MockCollector(Collector):
     def frame_config(self) -> FrameProcessorConfig:
         return self._config
 
-    def add_child_to_lookup(self, variable_id, child):
+    def append_child(self, variable_id, child):
         self._var_lookup[variable_id].children.append(child)
 
     def check_id(self, identity_hash_id):

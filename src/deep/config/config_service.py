@@ -16,7 +16,7 @@
 """Service for handling deep config."""
 
 import os
-from typing import Any, List
+from typing import Any, List, Dict, Tuple, Optional
 
 from deep import logging
 from deep.api.plugin import Plugin
@@ -28,7 +28,7 @@ from deep.logging.tracepoint_logger import DefaultLogger, TracepointLogger
 class ConfigService:
     """This is the main service that handles config for DEEP."""
 
-    def __init__(self, custom=None, tracepoints=TracepointConfigService()):
+    def __init__(self, custom: Dict[str, any] = None, tracepoints=TracepointConfigService()):
         """
         Create a new config object.
 
@@ -149,3 +149,26 @@ class ConfigService:
         :param (str) snap_id: the is of the snapshot that was created by this tracepoint
         """
         self._tracepoint_logger.log_tracepoint(log_msg, tp_id, snap_id)
+
+    def is_app_frame(self, filename: str) -> Tuple[bool, Optional[str]]:
+        """
+        Check if the current frame is a user application frame.
+
+        :param filename: the frame file name
+        :return: True if add frame, else False
+        """
+        in_app_include = self.IN_APP_INCLUDE
+        in_app_exclude = self.IN_APP_EXCLUDE
+
+        for path in in_app_exclude:
+            if filename.startswith(path):
+                return False, path
+
+        for path in in_app_include:
+            if filename.startswith(path):
+                return True, path
+
+        if filename.startswith(self.APP_ROOT):
+            return True, self.APP_ROOT
+
+        return False, None

@@ -27,7 +27,7 @@ from typing import List
 from deep import logging
 from deep.api.tracepoint import VariableId, Variable
 from .bfs import Node, ParentNode, NodeValue
-from .frame_config import FrameProcessorConfig
+
 
 NO_CHILD_TYPES = [
     'str',
@@ -66,22 +66,31 @@ class Collector(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def frame_config(self) -> FrameProcessorConfig:
+    def max_string_length(self) -> int:
         """
-        The frame config.
+        Get the max length of a string.
 
-        :return: the frame config
+        :return int: the configured value
         """
         pass
 
+    @property
     @abc.abstractmethod
-    def add_child_to_lookup(self, parent_id: str, child: VariableId):
+    def max_collection_size(self) -> int:
         """
-        Add a child variable to the var lookup parent.
+        Get the max size of a collection.
 
-        :param parent_id: the internal id of the parent
-        :param child: the child VariableId to append
-        :return:
+        :return int: the configured value
+        """
+        pass
+
+    @property
+    @abc.abstractmethod
+    def max_var_depth(self) -> int:
+        """
+        Get the max depth to process.
+
+        :return int: the configured value
         """
         pass
 
@@ -108,10 +117,25 @@ class Collector(abc.ABC):
     @abc.abstractmethod
     def append_variable(self, var_id: str, variable: Variable):
         """
-        Append a variable to var lookup using the var id.
+        Append a variable to the var lookup.
 
-        :param var_id: the internal variable id
-        :param variable: the variable data to append
+        This is called when a variable has been processed
+
+        :param var_id: the internal id of the variable
+        :param variable: the internal value of the variable
+        """
+        pass
+
+    @abc.abstractmethod
+    def append_child(self, variable_id: str, child: VariableId):
+        """
+        Append a chile to existing variable.
+
+        This is called when a child variable has been processed and the result should be attached to a
+        variable that has already been processed.
+
+        :param str variable_id: the internal variable id of the parent variable
+        :param VariableId child: the internal variable id value to attach to the parent
         """
         pass
 
@@ -131,7 +155,7 @@ class VariableResponse:
 
     @property
     def process_children(self):
-        """Can we process the children of the value."""
+        """Continue with the child nodes."""
         return self.__process_children
 
 
@@ -168,18 +192,18 @@ def variable_to_string(variable_type, var_value):
     elif variable_type is dict \
             or variable_type.__name__ in LIST_LIKE_TYPES:
         # if we are a collection then we do not want to use built in string as this can be very
-        # large, and quite pointless, in stead we just get the size of the collection
+        # large, and quite pointless, instead we just get the size of the collection
         return 'Size: %s' % len(var_value)
     else:
         # everything else just gets a string value
         return str(var_value)
 
 
-def process_variable(frame_collector: Collector, node: NodeValue) -> VariableResponse:
+def process_variable(var_collector: Collector, node: NodeValue) -> VariableResponse:
     """
     Process the variable into a serializable type.
 
-    :param frame_collector: the collector being used
+    :param var_collector: the collector being used
     :param node: the variable node to process
     :return: a response to determine if we continue
     """
@@ -188,7 +212,7 @@ def process_variable(frame_collector: Collector, node: NodeValue) -> VariableRes
     # guess the modifiers
     modifiers = var_modifiers(node.name)
     # check the collector cache for this id
-    cache_id = frame_collector.check_id(identity_hash_id)
+    cache_id = var_collector.check_id(identity_hash_id)
     # if we have a cache_id, then this variable is already been processed, so we just return
     # a variable id and do not process children. This prevents us from processing the same value over and over. We
     # also do not count this towards the max_vars, so we can increase the data we send.
@@ -197,7 +221,7 @@ def process_variable(frame_collector: Collector, node: NodeValue) -> VariableRes
         return VariableResponse(VariableId(cache_id, node.name, modifiers, node.original_name), process_children=False)
 
     # if we do not have a cache_id - then create one
-    var_id = frame_collector.new_var_id(identity_hash_id)
+    var_id = var_collector.new_var_id(identity_hash_id)
 
     # crete the variable id to use
     variable_id = VariableId(var_id, node.name, modifiers, node.original_name)
@@ -205,12 +229,12 @@ def process_variable(frame_collector: Collector, node: NodeValue) -> VariableRes
     variable_type = type(node.value)
     # create a string value of the variable
     variable_value_str, truncated = truncate_string(variable_to_string(variable_type, node.value),
-                                                    frame_collector.frame_config.max_string_length)
+                                                    var_collector.max_string_length)
 
     # create a variable for the lookup
     variable = Variable(str(variable_type.__name__), variable_value_str, identity_hash_id, [], truncated)
     # add to lookup
-    frame_collector.append_variable(var_id, variable)
+    var_collector.append_variable(var_id, variable)
     # return result - and expand children
     return VariableResponse(variable_id, process_children=True)
 
@@ -227,7 +251,7 @@ def truncate_string(string, max_length):
 
 
 def process_child_nodes(
-        frame_collector: Collector,
+        var_collector: Collector,
         variable_id: str,
         var_value: any,
         frame_depth: int
@@ -237,7 +261,7 @@ def process_child_nodes(
 
     Child node collection is performed via a variety of functions based on the type of the variable we are processing.
 
-    :param frame_collector: the collector we are using
+    :param var_collector: the collector we are using
     :param variable_id: the variable if to attach children to
     :param var_value: the value we are looking at for children
     :param frame_depth: the current depth we are at
@@ -249,17 +273,17 @@ def process_child_nodes(
         return []
 
     # if the depth is more than we are configured - return empty
-    if frame_depth + 1 >= frame_collector.frame_config.max_var_depth:
+    if frame_depth + 1 >= var_collector.max_var_depth:
         return []
 
     class VariableParent(ParentNode):
 
         def add_child(self, child: VariableId):
             # look for the child in the lookup and add this id to it
-            frame_collector.add_child_to_lookup(variable_id, child)
+            var_collector.append_child(variable_id, child)
 
     # scan the child based on type
-    return find_children_for_parent(frame_collector, VariableParent(), var_value, variable_type)
+    return find_children_for_parent(var_collector, VariableParent(), var_value, variable_type)
 
 
 def correct_names(name, val):
@@ -276,12 +300,12 @@ def correct_names(name, val):
     return val
 
 
-def find_children_for_parent(frame_collector: Collector, parent_node: ParentNode, value: any,
+def find_children_for_parent(var_collector: Collector, parent_node: ParentNode, value: any,
                              variable_type: type):
     """
     Scan the parent for children based on the type.
 
-    :param frame_collector: the collector we are using
+    :param var_collector: the collector we are using
     :param parent_node: the parent node
     :param value: the variable value we are processing
     :param variable_type: the type of the variable
@@ -290,9 +314,9 @@ def find_children_for_parent(frame_collector: Collector, parent_node: ParentNode
     if variable_type is dict:
         return process_dict_breadth_first(parent_node, variable_type.__name__, value)
     elif variable_type.__name__ in LIST_LIKE_TYPES:
-        return process_list_breadth_first(frame_collector, parent_node, value)
+        return process_list_breadth_first(var_collector, parent_node, value)
     elif isinstance(value, Exception):
-        return process_list_breadth_first(frame_collector, parent_node, value.args)
+        return process_list_breadth_first(var_collector, parent_node, value.args)
     elif hasattr(value, '__class__'):
         return process_dict_breadth_first(parent_node, variable_type.__name__, value.__dict__, correct_names)
     elif hasattr(value, '__dict__'):
@@ -322,14 +346,14 @@ def process_dict_breadth_first(parent_node, type_name, value, func=lambda x, y: 
             key in value]
 
 
-def process_list_breadth_first(frame_collector: Collector, parent_node: ParentNode, value) -> List[Node]:
+def process_list_breadth_first(var_collector: Collector, parent_node: ParentNode, value) -> List[Node]:
     """
     Process a list value.
 
     Take a list and collect all the child nodes for the list. Returned list is
     limited by the config 'max_collection_size'.
 
-    :param (Collector) frame_collector: the collector that is managing this collection
+    :param (Collector) var_collector: the collector that is managing this collection
     :param (ParentNode) parent_node: the node that represents the list, to be used as the parent for the returned nodes
     :param (any) value: the list value to process
     :return (list): the collected child nodes
@@ -337,7 +361,7 @@ def process_list_breadth_first(frame_collector: Collector, parent_node: ParentNo
     nodes = []
     total = 0
     for val_ in tuple(value):
-        if total >= frame_collector.frame_config.max_collection_size:
+        if total >= var_collector.max_collection_size:
             break
         nodes.append(Node(value=NodeValue(str(total), val_), parent=parent_node))
         total += 1

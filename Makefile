@@ -18,9 +18,13 @@ endif
 test:
 	pytest tests/unit_tests
 
+.PHONY: it-test
+it-test:
+	pytest tests/it_tests
+
 .PHONY: coverage
 coverage:
-	pytest tests/unit_tests --cov=deep  --cov-report term --cov-fail-under=77 --cov-report html --cov-branch
+	pytest tests/unit_tests --cov=deep  --cov-report term --cov-fail-under=82 --cov-report html --cov-branch
 
 .PHONY: lint
 lint:
@@ -61,3 +65,6 @@ docs:
 .PHONY: clean
 clean:
 	rm -Rf _site docs/apidocs .pytest_cache test/.pytest_cache
+
+.PHONY: precommit
+precommit: lint tests coverage

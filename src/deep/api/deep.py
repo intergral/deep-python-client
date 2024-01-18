@@ -14,16 +14,16 @@
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.from typing import Dict, List
 
 """The main services for Deep."""
+
 from typing import Dict, List
 
 from deep.api.plugin import load_plugins
 from deep.api.resource import Resource
-from deep.api.tracepoint import TracePointConfig
 from deep.config import ConfigService
 from deep.config.tracepoint_config import TracepointConfigService
 from deep.grpc import GRPCService
 from deep.poll import LongPoll
-from deep.processor import TriggerHandler
+from deep.processor.trigger_handler import TriggerHandler
 from deep.push import PushService
 from deep.task import TaskHandler
 
@@ -67,12 +67,13 @@ class Deep:
         """Shutdown deep."""
         if not self.started:
             return
+        self.trigger_handler.shutdown()
         self.task_handler.flush()
         self.poll.shutdown()
         self.started = False
 
     def register_tracepoint(self, path: str, line: int, args: Dict[str, str] = None,
-                            watches: List[str] = None) -> 'TracepointRegistration':
+                            watches: List[str] = None, metrics=None) -> 'TracepointRegistration':
         """
         Register a new tracepoint.
 
@@ -80,33 +81,32 @@ class Deep:
         :param line: the line number
         :param args: the args
         :param watches: the watches
+        :param metrics: the metrics
         :return: the new registration
         """
+        if metrics is None:
+            metrics = []
         if watches is None:
             watches = []
         if args is None:
             args = {}
-        tp_config = self.config.tracepoints.add_custom(path, line, args, watches)
-        return TracepointRegistration(tp_config, self.config.tracepoints)
+        tp_id = self.config.tracepoints.add_custom(path, line, args, watches, metrics)
+        return TracepointRegistration(tp_id, self.config.tracepoints)
 
 
 class TracepointRegistration:
     """Registration of a new tracepoint."""
 
-    def __init__(self, cfg: TracePointConfig, tracepoints: TracepointConfigService):
+    def __init__(self, _id: str, tracepoints: TracepointConfigService):
         """
         Create a new registration.
 
-        :param cfg: the created config
+        :param _id: the created config id
         :param tracepoints: the config service
         """
-        self._cfg = cfg
-        self._tpServ = tracepoints
-
-    def get(self) -> TracePointConfig:
-        """Get the created tracepoint."""
-        return self._cfg
+        self.__id: str = _id
+        self.__tpServ: TracepointConfigService = tracepoints
 
     def unregister(self):
         """Remove this custom tracepoint."""
-        self._tpServ.remove_custom(self._cfg)
+        self.__tpServ.remove_custom(self.__id)

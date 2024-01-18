@@ -40,7 +40,7 @@ class Node:
         if children is None:
             children = []
         self._value: 'NodeValue' = value
-        self._children: list['Node'] = children
+        self._children: List['Node'] = children
         self._parent: 'ParentNode' = parent
         self._depth = 0
 
@@ -109,7 +109,7 @@ class NodeValue:
         Create a new node value.
 
         It is possible to rename variables by providing an original name. This is used when dealing with
-        'private' variables in calsses.
+        'private' variables in classes.
 
         e.g. A variable called _NodeValue__name is used by python to represent the private variable __name. This
          is not known by devs, so we rename the variable to __name, and keep the original name as _NodeValue__name,

@@ -22,6 +22,7 @@ from deep.api.plugin import Plugin, DidNotEnable
 
 try:
     from opentelemetry import trace
+    # noinspection PyProtectedMember
     from opentelemetry.sdk.trace import _Span, TracerProvider
 except ImportError as e:
     raise DidNotEnable("opentelemetry is not installed", e)

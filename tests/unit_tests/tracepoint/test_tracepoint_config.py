@@ -15,7 +15,7 @@
 
 import unittest
 
-from deep.api.tracepoint.tracepoint_config import TracepointWindow, TracePointConfig, FIRE_PERIOD, FIRE_COUNT
+from deep.api.tracepoint.tracepoint_config import TracepointWindow, TracePointConfig
 
 
 class TestTracepointWindow(unittest.TestCase):
@@ -48,32 +48,13 @@ class TestTracepointWindow(unittest.TestCase):
 class TestTracePointConfig(unittest.TestCase):
 
     def test_get_arg(self):
-        config = TracePointConfig('tp_id', 'path', 123, {'some': 'value'}, [])
+        config = TracePointConfig('tp_id', 'path', 123, {'some': 'value'}, [], [])
         self.assertEqual(config.get_arg('some', 'thing'), 'value')
         self.assertEqual(config.get_arg('other', 'thing'), 'thing')
 
     def test_get_arg_int(self):
-        config = TracePointConfig('tp_id', 'path', 123, {'some': 'value', 'num': 321}, [])
+        config = TracePointConfig('tp_id', 'path', 123, {'some': 'value', 'num': 321}, [], [])
         # noinspection PyTypeChecker
         self.assertEqual(config.get_arg_int('some', 'thing'), 'thing')
         self.assertEqual(config.get_arg_int('other', 123), 123)
         self.assertEqual(config.get_arg_int('num', 123), 321)
-
-    def test_fire_count(self):
-        config = TracePointConfig('tp_id', 'path', 123, {'some': 'value', 'num': 321}, [])
-        self.assertEqual(config.fire_count, 1)
-
-        self.assertTrue(config.can_trigger(1000))
-        config.record_triggered(1000)
-
-        self.assertFalse(config.can_trigger(1001))
-
-    def test_fire_period(self):
-        config = TracePointConfig('tp_id', 'path', 123, {FIRE_PERIOD: 10_000, FIRE_COUNT: 10}, [])
-
-        self.assertEqual(config.fire_count, 10)
-
-        self.assertTrue(config.can_trigger(1000))
-        config.record_triggered(1000)
-
-        self.assertFalse(config.can_trigger(1001))

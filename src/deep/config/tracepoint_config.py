@@ -18,9 +18,32 @@
 import abc
 import logging
 import uuid
-from typing import Dict, List
+from typing import Dict, List, TYPE_CHECKING
 
-from deep.api.tracepoint import TracePointConfig
+from deep.api.tracepoint.tracepoint_config import MetricDefinition
+
+from deep.api.tracepoint.trigger import build_trigger
+
+if TYPE_CHECKING:
+    from deep.api.tracepoint.trigger import Trigger
+
+
+class ConfigUpdateListener(abc.ABC):
+    """Class to describe a config listener."""
+
+    @abc.abstractmethod
+    def config_change(self, ts: int, old_hash: str, current_hash: str, old_config: List['Trigger'],
+                      new_config: List['Trigger']):
+        """
+        Process an update to the tracepoint config.
+
+        :param ts: the ts of the new config
+        :param old_hash: the old config hash
+        :param current_hash: the new config hash
+        :param old_config: the old config
+        :param new_config: the new config
+        """
+        raise NotImplementedError
 
 
 class TracepointConfigService:
@@ -28,8 +51,8 @@ class TracepointConfigService:
 
     def __init__(self) -> None:
         """Create new tracepoint config service."""
-        self._custom = []
-        self._tracepoint_config = []
+        self._custom: List['Trigger'] = []
+        self._tracepoint_config: List['Trigger'] = []
         self._current_hash = None
         self._last_update = 0
         self._task_handler = None
@@ -45,7 +68,7 @@ class TracepointConfigService:
         """
         self._last_update = ts
 
-    def update_new_config(self, ts, new_hash, new_config):
+    def update_new_config(self, ts: int, new_hash: str, new_config: List['Trigger']):
         """
         Update to the new config.
 
@@ -77,7 +100,8 @@ class TracepointConfigService:
         """
         self._task_handler = task_handler
 
-    def update_listeners(self, ts, old_hash, current_hash, old_config, new_config):
+    def update_listeners(self, ts: int, old_hash: str, current_hash: str, old_config: List['Trigger'],
+                         new_config: List['Trigger']):
         """
         Update the registered listeners.
 
@@ -96,7 +120,7 @@ class TracepointConfigService:
             except Exception:
                 logging.exception("Error updating listener %s", listeners)
 
-    def add_listener(self, listener: 'ConfigUpdateListener'):
+    def add_listener(self, listener: ConfigUpdateListener):
         """
         Add a new listener to the config.
 
@@ -105,7 +129,7 @@ class TracepointConfigService:
         self._listeners.append(listener)
 
     @property
-    def current_config(self):
+    def current_config(self) -> List['Trigger']:
         """
         The current tracepoint config.
 
@@ -114,7 +138,7 @@ class TracepointConfigService:
         return self._tracepoint_config
 
     @property
-    def current_hash(self):
+    def current_hash(self) -> str:
         """
         The current hash.
 
@@ -125,7 +149,8 @@ class TracepointConfigService:
         """
         return self._current_hash
 
-    def add_custom(self, path: str, line: int, args: Dict[str, str], watches: List[str]) -> TracePointConfig:
+    def add_custom(self, path: str, line: int, args: Dict[str, str], watches: List[str],
+                   metrics: List[MetricDefinition]) -> str:
         """
         Crate a new tracepoint from the input.
 
@@ -133,38 +158,22 @@ class TracepointConfigService:
         :param line: the source line number
         :param args: the tracepoint args
         :param watches: the tracepoint watches
+        :param metrics: the tracepoint metrics
         :return: the new TracePointConfig
         """
-        config = TracePointConfig(str(uuid.uuid4()), path, line, args, watches)
+        config = build_trigger(str(uuid.uuid4()), path, line, args, watches, metrics)
         self._custom.append(config)
         self.__trigger_update(None, None)
-        return config
+        return config.id
 
-    def remove_custom(self, config: TracePointConfig):
+    def remove_custom(self, _id: str):
         """
         Remove a custom tracepoint config.
 
-        :param config: the config to remove
+        :param _id: the id of the config to remove
         """
         for idx, cfg in enumerate(self._custom):
-            if cfg.id == config.id:
+            if cfg.id == _id:
                 del self._custom[idx]
                 self.__trigger_update(None, None)
                 return
-
-
-class ConfigUpdateListener(abc.ABC):
-    """Class to describe a config listener."""
-
-    @abc.abstractmethod
-    def config_change(self, ts, old_hash, current_hash, old_config, new_config):
-        """
-        Process an update to the tracepoint config.
-
-        :param ts: the ts of the new config
-        :param old_hash: the old config hash
-        :param current_hash: the new config hash
-        :param old_config: the old config
-        :param new_config: the new config
-        """
-        raise NotImplementedError

@@ -40,6 +40,9 @@ SERVICE_SECURE = os.getenv('DEEP_SERVICE_SECURE', 'True')
 SERVICE_AUTH_PROVIDER = os.getenv('DEEP_SERVICE_AUTH_PROVIDER', None)
 """The Auth provider to use for the service (default: None)"""
 
+APP_ROOT = ""
+"""App root sets the prefix that can be removed to generate shorter file names. This value is calculated."""
+
 
 # noinspection PyPep8Naming
 def IN_APP_INCLUDE():

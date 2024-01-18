@@ -40,7 +40,7 @@ include = [
 [tool.hatch.build.targets.wheel]
 packages = ["src/deep"]
 
-
+# read version from version.py file
 [tool.hatch.version]
 path = "src/deep/version.py"
 

@@ -15,7 +15,9 @@
 
 import unittest
 
-from deep.grpc import convert_value
+from deep.grpc import convert_value, convert_label_expressions
+# noinspection PyUnresolvedReferences
+from deepproto.proto.tracepoint.v1.tracepoint_pb2 import LabelExpression
 
 
 class GRPCPackage(unittest.TestCase):
@@ -68,3 +70,15 @@ class GRPCPackage(unittest.TestCase):
         value = convert_value({'some': 'string'})
         self.assertEqual(value.kvlist_value.values[0].key, "some")
         self.assertEqual(value.kvlist_value.values[0].value.string_value, "string")
+
+    def test_convert_label_expression(self):
+        expression = LabelExpression(key="test", expression="a thing")
+        value = convert_label_expressions([expression])
+        self.assertEqual("test", value[0].key)
+        self.assertEqual("a thing", value[0].expression)
+
+    def test_convert_label_static(self):
+        expression = LabelExpression(key="test", static=convert_value("a string"))
+        value = convert_label_expressions([expression])
+        self.assertEqual("test", value[0].key)
+        self.assertEqual("a string", value[0].static)

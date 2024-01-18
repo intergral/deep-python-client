@@ -40,7 +40,7 @@ def str2bool(string):
     Convert a string to a boolean.
 
     :param string: the string to convert
-    :return: True, if string is yes, true, t or 1. (case insensitive)
+    :return: True, if string is yes, true, t or 1. (case-insensitive)
     """
     return string.lower() in ("yes", "true", "t", "1", "y")
 

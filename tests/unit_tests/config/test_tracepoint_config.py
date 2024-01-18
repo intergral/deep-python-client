@@ -94,7 +94,7 @@ class TestTracepointConfigService(unittest.TestCase):
 
         service.add_listener(TestListener())
 
-        service.add_custom("path", 123, {}, [])
+        service.add_custom("path", 123, {}, [], [])
 
         handler.flush()
 
@@ -114,7 +114,7 @@ class TestTracepointConfigService(unittest.TestCase):
 
         service.add_listener(TestListener())
 
-        service.add_custom("path", 123, {}, [])
+        service.add_custom("path", 123, {}, [], [])
 
         handler.flush()
 
@@ -134,7 +134,7 @@ class TestTracepointConfigService(unittest.TestCase):
 
         service.add_listener(TestListener())
 
-        custom = service.add_custom("path", 123, {}, [])
+        custom = service.add_custom("path", 123, {}, [], [])
 
         handler.flush()
 

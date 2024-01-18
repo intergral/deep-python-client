@@ -18,13 +18,8 @@
 import signal
 import time
 
-from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-
 import deep
+from deep.api.tracepoint.constants import FIRE_COUNT
 from simple_test import SimpleTest
 
 
@@ -48,31 +43,21 @@ def main():
     killer = GracefulKiller()
     ts = SimpleTest("This is a test")
     while not killer.kill_now:
-        with trace.get_tracer(__name__).start_as_current_span("loop"):
-            with trace.get_tracer(__name__).start_as_current_span("loop-inner"):
-                try:
-                    ts.message(ts.new_id())
-                except BaseException as e:
-                    print(e)
-                    ts.reset()
+        try:
+            ts.message(ts.new_id())
+        except BaseException as e:
+            print(e)
+            ts.reset()
 
-                time.sleep(0.1)
+        time.sleep(0.1)
 
 
 if __name__ == '__main__':
-    resource = Resource(attributes={
-        SERVICE_NAME: "your-service-name"
-    })
-    provider = TracerProvider(resource=resource)
-    processor = BatchSpanProcessor(OTLPSpanExporter(endpoint="http://localhost:4317/api/traces"))
-    provider.add_span_processor(processor)
-    # Sets the global default tracer provider
-    trace.set_tracer_provider(provider)
-
-    deep.start({
+    _deep = deep.start({
         'SERVICE_URL': 'localhost:43315',
         'SERVICE_SECURE': 'False',
     })
 
+    _deep.register_tracepoint("simple_test.py", 35, {FIRE_COUNT: '-1'})
     print("app running")
     main()

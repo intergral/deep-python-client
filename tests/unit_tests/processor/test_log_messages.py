@@ -25,12 +25,13 @@
 #
 #      You should have received a copy of the GNU Affero General Public License
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import unittest
 
 from parameterized import parameterized
 
-from deep.config import ConfigService
-from deep.processor.frame_processor import FrameProcessor
+from deep.processor.context.log_action import LogActionContext
+from deep.processor.context.trigger_context import TriggerContext
 from unit_tests.processor import MockFrame
 
 
@@ -46,11 +47,9 @@ class TestLogMessages(unittest.TestCase):
         ["some log message: {person['name']}", "[deep] some log message: bob", {'person': {'name': 'bob'}}, ["bob"]],
     ])
     def test_simple_log_interpolation(self, log_msg, expected_msg, _locals, expected_watches):
-        # noinspection PyTypeChecker
-        # Frame type is final, so we cannot check the type here
-        processor = FrameProcessor([], MockFrame(_locals), ConfigService({}))
-        processor.configure_self()
-        log, watches, _vars = processor.process_log({}, log_msg)
+        context = LogActionContext(TriggerContext(None, None, MockFrame(_locals), "test"), None)
+        log, watches, _vars = context.process_log(log_msg)
+
         self.assertEqual(expected_msg, log)
         self.assertEqual(len(expected_watches), len(watches))
         for i, watch in enumerate(watches):

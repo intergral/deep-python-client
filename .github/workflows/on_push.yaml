@@ -44,7 +44,6 @@ jobs:
           make coverage
 
   tests:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -62,7 +61,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r dev-requirements.txt
-          pip install .
       - name: Test with pytest
         run: pytest tests/unit_tests --doctest-modules --junitxml=junit/test-results-${{ matrix.python-version }}.xml
       - name: Upload pytest test results

@@ -14,7 +14,7 @@
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 class MockFrame:
-    """A Frame used during testing to Mock a debug Frame."""
+    """Create a mock frame that can be used in tests."""
 
     def __init__(self, _locals=None):
         if _locals is None:

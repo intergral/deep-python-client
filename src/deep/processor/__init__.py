@@ -15,6 +15,4 @@
 
 """Handlers for processing tracepoint hits."""
 
-from .trigger_handler import TriggerHandler
-
-__all__ = [TriggerHandler.__name__]
+__all__ = []

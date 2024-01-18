@@ -49,7 +49,7 @@ def load_plugins(custom=None) -> 'Tuple[list[Plugin], BoundedAttributes]':
     """
     Load all the deep plugins.
 
-    Attempt to load each plugin, if successful merge a attributes list of each plugin.
+    Attempt to load each plugin, if successful merge an attributes list of each plugin.
 
     :return: the loaded plugins and attributes.
     """

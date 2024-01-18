@@ -14,6 +14,8 @@ per-file-ignores =
     # supress some docstring requirements in tests
     tests/unit_tests/*.py: D
     tests/unit_tests/**/*.py: D
+    tests/it_tests/*.py: D
+    tests/it_tests/**/*.py: D
     # these files are from OTEL so should use OTEL license.
     */deep/api/types.py: NCF102
     */deep/api/resource/__init__.py: NCF102

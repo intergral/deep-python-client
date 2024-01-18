@@ -20,6 +20,7 @@ from unittest.mock import Mock, patch
 
 from deep import version, logging
 from deep.api.attributes import BoundedAttributes
+# noinspection PyProtectedMember
 from deep.api.resource import Resource, TELEMETRY_SDK_NAME, TELEMETRY_SDK_LANGUAGE, TELEMETRY_SDK_VERSION, \
     SERVICE_NAME, DEEP_SERVICE_NAME, DEEP_RESOURCE_ATTRIBUTES, ResourceDetector, _DEFAULT_RESOURCE, \
     get_aggregated_resources, _DEEP_SDK_VERSION, _EMPTY_RESOURCE, PROCESS_EXECUTABLE_NAME
@@ -148,10 +149,9 @@ class TestResources(unittest.TestCase):
             self.assertIn(schema_urls[1], log_entry.output[0])
 
     def test_resource_merge_empty_string(self):
-        """Verify Resource.merge behavior with the empty string.
+        """Verify Resource#merge behavior with the empty string.
 
-        Attributes from the source Resource take precedence, with
-        the exception of the empty string.
+        Attributes from the source Resource take precedence, except the empty string.
 
         """
         left = Resource({"service": "ui", "host": ""})
@@ -190,6 +190,7 @@ class TestResources(unittest.TestCase):
         self.assertEqual(resource.attributes, attributes_copy)
 
         with self.assertRaises(AttributeError):
+            # noinspection PyPropertyAccess
             resource.schema_url = "bug"
 
         self.assertEqual(resource.schema_url, "")

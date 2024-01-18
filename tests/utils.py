@@ -15,6 +15,7 @@
 
 """Utils used for making testing easier."""
 
+# noinspection PyProtectedMember
 from mockito.matchers import Matcher
 
 from deep.api.resource import Resource
@@ -39,6 +40,8 @@ def mock_tracepoint(**kwargs) -> TracePointConfig:
         kwargs['args'] = {}
     if 'watches' not in kwargs:
         kwargs['watches'] = []
+    if 'metrics' not in kwargs:
+        kwargs['metrics'] = []
 
     return TracePointConfig(**kwargs)
 

@@ -85,6 +85,7 @@ def test_repeated_timer_error():
     global count
     count = 0
 
+    # noinspection PyUnusedLocal
     def repeated(val):
         raise Exception("test")
 

@@ -261,7 +261,7 @@ class ResourceDetector(abc.ABC):
         """
         Create a resource.
 
-        :return: the created resrouce
+        :return: the created resource
         """
         raise NotImplementedError()
 
