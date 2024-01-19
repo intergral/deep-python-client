@@ -17,6 +17,7 @@
 
 from typing import List, Tuple, Dict
 
+import deep.logging
 from deep.api.tracepoint.tracepoint_config import MetricDefinition
 from deep.processor.context.action_context import ActionContext
 
@@ -39,7 +40,7 @@ class MetricActionContext(ActionContext):
         metrics = self._metrics()
         for metric in metrics:
             labels, value = self._process_metric(metric)
-            for processor in self.tigger_context.config.metric_processor:
+            for processor in self.tigger_context.config.metric_processors:
                 getattr(processor, self._convert_type(metric.type))(metric.name, labels, metric.namespace or "deep",
                                                                     metric.help, metric.unit, value)
 
@@ -58,20 +59,19 @@ class MetricActionContext(ActionContext):
             try:
                 metric_value = float(self.tigger_context.evaluate_expression(metric.expression))
             except Exception:
-                pass
+                deep.logging.exception("Cannot process metric expression %s", metric.expression)
 
         labels = {}
         if len(metric.labels) > 0:
             for label in metric.labels:
                 key = label.key
-                value = None
                 if label.expression:
                     try:
                         value = str(self.tigger_context.evaluate_expression(label.expression))
                     except Exception:
-                        continue
+                        deep.logging.exception("Cannot process metric label expression %s: %s", key, label.expression)
+                        value = 'expression failed'
                 else:
                     value = label.static
-                if value:
-                    labels[key] = value
+                labels[key] = value
         return labels, metric_value

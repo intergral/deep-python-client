@@ -143,7 +143,7 @@ class ConfigService:
         return self.__plugin_generator(SnapshotDecorator)
 
     @property
-    def metric_processor(self) -> Generator[MetricProcessor, None, None]:
+    def metric_processors(self) -> Generator[MetricProcessor, None, None]:
         """Generator for snapshot decorators."""
         return self.__plugin_generator(MetricProcessor)
 

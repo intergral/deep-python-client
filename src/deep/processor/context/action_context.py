@@ -111,7 +111,7 @@ class ActionContext(abc.ABC):
         """
         if not self.location_action.can_trigger(self.tigger_context.ts):
             return False
-        if self.location_action.condition is None:
+        if self.location_action.condition is None or len(self.location_action.condition.strip()) == 0:
             return True
         result = self.tigger_context.evaluate_expression(self.location_action.condition)
         return str2bool(str(result))
