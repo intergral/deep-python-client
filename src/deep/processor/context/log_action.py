@@ -34,22 +34,21 @@ from .action_context import ActionContext
 from .action_results import ActionResult, ActionCallback
 from ...api.tracepoint.constants import LOG_MSG
 from ...api.tracepoint.trigger import LocationAction
-from ...logging.tracepoint_logger import TracepointLogger
-from ...push import PushService
 
 from typing import Tuple
 
 if TYPE_CHECKING:
     from ...api.tracepoint import WatchResult, Variable
+    from .trigger_context import TriggerContext
 
 
 class LogActionContext(ActionContext):
     """The context for processing a log action."""
 
     def _process_action(self):
-        log_msg = self._action.config.get(LOG_MSG)
+        log_msg = self.location_action.config.get(LOG_MSG)
         log, watches, vars_ = self.process_log(log_msg)
-        self._parent.attach_result(LogActionResult(self._action, log))
+        self.tigger_context.attach_result(LogActionResult(self.location_action, log))
 
     def process_log(self, log_msg) -> Tuple[str, List['WatchResult'], Dict[str, 'Variable']]:
         """
@@ -91,7 +90,7 @@ class LogActionContext(ActionContext):
 
                 return log_str, field_name
 
-        log_msg = "[deep] %s" % FormatExtractor().vformat(log_msg, (), FormatDict(self._parent.locals))
+        log_msg = "[deep] %s" % FormatExtractor().vformat(log_msg, (), FormatDict(self.tigger_context.locals))
         return log_msg, watch_results, _var_lookup
 
 
@@ -108,16 +107,15 @@ class LogActionResult(ActionResult):
         self.action = action
         self.log = log
 
-    def process(self, ctx_id: str, logger: TracepointLogger, service: PushService) -> Optional[ActionCallback]:
+    def process(self, ctx: 'TriggerContext') -> Optional[ActionCallback]:
         """
         Process this result.
 
-        Either log or ship the collected data to an endpoint.
+        :param ctx: the triggering context
 
-        :param ctx_id: the triggering context id
-        :param logger: the log service
-        :param service:the push service
         :return: an action callback if we need to do something at the 'end', or None
         """
-        logger.log_tracepoint(self.log, ctx_id, self.action.id)
+        tracepoint_logger = ctx.config.tracepoint_logger
+        if tracepoint_logger:
+            tracepoint_logger.log_tracepoint(self.log, ctx.id, self.action.id)
         return None

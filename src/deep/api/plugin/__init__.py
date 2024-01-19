@@ -16,12 +16,14 @@
 """Load and handle plugins."""
 
 import abc
-import os
 from importlib import import_module
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional, TypeVar, List
+
+from deep.api.resource import Resource
+from deep.processor.context.action_context import ActionContext
 
 if TYPE_CHECKING:
-    from typing import Tuple
+    from deep.config import ConfigService
 
 from deep import logging
 from deep.api.attributes import BoundedAttributes
@@ -31,6 +33,7 @@ DEEP_PLUGINS = [
     'deep.api.plugin.otel.OTelPlugin',
     'deep.api.plugin.python.PythonPlugin',
 ]
+"""System provided default plugins."""
 
 
 def __plugin_generator(configured):
@@ -45,7 +48,7 @@ def __plugin_generator(configured):
             )
 
 
-def load_plugins(custom=None) -> 'Tuple[list[Plugin], BoundedAttributes]':
+def load_plugins(config: 'ConfigService', custom=None) -> List['Plugin']:
     """
     Load all the deep plugins.
 
@@ -55,21 +58,19 @@ def load_plugins(custom=None) -> 'Tuple[list[Plugin], BoundedAttributes]':
     """
     if custom is None:
         custom = []
-    bounded_attributes = BoundedAttributes(immutable=False)
     loaded = []
     for plugin in __plugin_generator(DEEP_PLUGINS + custom):
         try:
-            plugin_instance = plugin()
+            plugin_instance = plugin(config=config)
             if not plugin_instance.is_active():
                 logging.debug("Plugin %s is not active.", plugin_instance.name)
                 continue
-            attributes = plugin_instance.load_plugin()
-            if attributes is not None:
-                bounded_attributes.merge_in(attributes)
             loaded.append(plugin_instance)
         except Exception as e:
             logging.debug("Could not load plugin %s: %s", plugin, e)
-    return loaded, bounded_attributes
+
+    loaded.sort(key=lambda pl: pl.order() or 0)
+    return loaded
 
 
 class Plugin(abc.ABC):
@@ -79,9 +80,15 @@ class Plugin(abc.ABC):
     This type defines a plugin for deep, these plugins allow for extensions to how deep decorates data.
     """
 
-    def __init__(self, name=None):
-        """Create a new."""
+    def __init__(self, name: str = None, config: 'ConfigService' = None):
+        """
+        Create a new plugin.
+
+        :param name: the name of the plugin (default to class name)
+        :param config: the deep config service
+        """
         super(Plugin, self).__init__()
+        self.config = config
         if name is None:
             self._name = self.__class__.__name__
         else:
@@ -96,29 +103,74 @@ class Plugin(abc.ABC):
         """
         Is the plugin active.
 
-        Check the value of the environment value of the module name + class name. It set to
-        'false' this plugin is not active.
+        Check the value of the config element plugin_{name}. If it is set to
+        'False' this plugin is not active.
         """
-        getenv = os.getenv("{0}.{1}".format(self.__class__.__module__, self.__class__.__name__), 'True')
-        return str2bool(getenv)
+        attr = getattr(self.config, f'plugin_{self.name}'.upper(), 'True')
+        if attr is None:
+            return True
+        return str2bool(attr)
+
+    def order(self) -> int:
+        """
+        Order of precedence when multiple versions of providers are available.
+
+        Order=1 will run after a provider with order=0.
+
+        :return: the provider order
+        """
+        return 0
+
+
+PLUGIN_TYPE = TypeVar('PLUGIN_TYPE', bound=Plugin)
+
+
+class ResourceProvider(Plugin, abc.ABC):
+    """Implement this to have the plugin provide resource attributes to Deep."""
 
     @abc.abstractmethod
-    def load_plugin(self) -> BoundedAttributes:
+    def resource(self) -> Optional[Resource]:
         """
-        Load the plugin.
+        Provide resource.
 
-        :return: any values to attach to the client resource.
+        :return: the provided resource
         """
-        raise NotImplementedError()
+        pass
+
+
+class SnapshotDecorator(Plugin, abc.ABC):
+    """Implement this to decorate collected snapshots with attributes."""
 
     @abc.abstractmethod
-    def collect_attributes(self) -> BoundedAttributes:
+    def decorate(self, context: ActionContext) -> Optional[BoundedAttributes]:
         """
-        Collect attributes to attach to snapshot.
+        Decorate a snapshot with additional data.
 
-        :return: the attributes to attach.
+        :param context: the action context for this action
+
+        :return: the additional attributes to attach
         """
-        raise NotImplementedError()
+        pass
+
+
+class TracepointLogger(Plugin, abc.ABC):
+    """
+    This defines how a tracepoint logger should interact with Deep.
+
+    This can be registered with Deep to provide customization to the way Deep will log dynamic log
+    messages injected via tracepoints.
+    """
+
+    @abc.abstractmethod
+    def log_tracepoint(self, log_msg: str, tp_id: str, ctx_id: str):
+        """
+        Log the dynamic log message.
+
+        :param (str) log_msg: the log message to log
+        :param (str) tp_id:  the id of the tracepoint that generated this log
+        :param (str) ctx_id: the id of the context that was created by this tracepoint
+        """
+        pass
 
 
 class DidNotEnable(Exception):

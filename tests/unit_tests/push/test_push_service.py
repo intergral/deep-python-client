@@ -17,8 +17,6 @@ import unittest
 import mockito
 
 import deep.logging
-from deep.api.attributes import BoundedAttributes
-from deep.api.plugin import Plugin
 from deep.config import ConfigService
 from deep.push import PushService
 from utils import mock_snapshot, Captor
@@ -38,13 +36,13 @@ class TestPushService(unittest.TestCase):
         mockito.unstub()
 
     def test_push_service(self):
-        service = PushService(self.config, self.grpc_service, self.handler)
+        service = PushService(self.grpc_service, self.handler)
         service.push_snapshot(mock_snapshot())
 
         mockito.verify(self.handler).submit_task(mockito.ANY, mockito.ANY)
 
     def test_push_service_function(self):
-        service = PushService(self.config, self.grpc_service, self.handler)
+        service = PushService(self.grpc_service, self.handler)
         service.push_snapshot(mock_snapshot())
 
         task_captor = Captor()
@@ -75,7 +73,7 @@ class TestPushService(unittest.TestCase):
         self.assertIsNotNone(self.sent_snap)
 
     def test_do_not_send_on_convert_failure(self):
-        service = PushService(self.config, self.grpc_service, self.handler)
+        service = PushService(self.grpc_service, self.handler)
 
         class FakeSnapshot:
             def complete(self):
@@ -110,57 +108,3 @@ class TestPushService(unittest.TestCase):
         task(snapshot)
 
         self.assertIsNone(self.sent_snap)
-
-    def test_does_decorate(self):
-        class TestPlugin(Plugin):
-            def load_plugin(self) -> BoundedAttributes:
-                return BoundedAttributes()
-
-            def collect_attributes(self) -> BoundedAttributes:
-                return BoundedAttributes(attributes={
-                    'test': 'plugin'
-                })
-
-        self.config.plugins.append(TestPlugin())
-
-        service = PushService(self.config, self.grpc_service, self.handler)
-
-        service.push_snapshot(mock_snapshot())
-
-        task_captor = Captor()
-        snapshot_captor = Captor()
-
-        mockito.verify(self.handler).submit_task(task_captor, snapshot_captor)
-
-        task = task_captor.get_value()
-        snapshot = snapshot_captor.get_value()
-
-        self.assertIsNotNone(task)
-        self.assertIsNotNone(snapshot)
-
-        self.assertEqual(snapshot.attributes['test'], 'plugin')
-
-    def test_does__send_on_decorate_FAIL(self):
-        class TestPlugin(Plugin):
-            def load_plugin(self) -> BoundedAttributes:
-                return BoundedAttributes()
-
-            def collect_attributes(self) -> BoundedAttributes:
-                raise Exception("test exception")
-
-        self.config.plugins.append(TestPlugin())
-
-        service = PushService(self.config, self.grpc_service, self.handler)
-
-        service.push_snapshot(mock_snapshot())
-
-        task_captor = Captor()
-        snapshot_captor = Captor()
-
-        mockito.verify(self.handler).submit_task(task_captor, snapshot_captor)
-
-        task = task_captor.get_value()
-        snapshot = snapshot_captor.get_value()
-
-        self.assertIsNotNone(task)
-        self.assertIsNotNone(snapshot)

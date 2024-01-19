@@ -9,8 +9,6 @@ exclude =
     scripts,
 max-line-length = 120
 per-file-ignores =
-    # ignore unused imports in __init__ files
-    */__init__.py: F401
     # supress some docstring requirements in tests
     tests/unit_tests/*.py: D
     tests/unit_tests/**/*.py: D
@@ -22,6 +20,8 @@ per-file-ignores =
     */deep/api/attributes/__init__.py: NCF102
     tests/unit_tests/api/attributes/*.py: NCF102,D
     tests/unit_tests/api/resource/*.py: NCF102,D
+    examples/**/*: DB100
+    dev/**/*: DB100
 
 detailed-output = True
 copyright-regex =

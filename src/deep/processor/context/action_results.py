@@ -42,10 +42,10 @@
 """Handler results of actions."""
 
 import abc
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
-from deep.logging.tracepoint_logger import TracepointLogger
-from deep.push import PushService
+if TYPE_CHECKING:
+    from deep.processor.context.trigger_context import TriggerContext
 
 
 class ActionCallback:
@@ -70,15 +70,12 @@ class ActionResult(abc.ABC):
     """
 
     @abc.abstractmethod
-    def process(self, ctx_id: str, logger: TracepointLogger, service: PushService) -> Optional[ActionCallback]:
+    def process(self, ctx: 'TriggerContext') -> Optional[ActionCallback]:
         """
         Process this result.
 
-        Either log or ship the collected data to an endpoint.
+        :param ctx: the triggering context
 
-        :param ctx_id: the triggering context id
-        :param logger: the log service
-        :param service:the push service
         :return: an action callback if we need to do something at the 'end', or None
         """
         pass

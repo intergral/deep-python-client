@@ -18,7 +18,9 @@
 from typing import Optional
 
 from deep.api.attributes import BoundedAttributes
-from deep.api.plugin import Plugin, DidNotEnable
+from deep.api.plugin import DidNotEnable, SnapshotDecorator, ResourceProvider
+from deep.api.resource import Resource
+from deep.processor.context.action_context import ActionContext
 
 try:
     from opentelemetry import trace
@@ -28,32 +30,34 @@ except ImportError as e:
     raise DidNotEnable("opentelemetry is not installed", e)
 
 
-class OTelPlugin(Plugin):
+class OTelPlugin(ResourceProvider, SnapshotDecorator):
     """
     Deep Otel plugin.
 
     Provide span and trace information to the snapshot.
     """
 
-    def load_plugin(self) -> Optional[BoundedAttributes]:
+    def resource(self) -> Optional[Resource]:
         """
-        Load the plugin.
+        Provide resource.
 
-        :return: any values to attach to the client resource.
+        :return: the provided resource
         """
         provider = trace.get_tracer_provider()
         if isinstance(provider, TracerProvider):
             # noinspection PyUnresolvedReferences
             resource = provider.resource
             attributes = dict(resource.attributes)
-            return BoundedAttributes(attributes=attributes)
+            return Resource.create(attributes=attributes)
         return None
 
-    def collect_attributes(self) -> Optional[BoundedAttributes]:
+    def decorate(self, context: ActionContext) -> Optional[BoundedAttributes]:
         """
-        Collect attributes to attach to snapshot.
+        Decorate a snapshot with additional data.
 
-        :return: the attributes to attach.
+        :param context: the action context for this action
+
+        :return: the additional attributes to attach
         """
         span = OTelPlugin.__get_span()
         if span is not None:

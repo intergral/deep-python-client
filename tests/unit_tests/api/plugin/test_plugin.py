@@ -15,17 +15,15 @@
 import unittest
 
 import deep
-from deep.api.attributes import BoundedAttributes
 from deep.api.plugin import load_plugins, Plugin
 from deep.config import ConfigService
 
 
 class BadPlugin(Plugin):
-    def load_plugin(self) -> BoundedAttributes:
-        raise Exception('test: failed load')
+    def __init__(self):
+        super().__init__()
 
-    def collect_attributes(self) -> BoundedAttributes:
-        raise Exception('test: failed collection')
+        raise Exception('test: failed load')
 
 
 class TestPluginLoader(unittest.TestCase):
@@ -34,15 +32,15 @@ class TestPluginLoader(unittest.TestCase):
         deep.logging.init(ConfigService())
 
     def test_load_plugins(self):
-        plugins = load_plugins()
+        plugins = load_plugins(None)
         self.assertIsNotNone(plugins)
         self.assertEqual(2, len(plugins))
 
     def test_handle_bad_plugin(self):
-        plugins = load_plugins([BadPlugin.__qualname__])
+        plugins = load_plugins(None, [BadPlugin.__qualname__])
 
         self.assertEqual(2, len(plugins))
 
-        plugins = load_plugins([BadPlugin.__module__ + '.' + BadPlugin.__name__])
+        plugins = load_plugins(None, [BadPlugin.__module__ + '.' + BadPlugin.__name__])
 
         self.assertEqual(2, len(plugins))
