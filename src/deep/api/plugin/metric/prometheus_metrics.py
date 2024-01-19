@@ -19,7 +19,6 @@ import threading
 from typing import Dict
 
 import deep.logging
-from deep.api.attributes import BoundedAttributes
 from deep.api.plugin import DidNotEnable, Plugin
 from deep.api.plugin.metric import MetricProcessor
 
@@ -32,9 +31,9 @@ except ImportError as e:
 class PrometheusPlugin(Plugin, MetricProcessor):
     """Connect Deep to prometheus."""
 
-    def __init__(self):
+    def __init__(self, config):
         """Create new plugin."""
-        super().__init__("PrometheusPlugin")
+        super().__init__("PrometheusPlugin", config)
         self.__cache = {}
         self.__lock = threading.Lock()
 
@@ -146,21 +145,9 @@ class PrometheusPlugin(Plugin, MetricProcessor):
             deep.logging.exception(f"Error registering metric summary {namespace}_{name}")
             pass
 
-    def load_plugin(self) -> BoundedAttributes:
-        """
-        Load the plugin.
-
-        :return: any values to attach to the client resource.
-        """
-        pass
-
-    def collect_attributes(self) -> BoundedAttributes:
-        """
-        Collect attributes to attach to snapshot.
-
-        :return: the attributes to attach.
-        """
-        pass
+    def shutdown(self):
+        """Clean up and shutdown the plugin."""
+        self.clear()
 
     def clear(self):
         """Remove any registrations."""

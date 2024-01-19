@@ -26,6 +26,8 @@ from typing import List, Dict
 from deepproto.proto.common.v1.common_pb2 import KeyValue, AnyValue, ArrayValue, KeyValueList
 # noinspection PyUnresolvedReferences
 from deepproto.proto.resource.v1.resource_pb2 import Resource
+# noinspection PyUnresolvedReferences
+from deepproto.proto.tracepoint.v1.tracepoint_pb2 import MetricType
 
 from .grpc_service import GRPCService  # noqa: F401
 from ..api.tracepoint.tracepoint_config import LabelExpression, MetricDefinition
@@ -101,8 +103,8 @@ def convert_label_expressions(label_expressions) -> List[LabelExpression]:
 
 
 def __convert_metric_definition(metrics):
-    return [MetricDefinition(m.name, m.type, convert_label_expressions(m.labelExpressions), m.expression, m.namespace,
-                             m.help, m.unit) for m in metrics]
+    return [MetricDefinition(m.name, MetricType.Name(metrics[0].type), convert_label_expressions(m.labelExpressions),
+                             m.expression, m.namespace, m.help, m.unit) for m in metrics]
 
 
 def convert_response(response) -> List[Trigger]:

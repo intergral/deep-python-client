@@ -36,19 +36,18 @@ class MetricActionContext(ActionContext):
         return False
 
     def _process_action(self):
-        processors = self._parent.config.metric_processor()
         metrics = self._metrics()
         for metric in metrics:
             labels, value = self._process_metric(metric)
-            for processor in processors:
+            for processor in self.tigger_context.config.metric_processor:
                 getattr(processor, self._convert_type(metric.type))(metric.name, labels, metric.namespace or "deep",
                                                                     metric.help, metric.unit, value)
 
     def __has_metric_processor(self):
-        return len(self._parent.config.metric_processor()) > 0
+        return self.tigger_context.config.has_metric_processor
 
     def _metrics(self) -> List[MetricDefinition]:
-        return self._action.config['metrics']
+        return self.location_action.config['metrics']
 
     def _convert_type(self, metric_type):
         return metric_type.lower()
@@ -57,7 +56,7 @@ class MetricActionContext(ActionContext):
         metric_value = 1
         if metric.expression:
             try:
-                metric_value = float(self._parent.evaluate_expression(metric.expression))
+                metric_value = float(self.tigger_context.evaluate_expression(metric.expression))
             except Exception:
                 pass
 
@@ -68,7 +67,7 @@ class MetricActionContext(ActionContext):
                 value = None
                 if label.expression:
                     try:
-                        value = str(self._parent.evaluate_expression(label.expression))
+                        value = str(self.tigger_context.evaluate_expression(label.expression))
                     except Exception:
                         continue
                 else:

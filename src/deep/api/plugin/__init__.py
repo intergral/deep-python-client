@@ -112,6 +112,10 @@ class Plugin(abc.ABC):
             return True
         return str2bool(attr)
 
+    def shutdown(self):
+        """Clean up and shutdown the plugin."""
+        pass
+
     def order(self) -> int:
         """
         Order of precedence when multiple versions of providers are available.

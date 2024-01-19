@@ -22,7 +22,7 @@ class TestPrometheusMetrics(unittest.TestCase):
 
     def setUp(self):
         deep.logging.init()
-        self.plugin = PrometheusPlugin()
+        self.plugin = PrometheusPlugin(None)
 
     def tearDown(self):
         self.plugin.clear()

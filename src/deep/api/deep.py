@@ -79,6 +79,8 @@ class Deep:
         self.trigger_handler.shutdown()
         self.task_handler.flush()
         self.poll.shutdown()
+        for plugin in self.config.plugins:
+            plugin.shutdown()
         deep.logging.info("Deep is shutdown.")
         self.started = False
 
