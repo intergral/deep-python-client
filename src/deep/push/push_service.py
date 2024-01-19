@@ -25,21 +25,18 @@ from deep.utils import snapshot_id_as_hex_str
 class PushService:
     """This service deals with pushing the snapshots to the service endpoints."""
 
-    def __init__(self, config, grpc, task_handler):
+    def __init__(self, grpc, task_handler):
         """
         Create a service to handle push events.
 
-        :param config: the current deep config
         :param grpc: the grpc service to use to send events
         :param task_handler: the task handler to offload tasks to
         """
-        self.config = config
         self.grpc = grpc
         self.task_handler = task_handler
 
     def push_snapshot(self, snapshot: EventSnapshot):
         """Push a snapshot to the deep services."""
-        self.__decorate(snapshot)
         task = self.task_handler.submit_task(self._push_task, snapshot)
         task.add_done_callback(
             lambda _: logging.debug("Completed uploading snapshot %s", snapshot_id_as_hex_str(snapshot.id)))
@@ -55,14 +52,3 @@ class PushService:
         stub = SnapshotServiceStub(self.grpc.channel)
 
         stub.send(converted, metadata=self.grpc.metadata())
-
-    def __decorate(self, snapshot):
-        plugins = self.config.plugins
-        for plugin in plugins:
-            try:
-                attributes = plugin.collect_attributes()
-                if attributes is not None:
-                    snapshot.attributes.merge_in(attributes)
-            except Exception:
-                logging.exception("Error processing plugin %s", plugin.name)
-        snapshot.complete()

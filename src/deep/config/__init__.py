@@ -23,7 +23,7 @@ Here we have the initial values for the config, there can be set as either stati
 import os
 import sys
 
-from .config_service import ConfigService
+from .config_service import ConfigService  # noqa: F401
 
 LOGGING_CONF = os.getenv('DEEP_LOGGING_CONF', None)
 '''The path to the logging config file to use'''
@@ -42,6 +42,9 @@ SERVICE_AUTH_PROVIDER = os.getenv('DEEP_SERVICE_AUTH_PROVIDER', None)
 
 APP_ROOT = ""
 """App root sets the prefix that can be removed to generate shorter file names. This value is calculated."""
+
+PLUGINS = []
+"""User definable plugins."""
 
 
 # noinspection PyPep8Naming
@@ -78,7 +81,3 @@ def IN_APP_EXCLUDE():
     user_defined.append(prefix)
 
     return user_defined
-
-# Config items can be functions
-# def SERVICE_URL():
-#     return os.getenv('SERVICE_URL', 'localhost:50051')

@@ -49,16 +49,24 @@ class Deep:
         self.task_handler = TaskHandler()
         self.config.set_task_handler(self.task_handler)
         self.poll = LongPoll(self.config, self.grpc)
-        self.push = PushService(self.config, self.grpc, self.task_handler)
+        self.push = PushService(self.grpc, self.task_handler)
         self.trigger_handler = TriggerHandler(config, self.push)
 
     def start(self):
         """Start Deep."""
         if self.started:
             return
-        plugins, attributes = load_plugins()
-        self.config.plugins = plugins
-        self.config.resource = Resource.create(attributes.copy())
+        self.config.plugins = load_plugins(self.config, self.config.PLUGINS)
+        default_resource = Resource.create()
+        for provider in self.config.resource_providers:
+            try:
+                plugin_resource = provider.resource()
+                if plugin_resource:
+                    default_resource = default_resource.merge(plugin_resource)
+            except Exception:
+                deep.logging.exception("Failed to process plugin resource {}", provider.name)
+
+        self.config.resource = default_resource
         self.trigger_handler.start()
         self.grpc.start()
         self.poll.start()

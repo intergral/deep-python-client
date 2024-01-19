@@ -19,36 +19,52 @@
 
 import platform
 import threading
+from typing import Optional
 
+from deep import logging
 from deep.api.attributes import BoundedAttributes
-from deep.api.plugin import Plugin
+from deep.api.plugin import ResourceProvider, TracepointLogger, SnapshotDecorator
+from deep.api.resource import Resource
+from deep.processor.context.action_context import ActionContext
 
 
-class PythonPlugin(Plugin):
+class PythonPlugin(ResourceProvider, SnapshotDecorator, TracepointLogger):
     """
     Deep python plugin.
 
     This plugin provides the python version to the resource, and the thread name to the attributes.
     """
 
-    def load_plugin(self):
+    def decorate(self, context: ActionContext) -> Optional[BoundedAttributes]:
         """
-        Load the plugin.
+        Decorate a snapshot with additional data.
 
-        :return: any values to attach to the client resource.
-        """
-        return BoundedAttributes(attributes={
-            "python_version": platform.python_version(),
-        })
+        :param context: the action context for this action
 
-    def collect_attributes(self):
-        """
-        Collect attributes to attach to snapshot.
-
-        :return: the attributes to attach.
+        :return: the additional attributes to attach
         """
         thread = threading.current_thread()
 
         return BoundedAttributes(attributes={
             'thread_name': thread.name
         })
+
+    def resource(self) -> Optional[Resource]:
+        """
+        Provide resource.
+
+        :return: the provided resource
+        """
+        return Resource.create({
+            "python_version": platform.python_version(),
+        })
+
+    def log_tracepoint(self, log_msg: str, tp_id: str, ctx_id: str):
+        """
+        Log the dynamic log message.
+
+        :param (str) log_msg: the log message to log
+        :param (str) tp_id:  the id of the tracepoint that generated this log
+        :param (str) ctx_id: the id of the context that was created by this tracepoint
+        """
+        logging.info(log_msg + " ctx=%s tracepoint=%s" % (ctx_id, tp_id))

@@ -27,7 +27,7 @@ from deepproto.proto.common.v1.common_pb2 import KeyValue, AnyValue, ArrayValue,
 # noinspection PyUnresolvedReferences
 from deepproto.proto.resource.v1.resource_pb2 import Resource
 
-from .grpc_service import GRPCService
+from .grpc_service import GRPCService  # noqa: F401
 from ..api.tracepoint.tracepoint_config import LabelExpression, MetricDefinition
 from ..api.tracepoint.trigger import build_trigger, Trigger
 

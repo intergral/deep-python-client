@@ -1,17 +1,25 @@
+# linting deps
 flake8
+flake8-docstrings
+flake8-debug
+flake8-header-validator>=0.0.3
+
+# test deps
 parameterized
 pytest
-mkdocs-material
-pdoc3
-mkdocstrings-python
-build
-twine
-flake8-docstrings
-certifi>=2023.7.22 # not directly required, pinned by Snyk to avoid a vulnerability
-flake8-header-validator>=0.0.3
-setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
 pytest-cov
 mockito
+
+# doc deps
+mkdocs-material
+mkdocstrings-python
+pdoc3
+
+# build deps
+build
+twine
+certifi>=2023.7.22 # not directly required, pinned by Snyk to avoid a vulnerability
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
 opentelemetry-api
 opentelemetry-sdk
 prometheus-client
