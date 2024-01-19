@@ -19,6 +19,7 @@ from typing import Dict, List
 import deep.logging
 from deep.api.plugin import load_plugins
 from deep.api.resource import Resource
+from deep.api.tracepoint.tracepoint_config import MetricDefinition
 from deep.config import ConfigService
 from deep.config.tracepoint_config import TracepointConfigService
 from deep.grpc import GRPCService
@@ -78,11 +79,14 @@ class Deep:
         self.trigger_handler.shutdown()
         self.task_handler.flush()
         self.poll.shutdown()
+        for plugin in self.config.plugins:
+            plugin.shutdown()
         deep.logging.info("Deep is shutdown.")
         self.started = False
 
     def register_tracepoint(self, path: str, line: int, args: Dict[str, str] = None,
-                            watches: List[str] = None, metrics=None) -> 'TracepointRegistration':
+                            watches: List[str] = None,
+                            metrics: List[MetricDefinition] = None) -> 'TracepointRegistration':
         """
         Register a new tracepoint.
 

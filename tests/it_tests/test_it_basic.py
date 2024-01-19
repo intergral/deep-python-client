@@ -17,12 +17,16 @@
 import logging
 import unittest
 
+import prometheus_client
+
 import deep
 import it_tests
 from deep.api.tracepoint.constants import LOG_MSG, SNAPSHOT, NO_COLLECT
 from it_tests.it_utils import start_server, MockServer
 from it_tests.test_target import BPTargetTest
 from test_utils import find_var_in_snap_by_name, find_var_in_snap_by_path
+# noinspection PyUnresolvedReferences
+from deepproto.proto.tracepoint.v1.tracepoint_pb2 import Metric, MetricType
 
 
 class BasicITTest(unittest.TestCase):
@@ -121,3 +125,32 @@ class BasicITTest(unittest.TestCase):
                 self.assertIsNone(snapshot)
                 self.assertIn("[deep] test log name", logs.output[0])
             _deep.shutdown()
+
+    def test_metric_only_action(self):
+        """
+        For some reason the log message doesn't appear in the output, but it is logged.
+
+        This can be verified by changing the assertion, or looking at the tracepoint handler output.
+        """
+        server: MockServer
+
+        with start_server() as server:
+            server.add_tp("test_target.py", 40, {SNAPSHOT: NO_COLLECT}, [],
+                          [Metric(name="simple_test", type=MetricType.COUNTER)])
+            _deep = deep.start(server.config())
+            server.await_poll()
+
+            test = BPTargetTest("name", 123)
+            _ = test.name
+            # we do not want a snapshot, but we have to await to see if one is sent. So we just wait 5 seconds,
+            # as it should not take this long for a snapshot to be sent if it was triggered.
+            snapshot = server.await_snapshot(timeout=5)
+
+            self.assertIsNone(snapshot)
+
+            self.assertIsNotNone(prometheus_client.REGISTRY._names_to_collectors['deep_simple_test_total'])
+
+            _deep.shutdown()
+
+            with self.assertRaises(KeyError):
+                _ = prometheus_client.REGISTRY._names_to_collectors['deep_simple_test_total']

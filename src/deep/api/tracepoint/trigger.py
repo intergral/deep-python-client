@@ -524,6 +524,7 @@ def build_metric_action(tp_id: str, args: Dict[str, str], metrics: List[MetricDe
 
     :param tp_id: the tracepoint id
     :param args: the args
+    :param metrics: the tracepoint metrics
     :return: the location action
     """
     if metrics is None or len(metrics) == 0:

@@ -31,6 +31,8 @@ import time
 from prometheus_client import Summary, start_http_server
 
 import deep
+from deep.api.tracepoint.constants import FIRE_COUNT
+from deep.api.tracepoint.tracepoint_config import MetricDefinition, LabelExpression
 from simple_test import SimpleTest
 
 
@@ -80,12 +82,15 @@ def process_request(t):
 
 if __name__ == '__main__':
     start_http_server(8000)
-    d = deep.start({
+    _deep = deep.start({
         'SERVICE_URL': 'localhost:43315',
         'SERVICE_SECURE': 'False',
     })
 
-    d.register_tracepoint("simple_test.py", 31)
+    _deep.register_tracepoint("simple_test.py", 43, {FIRE_COUNT: '-1'}, [], [
+        MetricDefinition(name="simple_test", metric_type="histogram", expression="len(info)",
+                         labels=[LabelExpression("test_name", expression="self.test_name")])
+    ])
 
     print("app running")
     main()

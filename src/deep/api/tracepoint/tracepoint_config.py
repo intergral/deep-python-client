@@ -79,7 +79,7 @@ class TracepointWindow:
 class LabelExpression:
     """A metric label expression."""
 
-    def __init__(self, key: str, static: Optional[any], expression: Optional[str]):
+    def __init__(self, key: str, static: Optional[any] = None, expression: Optional[str] = None):
         """
         Create a new label expression.
 
@@ -106,30 +106,74 @@ class LabelExpression:
         """The label expression."""
         return self.__expression
 
+    def __str__(self) -> str:
+        """Represent this object as a string."""
+        return str(self.__dict__)
+
+    def __repr__(self) -> str:
+        """Represent this object as a string."""
+        return self.__str__()
+
+    def __eq__(self, other):
+        """Check if other object is equals to this one."""
+        if not isinstance(other, LabelExpression):
+            return False
+        return (
+                self.__key == other.__key
+                and self.__static == other.__static
+                and self.__expression == other.__expression
+        )
+
 
 class MetricDefinition:
     """The definition of a metric to collect."""
 
-    def __init__(self, name: str, labels: List[LabelExpression], type_p: str, expression: Optional[str],
-                 namespace: Optional[str], help_p: Optional[str], unit: Optional[str]):
+    def __init__(self, name: str, metric_type: str, labels: List[LabelExpression] = None,
+                 expression: Optional[str] = None,
+                 namespace: Optional[str] = None, help_str: Optional[str] = None, unit: Optional[str] = None):
         """
         Create a new metric definition.
 
         :param name: the metric name
         :param labels: the metric labels
-        :param type_p: the metrics type
+        :param metric_type: the metrics type
         :param expression: the metrics expression
         :param namespace: the metric namespace
-        :param help_p: the metric help into
+        :param help_str: the metric help into
         :param unit: the metric unit
         """
-        self.__name = name
-        self.__labels = labels
-        self.__type = type_p
-        self.__expression = expression
-        self.__namespace = namespace
-        self.__help = help_p
-        self.__unit = unit
+        if labels is None:
+            labels = []
+
+        self.name = name
+        self.labels = labels
+        self.type = metric_type
+        self.expression = expression
+        self.namespace = namespace
+        self.help = help_str
+        self.unit = unit
+
+    def __str__(self) -> str:
+        """Represent this object as a string."""
+        return str(self.__dict__)
+
+    def __repr__(self) -> str:
+        """Represent this object as a string."""
+        return self.__str__()
+
+    def __eq__(self, other):
+        """Check if other object is equals to this one."""
+        if not isinstance(other, MetricDefinition):
+            return False
+        return (
+                self.name == other.name
+                and self.labels == other.labels
+                and self.type == other.type
+                and self.expression == other.expression
+                and self.namespace == other.namespace
+                and self.help == other.help
+                and self.unit == other.unit
+        )
 
 
 class TracePointConfig:

@@ -14,33 +14,25 @@
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import unittest
 
-import deep
-from deep.api.plugin import load_plugins, Plugin
-from deep.config import ConfigService
+import deep.logging
+from deep.api.plugin.metric.prometheus_metrics import PrometheusPlugin
 
 
-class BadPlugin(Plugin):
-    def __init__(self):
-        super().__init__()
-
-        raise Exception('test: failed load')
-
-
-class TestPluginLoader(unittest.TestCase):
+class TestPrometheusMetrics(unittest.TestCase):
 
     def setUp(self):
-        deep.logging.init(ConfigService())
+        deep.logging.init()
+        self.plugin = PrometheusPlugin(None)
 
-    def test_load_plugins(self):
-        plugins = load_plugins(None)
-        self.assertIsNotNone(plugins)
-        self.assertEqual(3, len(plugins))
+    def tearDown(self):
+        self.plugin.clear()
 
-    def test_handle_bad_plugin(self):
-        plugins = load_plugins(None, [BadPlugin.__qualname__])
+    def test_counter(self):
+        self.plugin.counter("test", {}, "deep", "", "", 123)
 
-        self.assertEqual(3, len(plugins))
+    def test_counter_with_labels(self):
+        self.plugin.counter("test_other", {'value': 'name'}, "deep", "", "", 123)
 
-        plugins = load_plugins(None, [BadPlugin.__module__ + '.' + BadPlugin.__name__])
-
-        self.assertEqual(3, len(plugins))
+    def test_duplicate_registration(self):
+        self.plugin.counter("test_other", {}, "deep", "", "", 123)
+        self.plugin.counter("test_other", {'value': 'name'}, "deep", "", "", 123)

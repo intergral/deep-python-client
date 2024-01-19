@@ -20,6 +20,7 @@ from typing import Any, List, Dict, Tuple, Optional, Generator
 
 from deep import logging
 from deep.api.plugin import Plugin, ResourceProvider, PLUGIN_TYPE, SnapshotDecorator, TracepointLogger
+from deep.api.plugin.metric import MetricProcessor
 from deep.api.resource import Resource
 from deep.config.tracepoint_config import TracepointConfigService, ConfigUpdateListener
 
@@ -141,6 +142,16 @@ class ConfigService:
         """Generator for snapshot decorators."""
         return self.__plugin_generator(SnapshotDecorator)
 
+    @property
+    def metric_processors(self) -> Generator[MetricProcessor, None, None]:
+        """Generator for snapshot decorators."""
+        return self.__plugin_generator(MetricProcessor)
+
+    @property
+    def has_metric_processor(self) -> bool:
+        """Is there a configured metric processor."""
+        return self._find_plugin(MetricProcessor) is not None
+
     def is_app_frame(self, filename: str) -> Tuple[bool, Optional[str]]:
         """
         Check if the current frame is a user application frame.
@@ -165,7 +176,7 @@ class ConfigService:
         return False, None
 
     def _find_plugin(self, plugin_type) -> PLUGIN_TYPE:
-        return next(self.__plugin_generator(plugin_type))
+        return next(self.__plugin_generator(plugin_type), None)
 
     def _find_plugins(self, plugin_type) -> List[PLUGIN_TYPE]:
         plugins = []

@@ -32,6 +32,7 @@ from deep.utils import str2bool
 DEEP_PLUGINS = [
     'deep.api.plugin.otel.OTelPlugin',
     'deep.api.plugin.python.PythonPlugin',
+    'deep.api.plugin.metric.prometheus_metrics.PrometheusPlugin',
 ]
 """System provided default plugins."""
 
@@ -110,6 +111,10 @@ class Plugin(abc.ABC):
         if attr is None:
             return True
         return str2bool(attr)
+
+    def shutdown(self):
+        """Clean up and shutdown the plugin."""
+        pass
 
     def order(self) -> int:
         """

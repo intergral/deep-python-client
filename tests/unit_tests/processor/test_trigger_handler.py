@@ -31,11 +31,15 @@ import unittest
 from threading import Thread
 from typing import List
 
+import mockito
+
 from deep import logging
 from deep.api.plugin import TracepointLogger
+from deep.api.plugin.metric import MetricProcessor
 from deep.api.resource import Resource
 from deep.api.tracepoint.constants import LOG_MSG, WATCHES
 from deep.api.tracepoint.eventsnapshot import EventSnapshot
+from deep.api.tracepoint.tracepoint_config import MetricDefinition
 
 from deep.api.tracepoint.trigger import Location, LocationAction, LineLocation, Trigger
 from deep.config import ConfigService
@@ -198,3 +202,29 @@ class TestTriggerHandler(unittest.TestCase):
         self.assertEqual(0, len(logged))
         pushed = push.pushed
         self.assertEqual(0, len(pushed))
+
+    def test_metric_action(self):
+        capture = TraceCallCapture()
+        config = MockConfigService({})
+        mock_plugin = mockito.mock(spec=MetricProcessor)
+        mockito.when(mock_plugin).counter("simple_test", {}, 'deep', None, None, 1).thenReturn()
+        config.plugins = [mock_plugin]
+        push = MockPushService(None, None)
+        handler = TriggerHandler(config, push)
+
+        location = LineLocation('test_target.py', 27, Location.Position.START)
+        handler.new_config([Trigger(location, [
+            LocationAction("tp_id", "",
+                           {'metrics': [MetricDefinition(name="simple_test", metric_type="counter")]},
+                           LocationAction.ActionType.Metric)])])
+
+        self.call_and_capture(location, some_test_function, ['input'], capture)
+
+        handler.trace_call(capture.captured_frame, capture.captured_event, capture.captured_args)
+
+        logged = config.logger.logged
+        self.assertEqual(0, len(logged))
+        pushed = push.pushed
+        self.assertEqual(0, len(pushed))
+
+        mockito.verify(mock_plugin, mockito.times(1)).counter("simple_test", {}, 'deep', None, None, 1)
