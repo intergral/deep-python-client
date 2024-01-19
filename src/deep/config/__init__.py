@@ -23,7 +23,7 @@ Here we have the initial values for the config, there can be set as either stati
 import os
 import sys
 
-from .config_service import ConfigService
+from .config_service import ConfigService  # noqa: F401
 
 LOGGING_CONF = os.getenv('DEEP_LOGGING_CONF', None)
 '''The path to the logging config file to use'''

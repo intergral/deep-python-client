@@ -15,4 +15,4 @@
 
 """Main api for Deep."""
 
-from deep.api.deep import Deep
+from deep.api.deep import Deep  # noqa: F401
