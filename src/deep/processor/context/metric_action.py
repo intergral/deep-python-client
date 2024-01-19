@@ -40,12 +40,12 @@ class MetricActionContext(ActionContext):
         metrics = self._metrics()
         for metric in metrics:
             labels, value = self._process_metric(metric)
-            for processor in self.tigger_context.config.metric_processors:
+            for processor in self.trigger_context.config.metric_processors:
                 getattr(processor, self._convert_type(metric.type))(metric.name, labels, metric.namespace or "deep",
                                                                     metric.help, metric.unit, value)
 
     def __has_metric_processor(self):
-        return self.tigger_context.config.has_metric_processor
+        return self.trigger_context.config.has_metric_processor
 
     def _metrics(self) -> List[MetricDefinition]:
         return self.location_action.config['metrics']
@@ -57,7 +57,7 @@ class MetricActionContext(ActionContext):
         metric_value = 1
         if metric.expression:
             try:
-                metric_value = float(self.tigger_context.evaluate_expression(metric.expression))
+                metric_value = float(self.trigger_context.evaluate_expression(metric.expression))
             except Exception:
                 deep.logging.exception("Cannot process metric expression %s", metric.expression)
 
@@ -67,7 +67,7 @@ class MetricActionContext(ActionContext):
                 key = label.key
                 if label.expression:
                     try:
-                        value = str(self.tigger_context.evaluate_expression(label.expression))
+                        value = str(self.trigger_context.evaluate_expression(label.expression))
                     except Exception:
                         deep.logging.exception("Cannot process metric label expression %s: %s", key, label.expression)
                         value = 'expression failed'

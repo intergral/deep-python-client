@@ -74,4 +74,12 @@ class BPTargetTest(BPSuperClass):
         name = self.__name
         new_name = name + some_arg
         i = random.randint(3, 9)
-        return i + new_name
+        return str(i) + new_name
+
+    def some_func_with_body_long(self, some_arg):
+        name = self.__name
+        new_name = name + some_arg
+        i = random.randint(3, 9)
+        self.finally_something(some_arg)
+        self.throw_something(some_arg)
+        return str(i) + new_name

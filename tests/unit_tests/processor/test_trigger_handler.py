@@ -36,12 +36,13 @@ import mockito
 from deep import logging
 from deep.api.plugin import TracepointLogger
 from deep.api.plugin.metric import MetricProcessor
+from deep.api.plugin.span import SpanProcessor
 from deep.api.resource import Resource
 from deep.api.tracepoint.constants import LOG_MSG, WATCHES
 from deep.api.tracepoint.eventsnapshot import EventSnapshot
 from deep.api.tracepoint.tracepoint_config import MetricDefinition
 
-from deep.api.tracepoint.trigger import Location, LocationAction, LineLocation, Trigger
+from deep.api.tracepoint.trigger import Location, LocationAction, LineLocation, Trigger, MethodLocation
 from deep.config import ConfigService
 from deep.processor.trigger_handler import TriggerHandler
 from deep.push.push_service import PushService
@@ -90,7 +91,7 @@ class TraceCallCapture:
     def capture_trace_call(self, location: Location):
         def trace_call(frame, event, args):
             event, file, line, function = TriggerHandler.location_from_event(event, frame)
-            if location.at_location(event, file, line, function):
+            if location.at_location(event, file, line, function, frame):
                 self.captured_frame = frame
                 self.captured_event = event
                 self.captured_args = args
@@ -228,3 +229,39 @@ class TestTriggerHandler(unittest.TestCase):
         self.assertEqual(0, len(pushed))
 
         mockito.verify(mock_plugin, mockito.times(1)).counter("simple_test", {}, 'deep', None, None, 1)
+
+    def test_span_action(self):
+        capture = TraceCallCapture()
+        config = MockConfigService({})
+        mock_plugin = mockito.mock(spec=SpanProcessor)
+        mock_span = mockito.mock()
+        mockito.when(mock_plugin).create_span('some_test_function').thenReturn(mock_span)
+        config.plugins = [mock_plugin]
+        push = MockPushService(None, None)
+        handler = TriggerHandler(config, push)
+
+        location = MethodLocation('test_target.py', "some_test_function", Location.Position.START)
+        handler.new_config([Trigger(location, [
+            LocationAction("tp_id", "", {},
+                           LocationAction.ActionType.Span)])])
+
+        self.call_and_capture(location, some_test_function, ['input'], capture)
+
+        handler.trace_call(capture.captured_frame, capture.captured_event, capture.captured_args)
+
+        # now extract the callback value
+        pop = handler._callbacks.value
+        # capture the real data that would be sent when we match this location
+        self.call_and_capture(pop[0], some_test_function, ['input'], capture)
+
+        # now call our trace call to check our callbacks
+        handler.trace_call(capture.captured_frame, capture.captured_event, capture.captured_args)
+
+        logged = config.logger.logged
+        self.assertEqual(0, len(logged))
+        pushed = push.pushed
+        self.assertEqual(0, len(pushed))
+
+        mockito.verify(mock_plugin, mockito.times(1)).create_span("some_test_function")
+
+        mockito.verify(mock_span, mockito.times(1)).close()

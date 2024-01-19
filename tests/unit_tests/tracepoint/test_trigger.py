@@ -31,7 +31,7 @@ from unittest import TestCase
 from parameterized import parameterized
 
 from deep.api.tracepoint.tracepoint_config import MetricDefinition
-from deep.api.tracepoint.trigger import build_trigger, LineLocation, LocationAction, Trigger, Location
+from deep.api.tracepoint.trigger import build_trigger, LineLocation, LocationAction, Trigger, Location, MethodLocation
 
 
 class Test(TestCase):
@@ -89,6 +89,43 @@ class Test(TestCase):
                  'fire_count': '1',
                  'fire_period': '1000',
              }, LocationAction.ActionType.Metric),
+         ])],
+        # should create span action
+        ["some.file", 123, {'span': 'line', 'snapshot': 'no_collect'}, [], [],
+         Trigger(LineLocation("some.file", 123, Location.Position.START), [
+             LocationAction("tp-id", None, {
+                 'span': 'line',
+                 'fire_count': '1',
+                 'fire_period': '1000',
+             }, LocationAction.ActionType.Span),
+         ])],
+        # should create span action
+        ["some.file", 123, {'span': 'method', 'snapshot': 'no_collect'}, [], [],
+         Trigger(MethodLocation("some.file", None, Location.Position.START), [
+             LocationAction("tp-id", None, {
+                 'span': 'method',
+                 'fire_count': '1',
+                 'fire_period': '1000',
+             }, LocationAction.ActionType.Span),
+         ])],
+        # should create span action
+        ["some.file", -1, {'span': 'method', 'method_name': 'test_method', 'snapshot': 'no_collect'}, [], [],
+         Trigger(MethodLocation("some.file", 'test_method', Location.Position.START), [
+             LocationAction("tp-id", None, {
+                 'span': 'method',
+                 'fire_count': '1',
+                 'fire_period': '1000',
+             }, LocationAction.ActionType.Span),
+         ])],
+        # should create method close tracepoint
+        ["some.file", -1,
+         {'span': 'method', 'method_name': 'test_method', 'snapshot': 'no_collect', 'stage': 'method_end'}, [], [],
+         Trigger(MethodLocation("some.file", 'test_method', Location.Position.END), [
+             LocationAction("tp-id", None, {
+                 'span': 'method',
+                 'fire_count': '1',
+                 'fire_period': '1000',
+             }, LocationAction.ActionType.Span),
          ])]
     ])
     def test_build_triggers(self, file, line, args, watches, metrics, expected):

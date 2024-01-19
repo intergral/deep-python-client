@@ -42,6 +42,7 @@
 """Handler results of actions."""
 
 import abc
+from types import FrameType
 from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -51,12 +52,14 @@ if TYPE_CHECKING:
 class ActionCallback:
     """A call back to 'close' an action."""
 
-    def process(self, frame, event) -> bool:
+    @abc.abstractmethod
+    def process(self, event: str, frame: FrameType, arg: any) -> bool:
         """
         Process a callback.
 
-        :param frame: the frame data
         :param event: the event
+        :param frame: the frame data
+        :param arg: the arg from settrace
         :return: True, to keep this callback until next match.
         """
         pass

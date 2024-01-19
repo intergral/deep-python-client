@@ -21,6 +21,7 @@ from typing import Any, List, Dict, Tuple, Optional, Generator
 from deep import logging
 from deep.api.plugin import Plugin, ResourceProvider, PLUGIN_TYPE, SnapshotDecorator, TracepointLogger
 from deep.api.plugin.metric import MetricProcessor
+from deep.api.plugin.span import SpanProcessor
 from deep.api.resource import Resource
 from deep.config.tracepoint_config import TracepointConfigService, ConfigUpdateListener
 
@@ -151,6 +152,16 @@ class ConfigService:
     def has_metric_processor(self) -> bool:
         """Is there a configured metric processor."""
         return self._find_plugin(MetricProcessor) is not None
+
+    @property
+    def span_processors(self) -> Generator[SpanProcessor, None, None]:
+        """Generator for snapshot decorators."""
+        return self.__plugin_generator(SpanProcessor)
+
+    @property
+    def has_span_processor(self) -> bool:
+        """Is there a configured metric processor."""
+        return self._find_plugin(SpanProcessor) is not None
 
     def is_app_frame(self, filename: str) -> Tuple[bool, Optional[str]]:
         """

@@ -29,13 +29,15 @@
 """Handlers for triggers and action configs."""
 
 import abc
+import inspect
 from enum import Enum
+from types import FrameType
 
 from typing import Optional, Dict, List
 
 from deep.api.tracepoint.constants import WINDOW_START, WINDOW_END, FIRE_COUNT, FIRE_PERIOD, LOG_MSG, WATCHES, \
     LINE_START, METHOD_START, METHOD_END, LINE_END, LINE_CAPTURE, METHOD_CAPTURE, NO_COLLECT, SNAPSHOT, CONDITION, \
-    FRAME_TYPE, STACK_TYPE, SINGLE_FRAME_TYPE, STACK, SPAN, STAGE, METHOD_NAME, LINE_STAGES, METHOD_STAGES
+    FRAME_TYPE, STACK_TYPE, SINGLE_FRAME_TYPE, STACK, SPAN, STAGE, METHOD_NAME, LINE_STAGES, METHOD_STAGES, METHOD
 from deep.api.tracepoint.tracepoint_config import TracepointWindow, TracepointExecutionStats, MetricDefinition, \
     TracePointConfig
 
@@ -82,7 +84,7 @@ class LocationAction(object):
         self.__window = TracepointWindow(self.__config.get(WINDOW_START, 0), self.__config.get(WINDOW_END, 0))
         self.__stats = TracepointExecutionStats()
         self.__action_type = action_type
-        self.__location: 'Location | None' = None
+        self.__location: Optional['Location'] = None
 
     @property
     def id(self) -> str:
@@ -133,6 +135,11 @@ class LocationAction(object):
     def action_type(self) -> ActionType:
         """Get the action type."""
         return self.__action_type
+
+    @property
+    def location(self) -> Optional['Location']:
+        """Get the location config."""
+        return self.__location
 
     @property
     def tracepoint(self) -> TracePointConfig:
@@ -256,14 +263,15 @@ class Location(abc.ABC):
         self.position = position
 
     @abc.abstractmethod
-    def at_location(self, event: str, file: str, line: int, method: str) -> bool:
+    def at_location(self, event: str, file: str, line: int, function_name: str, frame: FrameType) -> bool:
         """
         Check if we are at the location defined by this location.
 
         :param event: the trigger event
         :param file: the file path
         :param line: the line number
-        :param method: the method name
+        :param function_name: the function name
+        :param frame: the triggering frame object
         :return: True, if we are at this location we expect, else False.
         """
         pass
@@ -286,32 +294,51 @@ class Location(abc.ABC):
         """The line number."""
         pass
 
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        """
+        The name for this location.
+
+        For Method locations should be method name.
+        For line location should be the file#line number.
+        """
+        pass
+
 
 class Trigger(Location):
-    """A trigger is a location with action."""
+    """
+    A trigger is a location with actions.
+
+    A trigger describes the location at which deep should take some actions.
+
+    A location is the combination of the file, line, function name, and position. Combining these we can add
+    actions at the start or end of lines, or functions.
+    """
 
     def __init__(self, location: Location, actions: List[LocationAction]):
         """
         Create new trigger.
 
-        :param location: the underlying location
+        :param location: the location
         :param actions: the actions
         """
         super().__init__()
         self.__location = location
         self.__actions = actions
 
-    def at_location(self, event: str, file: str, line: int, method: str) -> bool:
+    def at_location(self, event: str, file: str, line: int, function_name: str, frame: FrameType) -> bool:
         """
         Check if we are at the location defined by this location.
 
         :param event: the trigger event
         :param file: the file path
         :param line: the line number
-        :param method: the method name
+        :param function_name: the method name
+        :param frame: the triggering frame object
         :return: True, if we are at this location we expect, else False.
         """
-        return self.__location.at_location(event, file, line, method)
+        return self.__location.at_location(event, file, line, function_name, frame)
 
     @property
     def actions(self) -> List[LocationAction]:
@@ -332,6 +359,16 @@ class Trigger(Location):
     def line(self):
         """The line number."""
         return self.__location.line
+
+    @property
+    def name(self) -> str:
+        """
+        The name for this location.
+
+        For Method locations should be method name.
+        For line location should be the file#line number.
+        """
+        return self.__location.name
 
     def __str__(self):
         """Represent this as a string."""
@@ -370,14 +407,17 @@ class LineLocation(Location):
         self.__path = path
         self.__line = line
 
-    def at_location(self, event: str, file: str, line: int, method: str):
+    def at_location(self, event: str, file: str, line: int, function_name: str, frame: FrameType):
         """
         Check if we are at the location defined by this location.
+
+        Line actions must always trigger on the line they define. So we do not look at the position here.
 
         :param event: the trigger event
         :param file: the file path
         :param line: the line number
-        :param method: the method name
+        :param function_name: the method name
+        :param frame: the triggering frame object
         :return: True, if we are at this location we expect, else False.
         """
         if event == "line" and file == self.path and line == self.line:
@@ -399,6 +439,15 @@ class LineLocation(Location):
         """The line number."""
         return self.__line
 
+    @property
+    def name(self) -> str:
+        """
+        The name for this location.
+
+        For line location should be the file#line number.
+        """
+        return f'{self.path}#{self.line}'
+
     def __str__(self):
         """Represent this as a string."""
         return str(self.__dict__)
@@ -417,7 +466,7 @@ class LineLocation(Location):
 class MethodLocation(Location):
     """A location for a method entry/exit/capture point."""
 
-    def __init__(self, path: str, method: str, position: Location.Position):
+    def __init__(self, path: str, method: Optional[str], position: Location.Position):
         """
         Create a new method location.
 
@@ -426,27 +475,43 @@ class MethodLocation(Location):
         :param position: the position
         """
         super().__init__(position)
-        self.method = method
+        self.__method = method
         self.__path = path
 
-    def at_location(self, event: str, file: str, line: int, method: str):
+    def at_location(self, event: str, file: str, line: int, function_name: str, frame: FrameType):
         """
         Check if we are at the location defined by this location.
 
         :param event: the trigger event
         :param file: the file path
         :param line: the line number
-        :param method: the method name
+        :param function_name: the method name
+        :param frame: the triggering frame object
         :return: True, if we are at this location we expect, else False.
         """
-        if event == "CALL" and method == self.method and file == self.path:
+        if file != self.path:
+            return False
+
+        # if method_name is not set then we need to discover it from the frame.
+        if self.__method is None:
+            # load source lines
+            lines, start = inspect.getsourcelines(frame)
+            end = start + len(lines)
+            # if the targeted line is in the range of start to end
+            if start <= line >= end:
+                # set the method to this name (so we do not need to look it up again)
+                self.__method = function_name
+                return True
+            return False
+
+        if event == "call" and function_name == self.__method:
             return True
         return False
 
     @property
     def id(self):
         """The location id."""
-        return "%s#%s" % (self.path, self.method)
+        return "%s#%s" % (self.path, self.__method)
 
     @property
     def path(self):
@@ -458,6 +523,15 @@ class MethodLocation(Location):
         """The method location always has a line of -1."""
         return -1
 
+    @property
+    def name(self) -> str:
+        """
+        The name for this location.
+
+        For Method locations should be method name.
+        """
+        return self.__method
+
     def __str__(self):
         """Represent this as a string."""
         return str(self.__dict__)
@@ -468,7 +542,7 @@ class MethodLocation(Location):
 
     def __eq__(self, __value):
         """Check if this is equal to another."""
-        if self.path == __value.path and self.method == __value.method:
+        if self.path == __value.path and self.__method == __value.__method:
             return True
         return False
 
@@ -554,13 +628,13 @@ def build_span_action(tp_id: str, args: Dict[str, str]) -> Optional[LocationActi
         SPAN: args[SPAN],
         FIRE_COUNT: args.get(FIRE_COUNT, '1'),
         FIRE_PERIOD: args.get(FIRE_PERIOD, '1000'),
-    }, LocationAction.ActionType.Snapshot)
+    }, LocationAction.ActionType.Span)
 
 
 def build_trigger(tp_id: str, path: str, line_no: int, args: Dict[str, str], watches: List[str],
                   metrics: List[MetricDefinition]) -> Optional[Trigger]:
     """
-    Buidl a trigger definition.
+    Build a trigger definition.
 
     :param tp_id: the tracepoint id
     :param path: the source file path
@@ -571,13 +645,18 @@ def build_trigger(tp_id: str, path: str, line_no: int, args: Dict[str, str], wat
     :return: the trigger with the actions.
     """
     stage_ = METHOD_START if METHOD_NAME in args else LINE_START
+
+    if SPAN in args and args[SPAN] == METHOD:
+        stage_ = METHOD_START
+
     if STAGE in args:
         stage_ = args[STAGE]
 
+    position = Location.Position.from_stage(stage_)
     if stage_ in LINE_STAGES:
-        location = LineLocation(path, line_no, Location.Position.from_stage(stage_))
+        location = LineLocation(path, line_no, position)
     elif stage_ in METHOD_STAGES:
-        location = MethodLocation(path, args[METHOD_NAME], Location.Position.from_stage(stage_))
+        location = MethodLocation(path, args.get(METHOD_NAME, None), position)
     else:
         return None
 

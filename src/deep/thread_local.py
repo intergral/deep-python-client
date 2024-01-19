@@ -42,7 +42,11 @@ class ThreadLocal(Generic[T]):
         :return: the stored value, or the value from the default_provider
         """
         current_thread = threading.current_thread()
-        return self.__store.get(current_thread.ident, self.__default_provider())
+        get = self.__store.get(current_thread.ident, None)
+        if get is None:
+            get = self.__default_provider()
+            self.__store[current_thread.ident] = get
+        return get
 
     def set(self, val: T):
         """
@@ -56,8 +60,8 @@ class ThreadLocal(Generic[T]):
     def clear(self):
         """Remove the value for this thread."""
         current_thread = threading.current_thread()
-        if current_thread in self.__store:
-            del self.__store[current_thread]
+        if current_thread.ident in self.__store:
+            del self.__store[current_thread.ident]
 
     @property
     def is_set(self):
@@ -67,7 +71,7 @@ class ThreadLocal(Generic[T]):
         :return: True if there is a value for this thread
         """
         current_thread = threading.current_thread()
-        return current_thread in self.__store
+        return current_thread.ident in self.__store
 
     @property
     def value(self):

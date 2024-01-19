@@ -213,6 +213,9 @@ class TracePointConfig:
     @property
     def line_no(self):
         """The tracepoint line number."""
+        # todo need to support missing line number in grpc
+        if self._line_no < 0:
+            return 0
         return self._line_no
 
     @property
