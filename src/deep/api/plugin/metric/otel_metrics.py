@@ -13,8 +13,7 @@
 #      You should have received a copy of the GNU Affero General Public License
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Add support for prometheus metrics."""
-
+"""Handling for OTEL metric support."""
 import threading
 from typing import Dict
 
@@ -23,17 +22,21 @@ from deep.api.plugin import DidNotEnable
 from deep.api.plugin.metric import MetricProcessor
 
 try:
-    from prometheus_client import Summary, Counter, REGISTRY, Histogram, Gauge
+    from opentelemetry.metrics import get_meter, Counter, ObservableGauge, Histogram, UpDownCounter
 except ImportError as e:
-    raise DidNotEnable("prometheus_client is not installed", e)
+    raise DidNotEnable("opentelemetry.metrics is not installed", e)
 
 
-class PrometheusPlugin(MetricProcessor):
-    """Connect Deep to prometheus."""
+class OTelMetrics(MetricProcessor):
+    """
+    Metric processor for otel.
+
+    Separate from OTEL Plugin for spans, as you can have one without the other.
+    """
 
     def __init__(self, config):
         """Create new plugin."""
-        super().__init__("PrometheusPlugin", config)
+        super().__init__("OTelMetrics", config)
         self.__cache = {}
         self.__lock = threading.Lock()
 
@@ -58,14 +61,11 @@ class PrometheusPlugin(MetricProcessor):
         """
         try:
             with self.__lock:
-                label_keys = list(labels.keys())
-                counter: Counter = self.__check_cache(name, "counter",
-                                                      lambda: Counter(name=name, documentation=help_string or "",
-                                                                      labelnames=label_keys,
-                                                                      namespace=namespace, unit=unit))
-                if len(labels) > 0:
-                    counter = counter.labels(**labels)
-                counter.inc(value)
+                counter: Counter
+                counter = self.__check_cache(name, 'counter',
+                                             lambda: get_meter('deep').create_counter(f'{namespace}_{name}', unit,
+                                                                                      help_string))
+                counter.add(value, labels)
         except Exception:
             deep.logging.exception(f"Error registering metric counter {namespace}_{name}")
 
@@ -82,17 +82,13 @@ class PrometheusPlugin(MetricProcessor):
         """
         try:
             with self.__lock:
-                label_keys = list(labels.keys())
-                gauge: Gauge = self.__check_cache(name, "gauge",
-                                                  lambda: Gauge(name=name, documentation=help_string or "",
-                                                                labelnames=label_keys,
-                                                                namespace=namespace, unit=unit))
-                if len(labels) > 0:
-                    gauge = gauge.labels(**labels)
-                gauge.inc(value)
+                gauge: UpDownCounter
+                gauge = self.__check_cache(name, 'gauge',
+                                           lambda: get_meter('deep').create_up_down_counter(f'{namespace}_{name}',
+                                                                                            unit, help_string))
+                gauge.add(value, labels)
         except Exception:
-            deep.logging.exception(f"Error registering metric gauge {namespace}_{name}")
-            pass
+            deep.logging.exception(f"Error registering metric histogram {namespace}_{name}")
 
     def histogram(self, name: str, labels: Dict[str, str], namespace: str, help_string: str, unit: str, value: float):
         """
@@ -107,17 +103,13 @@ class PrometheusPlugin(MetricProcessor):
         """
         try:
             with self.__lock:
-                label_keys = list(labels.keys())
-                histogram: Histogram = self.__check_cache(name, "histogram",
-                                                          lambda: Histogram(name=name, documentation=help_string or "",
-                                                                            labelnames=label_keys,
-                                                                            namespace=namespace, unit=unit))
-                if len(labels) > 0:
-                    histogram = histogram.labels(**labels)
-                histogram.observe(value)
+                histogram: Histogram
+                histogram = self.__check_cache(name, 'histogram',
+                                               lambda: get_meter('deep').create_histogram(f'{namespace}_{name}', unit,
+                                                                                          help_string))
+                histogram.record(value, labels)
         except Exception:
             deep.logging.exception(f"Error registering metric histogram {namespace}_{name}")
-            pass
 
     def summary(self, name: str, labels: Dict[str, str], namespace: str, help_string: str, unit: str, value: float):
         """
@@ -132,25 +124,10 @@ class PrometheusPlugin(MetricProcessor):
         """
         try:
             with self.__lock:
-                label_keys = list(labels.keys())
-                summary: Summary = self.__check_cache(name, "summary",
-                                                      lambda: Summary(name=name, documentation=help_string or "",
-                                                                      labelnames=label_keys,
-                                                                      namespace=namespace, unit=unit))
-                if len(labels) > 0:
-                    summary = summary.labels(**labels)
-                summary.observe(value)
+                histogram: Histogram
+                histogram = self.__check_cache(name, 'summary',
+                                               lambda: get_meter('deep').create_histogram(f'{namespace}_{name}', unit,
+                                                                                          help_string))
+                histogram.record(value, labels)
         except Exception:
             deep.logging.exception(f"Error registering metric summary {namespace}_{name}")
-            pass
-
-    def shutdown(self):
-        """Clean up and shutdown the plugin."""
-        self.clear()
-
-    def clear(self):
-        """Remove any registrations."""
-        with self.__lock:
-            for metric in self.__cache.values():
-                REGISTRY.unregister(metric)
-            self.__cache = {}
