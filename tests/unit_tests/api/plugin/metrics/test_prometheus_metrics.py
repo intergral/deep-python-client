@@ -29,10 +29,52 @@ class TestPrometheusMetrics(unittest.TestCase):
 
     def test_counter(self):
         self.plugin.counter("test", {}, "deep", "", "", 123)
+        self.assertEqual(1, len(self.plugin._cache))
 
     def test_counter_with_labels(self):
         self.plugin.counter("test_other", {'value': 'name'}, "deep", "", "", 123)
+        self.assertEqual(1, len(self.plugin._cache))
 
-    def test_duplicate_registration(self):
+    def test_duplicate_counter_registration(self):
         self.plugin.counter("test_other", {}, "deep", "", "", 123)
         self.plugin.counter("test_other", {'value': 'name'}, "deep", "", "", 123)
+        self.assertEqual(1, len(self.plugin._cache))
+
+    def test_gauge(self):
+        self.plugin.gauge("test", {}, "deep", "", "", 123)
+        self.assertEqual(1, len(self.plugin._cache))
+
+    def test_gauge_with_labels(self):
+        self.plugin.gauge("test_other", {'value': 'name'}, "deep", "", "", 123)
+        self.assertEqual(1, len(self.plugin._cache))
+
+    def test_duplicate_gauge_registration(self):
+        self.plugin.gauge("test_other", {}, "deep", "", "", 123)
+        self.plugin.gauge("test_other", {'value': 'name'}, "deep", "", "", 123)
+        self.assertEqual(1, len(self.plugin._cache))
+
+    def test_histogram(self):
+        self.plugin.histogram("test", {}, "deep", "", "", 123)
+        self.assertEqual(1, len(self.plugin._cache))
+
+    def test_histogram_with_labels(self):
+        self.plugin.histogram("test_other", {'value': 'name'}, "deep", "", "", 123)
+        self.assertEqual(1, len(self.plugin._cache))
+
+    def test_duplicate_histogram_registration(self):
+        self.plugin.histogram("test_other", {}, "deep", "", "", 123)
+        self.plugin.histogram("test_other", {'value': 'name'}, "deep", "", "", 123)
+        self.assertEqual(1, len(self.plugin._cache))
+
+    def test_summary(self):
+        self.plugin.summary("test", {}, "deep", "", "", 123)
+        self.assertEqual(1, len(self.plugin._cache))
+
+    def test_summary_with_labels(self):
+        self.plugin.summary("test_other", {'value': 'name'}, "deep", "", "", 123)
+        self.assertEqual(1, len(self.plugin._cache))
+
+    def test_duplicate_summary_registration(self):
+        self.plugin.summary("test_other", {}, "deep", "", "", 123)
+        self.plugin.summary("test_other", {'value': 'name'}, "deep", "", "", 123)
+        self.assertEqual(1, len(self.plugin._cache))

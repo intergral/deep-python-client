@@ -144,6 +144,10 @@ class PrometheusPlugin(MetricProcessor):
             deep.logging.exception(f"Error registering metric summary {namespace}_{name}")
             pass
 
+    @property
+    def _cache(self):
+        return self.__cache
+
     def shutdown(self):
         """Clean up and shutdown the plugin."""
         self.clear()
