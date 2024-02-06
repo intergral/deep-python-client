@@ -31,7 +31,7 @@ from unittest import TestCase
 from parameterized import parameterized
 
 from deep.api.tracepoint.tracepoint_config import MetricDefinition
-from deep.api.tracepoint.trigger import build_trigger, LineLocation, LocationAction, Trigger, Location, MethodLocation
+from deep.api.tracepoint.trigger import build_trigger, LineLocation, LocationAction, Trigger, Location, FunctionLocation
 
 
 class Test(TestCase):
@@ -101,7 +101,7 @@ class Test(TestCase):
          ])],
         # should create span action
         ["some.file", 123, {'span': 'method', 'snapshot': 'no_collect'}, [], [],
-         Trigger(MethodLocation("some.file", None, Location.Position.START), [
+         Trigger(FunctionLocation("some.file", None, Location.Position.START), [
              LocationAction("tp-id", None, {
                  'span': 'method',
                  'fire_count': '1',
@@ -110,7 +110,7 @@ class Test(TestCase):
          ])],
         # should create span action
         ["some.file", -1, {'span': 'method', 'method_name': 'test_method', 'snapshot': 'no_collect'}, [], [],
-         Trigger(MethodLocation("some.file", 'test_method', Location.Position.START), [
+         Trigger(FunctionLocation("some.file", 'test_method', Location.Position.START), [
              LocationAction("tp-id", None, {
                  'span': 'method',
                  'fire_count': '1',
@@ -120,7 +120,7 @@ class Test(TestCase):
         # should create method close tracepoint
         ["some.file", -1,
          {'span': 'method', 'method_name': 'test_method', 'snapshot': 'no_collect', 'stage': 'method_end'}, [], [],
-         Trigger(MethodLocation("some.file", 'test_method', Location.Position.END), [
+         Trigger(FunctionLocation("some.file", 'test_method', Location.Position.END), [
              LocationAction("tp-id", None, {
                  'span': 'method',
                  'fire_count': '1',

@@ -463,19 +463,19 @@ class LineLocation(Location):
         return False
 
 
-class MethodLocation(Location):
+class FunctionLocation(Location):
     """A location for a method entry/exit/capture point."""
 
-    def __init__(self, path: str, method: Optional[str], position: Location.Position):
+    def __init__(self, path: str, function_name: Optional[str], position: Location.Position):
         """
         Create a new method location.
 
         :param path:  the source file path
-        :param method: the method name
+        :param function_name: the function name
         :param position: the position
         """
         super().__init__(position)
-        self.__method = method
+        self.__function_name = function_name
         self.__path = path
 
     def at_location(self, event: str, file: str, line: int, function_name: str, frame: FrameType):
@@ -493,25 +493,25 @@ class MethodLocation(Location):
             return False
 
         # if method_name is not set then we need to discover it from the frame.
-        if self.__method is None:
+        if self.__function_name is None:
             # load source lines
             lines, start = inspect.getsourcelines(frame)
             end = start + len(lines)
             # if the targeted line is in the range of start to end
             if start <= line >= end:
                 # set the method to this name (so we do not need to look it up again)
-                self.__method = function_name
+                self.__function_name = function_name
                 return True
             return False
 
-        if event == "call" and function_name == self.__method:
+        if event == "call" and function_name == self.__function_name:
             return True
         return False
 
     @property
     def id(self):
         """The location id."""
-        return "%s#%s" % (self.path, self.__method)
+        return "%s#%s" % (self.path, self.__function_name)
 
     @property
     def path(self):
@@ -530,7 +530,7 @@ class MethodLocation(Location):
 
         For Method locations should be method name.
         """
-        return self.__method
+        return self.__function_name
 
     def __str__(self):
         """Represent this as a string."""
@@ -542,7 +542,7 @@ class MethodLocation(Location):
 
     def __eq__(self, __value):
         """Check if this is equal to another."""
-        if self.path == __value.path and self.__method == __value.__method:
+        if self.path == __value.path and self.__function_name == __value.__function_name:
             return True
         return False
 
@@ -656,7 +656,7 @@ def build_trigger(tp_id: str, path: str, line_no: int, args: Dict[str, str], wat
     if stage_ in LINE_STAGES:
         location = LineLocation(path, line_no, position)
     elif stage_ in METHOD_STAGES:
-        location = MethodLocation(path, args.get(METHOD_NAME, None), position)
+        location = FunctionLocation(path, args.get(METHOD_NAME, None), position)
     else:
         return None
 
