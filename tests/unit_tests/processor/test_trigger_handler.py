@@ -42,7 +42,7 @@ from deep.api.tracepoint.constants import LOG_MSG, WATCHES
 from deep.api.tracepoint.eventsnapshot import EventSnapshot
 from deep.api.tracepoint.tracepoint_config import MetricDefinition
 
-from deep.api.tracepoint.trigger import Location, LocationAction, LineLocation, Trigger, MethodLocation
+from deep.api.tracepoint.trigger import Location, LocationAction, LineLocation, Trigger, FunctionLocation
 from deep.config import ConfigService
 from deep.processor.trigger_handler import TriggerHandler
 from deep.push.push_service import PushService
@@ -61,6 +61,7 @@ class MockPushService(PushService):
 class MockTracepointLogger(TracepointLogger):
 
     def __init__(self):
+        super().__init__()
         self.logged = []
 
     def log_tracepoint(self, log_msg: str, tp_id: str, ctx_id: str):
@@ -240,7 +241,7 @@ class TestTriggerHandler(unittest.TestCase):
         push = MockPushService(None, None)
         handler = TriggerHandler(config, push)
 
-        location = MethodLocation('test_target.py', "some_test_function", Location.Position.START)
+        location = FunctionLocation('test_target.py', "some_test_function", Location.Position.START)
         handler.new_config([Trigger(location, [
             LocationAction("tp_id", "", {},
                            LocationAction.ActionType.Span)])])
