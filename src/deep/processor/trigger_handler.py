@@ -33,7 +33,7 @@ from deep import logging
 from deep.api.tracepoint.trigger import Trigger
 from deep.config import ConfigService
 from deep.config.tracepoint_config import ConfigUpdateListener
-from deep.processor.context.action_results import ActionCallback
+from deep.processor.context.callback_context import CallbackContext
 from deep.processor.context.trigger_context import TriggerContext
 from deep.push import PushService
 from deep.thread_local import ThreadLocal
@@ -79,8 +79,6 @@ class TriggerHandler:
     This is where we 'listen' for a hit, and determine if we should collect data.
     """
 
-    __callbacks: ThreadLocal[Deque[List[ActionCallback]]] = ThreadLocal(lambda: deque())
-
     def __init__(self, config: ConfigService, push_service: PushService):
         """
         Create a new tigger handler.
@@ -94,6 +92,7 @@ class TriggerHandler:
         self._tp_config: List[Trigger] = []
         self._config = config
         self._config.add_listener(TracepointHandlerUpdateListener(self))
+        self._callbacks: ThreadLocal[Deque[CallbackContext]] = ThreadLocal(lambda: deque())
 
     def start(self):
         """Start the trigger handler."""
@@ -136,15 +135,15 @@ class TriggerHandler:
         :param arg: the args
         :return: None to ignore other calls, or our self to continue
         """
-        if event in ["line", "return", "exception"] and self.__callbacks.is_set:
-            self.__process_call_backs(frame, event)
+        event, file, line, function = self.location_from_event(event, frame)
+        if event in ["line", "return", "exception"] and self._callbacks.is_set:
+            self.__process_call_backs(arg, frame, event, file, line, function)
 
         # return if we do not have any tracepoints
         if len(self._tp_config) == 0:
             return None
 
-        event, file, line, function = self.location_from_event(event, frame)
-        actions = self.__actions_for_location(event, file, line, function)
+        actions = self.__actions_for_location(event, file, line, function, frame)
         if len(actions) == 0:
             return self.trace_call
 
@@ -162,25 +161,36 @@ class TriggerHandler:
         except BaseException:
             logging.exception("Cannot trigger at %s#%s %s", file, line, function)
 
-        self.__callbacks.get().append(trigger_context.callbacks)
+        callbacks = trigger_context.callbacks
+        if len(callbacks) > 0:
+            logging.debug("Callbacks registered: %s", callbacks)
+            self._callbacks.get().append(
+                CallbackContext(event, file, line, function, callbacks))
 
         return self.trace_call
 
-    def __actions_for_location(self, event, file, line, function):
+    def __actions_for_location(self, event, file, line, function, frame):
         actions = []
         for trigger in self._tp_config:
-            if trigger.at_location(event, file, line, function):
+            if trigger.at_location(event, file, line, function, frame):
                 actions += trigger.actions
         return actions
 
-    def __process_call_backs(self, frame: FrameType, event: str):
-        callbacks = self.__callbacks.value.pop()
-        remaining: List[ActionCallback] = []
-        for callback in callbacks:
-            if callback.process(frame, event):
-                remaining.append(callback)
+    def __process_call_backs(self, arg: any, frame: FrameType, event: str, file: str, line: int, function_name: str):
+        # remove top context
+        context: CallbackContext = self._callbacks.value.pop()
+        # if it is for our location process it
+        if context.at_location(event, file, line, function_name, frame):
+            logging.debug("At callback location %s", context.name)
+            context.process(event, frame, arg)
+        else:
+            logging.debug("Not at callback location %s", context.name)
+            # else put the context back on the queue
+            self._callbacks.value.append(context)
 
-        self.__callbacks.value.append(remaining)
+        if len(self._callbacks.value) == 0:
+            logging.debug("Callbacks cleared.")
+            self._callbacks.clear()
 
     @staticmethod
     def location_from_event(event: str, frame: FrameType) -> Tuple[str, str, int, Optional[str]]:

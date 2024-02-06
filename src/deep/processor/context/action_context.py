@@ -52,7 +52,7 @@ class ActionContext(abc.ABC):
         :param parent: the parent trigger
         :param action: the action config
         """
-        self.tigger_context: 'TriggerContext' = parent
+        self.trigger_context: 'TriggerContext' = parent
         self.location_action: 'LocationAction' = action
         self._triggered = False
 
@@ -63,7 +63,7 @@ class ActionContext(abc.ABC):
     def __exit__(self, exception_type, exception_value, exception_traceback):
         """Exit and close the context."""
         if self.has_triggered():
-            self.location_action.record_triggered(self.tigger_context.ts)
+            self.location_action.record_triggered(self.trigger_context.ts)
 
     def eval_watch(self, watch: str) -> Tuple[WatchResult, Dict[str, Variable], str]:
         """
@@ -72,10 +72,10 @@ class ActionContext(abc.ABC):
         :param watch: The watch expression to evaluate.
         :return: Tuple with WatchResult, collected variables, and the log string for the expression
         """
-        var_processor = VariableSetProcessor({}, self.tigger_context.var_cache)
+        var_processor = VariableSetProcessor({}, self.trigger_context.var_cache)
 
         try:
-            result = self.tigger_context.evaluate_expression(watch)
+            result = self.trigger_context.evaluate_expression(watch)
             variable_id, log_str = var_processor.process_variable(watch, result)
 
             return WatchResult(watch, variable_id), var_processor.var_lookup, log_str
@@ -109,19 +109,12 @@ class ActionContext(abc.ABC):
         Combine checks for rate limits, windows and condition.
         :return: True, if the trigger can be triggered.
         """
-        if not self.location_action.can_trigger(self.tigger_context.ts):
+        if not self.location_action.can_trigger(self.trigger_context.ts):
             return False
         if self.location_action.condition is None or len(self.location_action.condition.strip()) == 0:
             return True
-        result = self.tigger_context.evaluate_expression(self.location_action.condition)
+        result = self.trigger_context.evaluate_expression(self.location_action.condition)
         return str2bool(str(result))
-
-
-class SpanActionContext(ActionContext):
-    """Action for spans."""
-
-    def _process_action(self):
-        pass
 
 
 class NoActionContext(ActionContext):

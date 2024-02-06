@@ -19,12 +19,15 @@ import signal
 import time
 
 from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.trace.export import (
+    SimpleSpanProcessor,
+)
 
 import deep
+from deep.api.tracepoint.constants import METHOD_NAME, SPAN, METHOD, FIRE_COUNT, SNAPSHOT, NO_COLLECT
 from simple_test import SimpleTest
 
 
@@ -63,16 +66,26 @@ if __name__ == '__main__':
     resource = Resource(attributes={
         SERVICE_NAME: "your-service-name"
     })
+
+    jaeger_exporter = JaegerExporter(
+        agent_host_name="localhost",
+        agent_port=6831
+    )
+
     provider = TracerProvider(resource=resource)
-    processor = BatchSpanProcessor(OTLPSpanExporter(endpoint="http://localhost:4317/api/traces"))
-    provider.add_span_processor(processor)
+    provider.add_span_processor(SimpleSpanProcessor(jaeger_exporter))
     # Sets the global default tracer provider
     trace.set_tracer_provider(provider)
 
-    deep.start({
+    _deep = deep.start({
         'SERVICE_URL': 'localhost:43315',
         'SERVICE_SECURE': 'False',
+        'POLL_TIMER': 10000
     })
+
+    tracepoint = _deep.register_tracepoint("simple_test.py", -1,
+                                           {METHOD_NAME: 'message', SPAN: METHOD, FIRE_COUNT: '-1',
+                                            SNAPSHOT: NO_COLLECT})
 
     print("app running")
     main()

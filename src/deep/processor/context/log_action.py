@@ -48,7 +48,7 @@ class LogActionContext(ActionContext):
     def _process_action(self):
         log_msg = self.location_action.config.get(LOG_MSG)
         log, watches, vars_ = self.process_log(log_msg)
-        self.tigger_context.attach_result(LogActionResult(self.location_action, log))
+        self.trigger_context.attach_result(LogActionResult(self.location_action, log))
 
     def process_log(self, log_msg) -> Tuple[str, List['WatchResult'], Dict[str, 'Variable']]:
         """
@@ -90,7 +90,7 @@ class LogActionContext(ActionContext):
 
                 return log_str, field_name
 
-        log_msg = "[deep] %s" % FormatExtractor().vformat(log_msg, (), FormatDict(self.tigger_context.locals))
+        log_msg = "[deep] %s" % FormatExtractor().vformat(log_msg, (), FormatDict(self.trigger_context.locals))
         return log_msg, watch_results, _var_lookup
 
 

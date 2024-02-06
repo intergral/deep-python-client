@@ -68,7 +68,7 @@ class SnapshotActionContext(FrameCollectorContext, ActionContext):
     @property
     def ts(self) -> int:
         """The timestamp in nanoseconds for this trigger."""
-        return self.tigger_context.ts
+        return self.trigger_context.ts
 
     def should_collect_vars(self, current_frame_index: int) -> bool:
         """
@@ -93,7 +93,7 @@ class SnapshotActionContext(FrameCollectorContext, ActionContext):
         :param filename: the frame file name
         :return: True if add frame, else False
         """
-        return self.tigger_context.config.is_app_frame(filename)
+        return self.trigger_context.config.is_app_frame(filename)
 
     @property
     def watches(self):
@@ -106,12 +106,12 @@ class SnapshotActionContext(FrameCollectorContext, ActionContext):
         return self.location_action.config.get(LOG_MSG, None)
 
     def _process_action(self):
-        collector = FrameCollector(self, self.tigger_context.frame)
+        collector = FrameCollector(self, self.trigger_context.frame)
 
-        frames, variables = collector.collect(self.tigger_context.vars, self.tigger_context.var_cache)
+        frames, variables = collector.collect(self.trigger_context.vars, self.trigger_context.var_cache)
 
-        snapshot = EventSnapshot(self.location_action.tracepoint, self.tigger_context.ts, self.tigger_context.resource,
-                                 frames, variables)
+        snapshot = EventSnapshot(self.location_action.tracepoint, self.trigger_context.ts,
+                                 self.trigger_context.resource, frames, variables)
 
         # process the snapshot watches
         for watch in self.watches:
@@ -122,7 +122,7 @@ class SnapshotActionContext(FrameCollectorContext, ActionContext):
         log_msg = self.log_msg
         if log_msg is not None:
             # create and process the log message
-            context = LogActionContext(self.tigger_context, LocationAction(self.location_action.id, None, {
+            context = LogActionContext(self.trigger_context, LocationAction(self.location_action.id, None, {
                 LOG_MSG: log_msg,
             }, LocationAction.ActionType.Log))
             log, watches, log_vars = context.process_log(log_msg)
@@ -130,9 +130,9 @@ class SnapshotActionContext(FrameCollectorContext, ActionContext):
             for watch in watches:
                 snapshot.add_watch_result(watch)
             snapshot.merge_var_lookup(log_vars)
-            self.tigger_context.attach_result(LogActionResult(context.location_action, log))
+            self.trigger_context.attach_result(LogActionResult(context.location_action, log))
 
-        self.tigger_context.attach_result(SendSnapshotActionResult(self, snapshot))
+        self.trigger_context.attach_result(SendSnapshotActionResult(self, snapshot))
 
 
 class SendSnapshotActionResult(ActionResult):
@@ -156,14 +156,14 @@ class SendSnapshotActionResult(ActionResult):
 
         :return: an action callback if we need to do something at the 'end', or None
         """
-        attributes = BoundedAttributes(attributes={'ctx_id': ctx.id})
+        attributes = BoundedAttributes(attributes={'ctx_id': ctx.id}, immutable=False)
         for decorator in ctx.config.snapshot_decorators:
             try:
                 decorate = decorator.decorate(self.action_context)
                 if decorate is not None:
-                    attributes = attributes.merge_in(decorate)
+                    attributes.merge_in(decorate)
             except Exception:
-                deep.logging.exception("Failed to decorate snapshot: %s", decorator)
+                deep.logging.exception("Failed to decorate snapshot: %s ", decorator)
 
         self.snapshot.attributes.merge_in(attributes)
         ctx.push_service.push_snapshot(self.snapshot)
