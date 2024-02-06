@@ -13,6 +13,7 @@
 #      You should have received a copy of the GNU Affero General Public License
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from deep.api.tracepoint import WatchResult
+from deep.api.tracepoint.eventsnapshot import WATCH_SOURCE_WATCH
 from deep.push import convert_snapshot
 from utils import mock_snapshot, mock_frame, mock_variable, mock_variable_id
 
@@ -52,7 +53,7 @@ def test_convert_snapshot_with_frame_with_vars():
 
 def test_convert_snapshot_with_watch():
     event_snapshot = mock_snapshot()
-    event_snapshot.add_watch_result(WatchResult("test", mock_variable_id()))
+    event_snapshot.add_watch_result(WatchResult(WATCH_SOURCE_WATCH, "test", mock_variable_id()))
 
     snapshot = convert_snapshot(event_snapshot)
 
@@ -64,7 +65,7 @@ def test_convert_snapshot_with_watch():
 
 def test_convert_snapshot_with_error_watch():
     event_snapshot = mock_snapshot()
-    event_snapshot.add_watch_result(WatchResult("test", None, 'test error'))
+    event_snapshot.add_watch_result(WatchResult(WATCH_SOURCE_WATCH, "test", None, 'test error'))
 
     snapshot = convert_snapshot(event_snapshot)
 

@@ -33,6 +33,7 @@ from typing import TYPE_CHECKING, List, Dict, Optional
 from .action_context import ActionContext
 from .action_results import ActionResult, ActionCallback
 from ...api.tracepoint.constants import LOG_MSG
+from ...api.tracepoint.eventsnapshot import WATCH_SOURCE_LOG
 from ...api.tracepoint.trigger import LocationAction
 
 from typing import Tuple
@@ -83,7 +84,7 @@ class LogActionContext(ActionContext):
 
             def get_field(self, field_name, args, kwargs):
                 # evaluate watch
-                watch, var_lookup, log_str = ctx_self.eval_watch(field_name)
+                watch, var_lookup, log_str = ctx_self.eval_watch(field_name, WATCH_SOURCE_LOG)
                 # collect data
                 watch_results.append(watch)
                 _var_lookup.update(var_lookup)

@@ -44,7 +44,7 @@ class TriggerContext:
     collect the data and ship of the results.
     """
 
-    def __init__(self, config: ConfigService, push_service: PushService, frame: FrameType, event: str):
+    def __init__(self, config: ConfigService, push_service: PushService, frame: FrameType, event: str, arg: any):
         """
         Create a new trigger context.
 
@@ -52,10 +52,12 @@ class TriggerContext:
         :param push_service: the push service
         :param frame: the frame data
         :param event: the trigger event
+        :param arg: the trigger arg
         """
         self.__push_service = push_service
         self.__event = event
         self.__frame = frame
+        self.__arg = arg
         self.__config = config
         self.__results: List[ActionResult] = []
         self.__ts: int = time_ns()
@@ -113,6 +115,16 @@ class TriggerContext:
     def config(self) -> ConfigService:
         """The config service."""
         return self.__config
+
+    @property
+    def arg(self):
+        """The trigger arg value."""
+        return self.__arg
+
+    @property
+    def event(self):
+        """The trigger event value."""
+        return self.__event
 
     def action_context(self, action: 'LocationAction') -> 'ActionContext':
         """

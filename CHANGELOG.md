@@ -1,5 +1,7 @@
 # main (unreleased)
 
+- **[FEATURE]**: feat(capture): add support for capture tracepoints [#34](https://github.com/intergral/deep/pull/34) [@Umaaz](https://github.com/Umaaz)
+
 # 1.1.0 (06/02/2024)
 
 - **[CHANGE]**: change(build): add doc string check to flake8 [#14](https://github.com/intergral/deep/pull/14) [@Umaaz](https://github.com/Umaaz)

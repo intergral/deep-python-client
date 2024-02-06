@@ -38,7 +38,7 @@ from deep.api.plugin import TracepointLogger
 from deep.api.plugin.metric import MetricProcessor
 from deep.api.plugin.span import SpanProcessor
 from deep.api.resource import Resource
-from deep.api.tracepoint.constants import LOG_MSG, WATCHES
+from deep.api.tracepoint.constants import LOG_MSG, WATCHES, METHOD_CAPTURE, STAGE
 from deep.api.tracepoint.eventsnapshot import EventSnapshot
 from deep.api.tracepoint.tracepoint_config import MetricDefinition
 
@@ -46,7 +46,7 @@ from deep.api.tracepoint.trigger import Location, LocationAction, LineLocation, 
 from deep.config import ConfigService
 from deep.processor.trigger_handler import TriggerHandler
 from deep.push.push_service import PushService
-from unit_tests.test_target import some_test_function
+from unit_tests.test_target import some_test_function, some_test_error
 
 
 class MockPushService(PushService):
@@ -91,14 +91,28 @@ class TraceCallCapture:
 
     def capture_trace_call(self, location: Location):
         def trace_call(frame, event, args):
+            # print(frame, event, args)
             event, file, line, function = TriggerHandler.location_from_event(event, frame)
-            if location.at_location(event, file, line, function, frame):
+            # on raise exception we get a return immediately after,
+            # so if we have captured an exception don't capture again
+            if location.at_location(event, file, line, function, frame) and not self.captured_exception():
+                print("Capture frame:", frame, event, args)
                 self.captured_frame = frame
                 self.captured_event = event
                 self.captured_args = args
             return trace_call
 
         return trace_call
+
+    def captured_exception(self):
+        if self.captured_event == "exception":
+            return True
+        return False
+
+    def clear(self):
+        self.captured_frame = None
+        self.captured_event = None
+        self.captured_args = None
 
 
 logging.init(MockConfigService({}))
@@ -110,11 +124,17 @@ class TestTriggerHandler(unittest.TestCase):
         # here we execute the real code using a mock trace call that will capture the args to trace call
         # we cannot debug this section of the code
 
+        def func_wrap(*args):
+            try:
+                func(*args)
+            except Exception:
+                pass
+
         # we use the _trace_hook and nopt gettrace() as gettrace() is not available in all tested versions of pythong
         # noinspection PyUnresolvedReferences
         current = threading._trace_hook
         threading.settrace(capture.capture_trace_call(location))
-        thread = Thread(target=func, args=args)
+        thread = Thread(target=func_wrap, args=args)
         thread.start()
         thread.join(10)
 
@@ -250,6 +270,8 @@ class TestTriggerHandler(unittest.TestCase):
 
         handler.trace_call(capture.captured_frame, capture.captured_event, capture.captured_args)
 
+        capture.clear()
+
         # now extract the callback value
         pop = handler._callbacks.value
         # capture the real data that would be sent when we match this location
@@ -266,3 +288,101 @@ class TestTriggerHandler(unittest.TestCase):
         mockito.verify(mock_plugin, mockito.times(1)).create_span("some_test_function")
 
         mockito.verify(mock_span, mockito.times(1)).close()
+
+    def test_method_result_capture(self):
+        capture = TraceCallCapture()
+        config = MockConfigService({})
+        push = MockPushService(None, None)
+        handler = TriggerHandler(config, push)
+
+        location = FunctionLocation('test_target.py', "some_test_function", Location.Position.START)
+        handler.new_config([Trigger(location, [
+            LocationAction("tp_id", "", {STAGE: METHOD_CAPTURE}, LocationAction.ActionType.Snapshot)])])
+
+        self.call_and_capture(location, some_test_function, ['input'], capture)
+
+        handler.trace_call(capture.captured_frame, capture.captured_event, capture.captured_args)
+
+        capture.clear()
+
+        # now extract the callback value
+        pop = handler._callbacks.value
+        # capture the real data that would be sent when we match this location
+        self.call_and_capture(pop[0], some_test_function, ['input'], capture)
+
+        # now call our trace call to check our callbacks
+        handler.trace_call(capture.captured_frame, capture.captured_event, capture.captured_args)
+
+        logged = config.logger.logged
+        self.assertEqual(0, len(logged))
+        pushed = push.pushed
+        self.assertEqual(1, len(pushed))
+
+        self.assertEqual("return", pushed[0].watches[0].expression)
+        self.assertEqual("inputsomething", pushed[0].var_lookup[pushed[0].watches[0].result.vid].value)
+
+    def test_method_exception_capture(self):
+        capture = TraceCallCapture()
+        config = MockConfigService({})
+        push = MockPushService(None, None)
+        handler = TriggerHandler(config, push)
+
+        location = FunctionLocation('test_target.py', "some_test_error", Location.Position.START)
+        handler.new_config([Trigger(location, [
+            LocationAction("tp_id", "", {STAGE: METHOD_CAPTURE}, LocationAction.ActionType.Snapshot)])])
+
+        self.call_and_capture(location, some_test_error, ['input'], capture)
+
+        handler.trace_call(capture.captured_frame, capture.captured_event, capture.captured_args)
+
+        capture.clear()
+
+        # now extract the callback value
+        pop = handler._callbacks.value
+        # capture the real data that would be sent when we match this location
+        self.call_and_capture(pop[0], some_test_error, ['input'], capture)
+
+        # now call our trace call to check our callbacks
+        handler.trace_call(capture.captured_frame, capture.captured_event, capture.captured_args)
+
+        logged = config.logger.logged
+        self.assertEqual(0, len(logged))
+        pushed = push.pushed
+        self.assertEqual(1, len(pushed))
+        self.assertEqual(1, len(pushed[0].watches))
+
+        self.assertEqual("exception", pushed[0].watches[0].expression)
+        self.assertEqual("Size: 3", pushed[0].var_lookup[pushed[0].watches[0].result.vid].value)
+
+    def test_line_exception_capture(self):
+        capture = TraceCallCapture()
+        config = MockConfigService({})
+        push = MockPushService(None, None)
+        handler = TriggerHandler(config, push)
+
+        location = LineLocation('test_target.py', 31, Location.Position.START)
+        handler.new_config([Trigger(location, [
+            LocationAction("tp_id", "", {STAGE: METHOD_CAPTURE}, LocationAction.ActionType.Snapshot)])])
+
+        self.call_and_capture(location, some_test_error, ['input'], capture)
+
+        handler.trace_call(capture.captured_frame, capture.captured_event, capture.captured_args)
+
+        capture.clear()
+
+        # now extract the callback value
+        pop = handler._callbacks.value
+        # capture the real data that would be sent when we match this location
+        self.call_and_capture(pop[0], some_test_error, ['input'], capture)
+
+        # now call our trace call to check our callbacks
+        handler.trace_call(capture.captured_frame, capture.captured_event, capture.captured_args)
+
+        logged = config.logger.logged
+        self.assertEqual(0, len(logged))
+        pushed = push.pushed
+        self.assertEqual(1, len(pushed))
+        self.assertEqual(1, len(pushed[0].watches))
+
+        self.assertEqual("exception", pushed[0].watches[0].expression)
+        self.assertEqual("Size: 3", pushed[0].var_lookup[pushed[0].watches[0].result.vid].value)

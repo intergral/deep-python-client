@@ -60,7 +60,7 @@ class TestLogMessages(unittest.TestCase):
         ["some log message: {person['name']}", "[deep] some log message: bob", {'person': {'name': 'bob'}}, ["bob"]],
     ])
     def test_simple_log_interpolation(self, log_msg, expected_msg, _locals, expected_watches):
-        context = LogActionContext(TriggerContext(None, None, MockFrame(_locals), "test"), None)
+        context = LogActionContext(TriggerContext(None, None, MockFrame(_locals), "test", None), None)
         log, watches, _vars = context.process_log(log_msg)
         self.assertEqual(expected_msg, log)
         self.assertEqual(len(expected_watches), len(watches))

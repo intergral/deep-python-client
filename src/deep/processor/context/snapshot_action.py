@@ -27,13 +27,15 @@
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """Handling for snapshot actions."""
-
+from types import FrameType
 from typing import Tuple, Optional, TYPE_CHECKING
 
 import deep.logging
 from deep.api.attributes import BoundedAttributes
 from deep.api.tracepoint import EventSnapshot
-from deep.api.tracepoint.constants import FRAME_TYPE, SINGLE_FRAME_TYPE, NO_FRAME_TYPE, ALL_FRAME_TYPE
+from deep.api.tracepoint.constants import FRAME_TYPE, SINGLE_FRAME_TYPE, NO_FRAME_TYPE, ALL_FRAME_TYPE, STAGE, \
+    LINE_CAPTURE, METHOD_CAPTURE
+from deep.api.tracepoint.eventsnapshot import WATCH_SOURCE_WATCH
 from deep.api.tracepoint.trigger import LocationAction
 from deep.processor.context.action_context import ActionContext
 from deep.processor.context.action_results import ActionResult, ActionCallback
@@ -115,7 +117,7 @@ class SnapshotActionContext(FrameCollectorContext, ActionContext):
 
         # process the snapshot watches
         for watch in self.watches:
-            result, watch_lookup, _ = self.eval_watch(watch)
+            result, watch_lookup, _ = self.eval_watch(watch, WATCH_SOURCE_WATCH)
             snapshot.add_watch_result(result)
             snapshot.merge_var_lookup(watch_lookup)
 
@@ -132,10 +134,93 @@ class SnapshotActionContext(FrameCollectorContext, ActionContext):
             snapshot.merge_var_lookup(log_vars)
             self.trigger_context.attach_result(LogActionResult(context.location_action, log))
 
-        self.trigger_context.attach_result(SendSnapshotActionResult(self, snapshot))
+        if self.trigger_context.event in ['exception', 'return']:
+            watch, new_vars, _ = self.process_capture_variable(self.trigger_context.event, self.trigger_context.arg)
+            snapshot.add_watch_result(watch)
+            snapshot.merge_var_lookup(new_vars)
+
+        if self._is_deferred():
+            self.trigger_context.attach_result(DeferredSnapshotActionResult(self, snapshot))
+        else:
+            self.trigger_context.attach_result(SendSnapshotActionResult(self, snapshot))
+
+    def _is_deferred(self):
+        stage = self.location_action.config.get(STAGE, None)
+        if stage is None:
+            return False
+        return stage == LINE_CAPTURE or stage == METHOD_CAPTURE
 
 
-class SendSnapshotActionResult(ActionResult):
+class DeferredSnapshotActionResult(ActionResult):
+    """The result of a deferred snapshot action."""
+
+    def __init__(self, action_context: ActionContext, snapshot: EventSnapshot):
+        """
+        Create a new snapshot action result.
+
+        :param action_context: the action context that created this result
+        :param snapshot: the snapshot result
+        """
+        self.action_context = action_context
+        self.snapshot = snapshot
+
+    def process(self, ctx: 'TriggerContext') -> Optional[ActionCallback]:
+        """
+        Process this result.
+
+        :param ctx: the triggering context
+
+        :return: an action callback if we need to do something at the 'end', or None
+        """
+        snapshot = self._decorate_snapshot(ctx)
+        return DeferredSnapshotActionCallback(self.action_context, snapshot)
+
+    def _decorate_snapshot(self, ctx):
+        attributes = BoundedAttributes(attributes={'ctx_id': ctx.id}, immutable=False)
+        for decorator in ctx.config.snapshot_decorators:
+            try:
+                decorate = decorator.decorate(self.action_context)
+                if decorate is not None:
+                    attributes.merge_in(decorate)
+            except Exception:
+                deep.logging.exception("Failed to decorate snapshot: %s ", decorator)
+        self.snapshot.attributes.merge_in(attributes)
+        return self.snapshot
+
+
+class DeferredSnapshotActionCallback(ActionCallback):
+    """Defer the send action to the end of the line or function."""
+
+    def __init__(self, action_context: ActionContext, snapshot: EventSnapshot):
+        """
+        Create a new action callback.
+
+        :param action_context: the triggering action context
+        :param snapshot: the generated snapshot
+        """
+        self.__action_context = action_context
+        self.__snapshot = snapshot
+
+    def process(self, ctx: 'TriggerContext', event: str, frame: FrameType, arg: any) -> bool:
+        """
+        Process a callback.
+
+        :param ctx: the context for this trigger
+        :param event: the event
+        :param frame: the frame data
+        :param arg: the arg from settrace
+        :return: True, to keep this callback until next match.
+        """
+        if event in ['exception', 'return']:
+            watch, new_vars, _ = self.__action_context.process_capture_variable(event, arg)
+            self.__snapshot.add_watch_result(watch)
+            self.__snapshot.merge_var_lookup(new_vars)
+
+        ctx.push_service.push_snapshot(self.__snapshot)
+        return False
+
+
+class SendSnapshotActionResult(DeferredSnapshotActionResult):
     """The result of a successful snapshot action."""
 
     def __init__(self, action_context: ActionContext, snapshot: EventSnapshot):
@@ -156,15 +241,6 @@ class SendSnapshotActionResult(ActionResult):
 
         :return: an action callback if we need to do something at the 'end', or None
         """
-        attributes = BoundedAttributes(attributes={'ctx_id': ctx.id}, immutable=False)
-        for decorator in ctx.config.snapshot_decorators:
-            try:
-                decorate = decorator.decorate(self.action_context)
-                if decorate is not None:
-                    attributes.merge_in(decorate)
-            except Exception:
-                deep.logging.exception("Failed to decorate snapshot: %s ", decorator)
-
-        self.snapshot.attributes.merge_in(attributes)
-        ctx.push_service.push_snapshot(self.snapshot)
+        snapshot = self._decorate_snapshot(ctx)
+        ctx.push_service.push_snapshot(snapshot)
         return None
