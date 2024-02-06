@@ -34,13 +34,13 @@ class TestPluginLoader(unittest.TestCase):
     def test_load_plugins(self):
         plugins = load_plugins(None)
         self.assertIsNotNone(plugins)
-        self.assertEqual(3, len(plugins))
+        self.assertEqual(4, len(plugins))
 
     def test_handle_bad_plugin(self):
         plugins = load_plugins(None, [BadPlugin.__qualname__])
 
-        self.assertEqual(3, len(plugins))
+        self.assertEqual(4, len(plugins))
 
         plugins = load_plugins(None, [BadPlugin.__module__ + '.' + BadPlugin.__name__])
 
-        self.assertEqual(3, len(plugins))
+        self.assertEqual(4, len(plugins))

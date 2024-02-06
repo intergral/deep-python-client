@@ -33,6 +33,7 @@ DEEP_PLUGINS = [
     'deep.api.plugin.otel.OTelPlugin',
     'deep.api.plugin.python.PythonPlugin',
     'deep.api.plugin.metric.prometheus_metrics.PrometheusPlugin',
+    'deep.api.plugin.metric.otel_metrics.OTelMetrics',
 ]
 """System provided default plugins."""
 

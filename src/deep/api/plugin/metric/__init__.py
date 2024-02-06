@@ -21,8 +21,10 @@ Metric processor gives the ability to attach dynamic metrics to metric providers
 import abc
 from typing import Dict
 
+from deep.api.plugin import Plugin
 
-class MetricProcessor(abc.ABC):
+
+class MetricProcessor(Plugin, abc.ABC):
     """Metric processor connects Deep to a metric provider."""
 
     @abc.abstractmethod

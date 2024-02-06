@@ -29,7 +29,7 @@ try:
     # noinspection PyProtectedMember
     from opentelemetry.sdk.trace import _Span, TracerProvider
 except ImportError as e:
-    raise DidNotEnable("opentelemetry is not installed", e)
+    raise DidNotEnable("opentelemetry.sdk is not installed", e)
 
 
 class _OtelSpan(Span):
