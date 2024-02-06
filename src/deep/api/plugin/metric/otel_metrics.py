@@ -22,7 +22,7 @@ from deep.api.plugin import DidNotEnable
 from deep.api.plugin.metric import MetricProcessor
 
 try:
-    from opentelemetry.metrics import get_meter, Counter, ObservableGauge, Histogram, UpDownCounter
+    from opentelemetry.metrics import get_meter, Counter, Histogram, UpDownCounter
 except ImportError as e:
     raise DidNotEnable("opentelemetry.metrics is not installed", e)
 
