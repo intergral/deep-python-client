@@ -25,3 +25,7 @@ def some_test_function(arg):
     val = arg + "something"
 
     return val
+
+
+def some_test_error(arg):
+    raise Exception(some_test_function(arg))

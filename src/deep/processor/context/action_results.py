@@ -53,10 +53,11 @@ class ActionCallback:
     """A call back to 'close' an action."""
 
     @abc.abstractmethod
-    def process(self, event: str, frame: FrameType, arg: any) -> bool:
+    def process(self, ctx: 'TriggerContext', event: str, frame: FrameType, arg: any) -> bool:
         """
         Process a callback.
 
+        :param ctx: the context for this trigger
         :param event: the event
         :param frame: the frame data
         :param arg: the arg from settrace

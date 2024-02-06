@@ -391,17 +391,29 @@ class VariableId:
         return o._vid == self._vid and o._name == self._name and o._modifiers == self._modifiers
 
 
+WATCH_SOURCE_WATCH = "WATCH"
+"""Watch source for user watch statements."""
+WATCH_SOURCE_LOG = "LOG"
+"""Watch source for log expressions."""
+WATCH_SOURCE_METRIC = "METRIC"
+"""Watch source for metric expressions."""
+WATCH_SOURCE_CAPTURE = "CAPTURE"
+"""Watch source for captured data."""
+
+
 class WatchResult:
     """This is the result of a watch expression."""
 
     def __init__(self,
+                 source: str,
                  expression: str,
                  result: Optional['VariableId'],
-                 error: Optional[str] = None
+                 error: Optional[str] = None,
                  ):
         """
         Create new watch result.
 
+        :param source: the watch source
         :param expression: the expression used
         :param result: the result of the expression
         :param error: the error captured during execution
@@ -409,6 +421,7 @@ class WatchResult:
         self._expression = expression
         self._result = result
         self._error = error
+        self.__source = source
 
     @property
     def expression(self) -> str:
@@ -424,3 +437,8 @@ class WatchResult:
     def error(self) -> Optional[str]:
         """The error."""
         return self._error
+
+    @property
+    def source(self):
+        """The watch source."""
+        return self.__source

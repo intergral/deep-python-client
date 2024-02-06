@@ -37,6 +37,8 @@ NO_CHILD_TYPES = [
     'module',
     'unicode',
     'long',
+    'NoneType',
+    'traceback'
 ]
 """A list of types that do not have child nodes, or only have child nodes we do not want to process."""
 

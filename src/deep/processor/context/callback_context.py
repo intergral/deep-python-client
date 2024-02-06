@@ -20,6 +20,7 @@ from typing import List
 from deep.api.tracepoint.trigger import Location
 
 from deep.processor.context.action_results import ActionCallback
+from deep.processor.context.trigger_context import TriggerContext
 
 
 class CallbackContext(Location, ActionCallback):
@@ -59,17 +60,18 @@ class CallbackContext(Location, ActionCallback):
         else:
             return self.__check_at_method_end(event)
 
-    def process(self, event: str, frame: FrameType, arg: any):
+    def process(self, ctx: 'TriggerContext', event: str, frame: FrameType, arg: any):
         """
         Process all callbacks.
 
+        :param ctx: the context for this trigger
         :param event: the event
         :param frame: the frame data
         :param arg: the arg from settrace
         :return: True, to keep this callback until next match.
         """
         for callback in self.__callbacks:
-            callback.process(event, frame, arg)
+            callback.process(ctx, event, frame, arg)
 
     @property
     def id(self) -> str:

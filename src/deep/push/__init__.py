@@ -27,7 +27,7 @@ import logging
 from deepproto.proto.common.v1.common_pb2 import KeyValue
 # noinspection PyUnresolvedReferences
 from deepproto.proto.tracepoint.v1.tracepoint_pb2 import Snapshot, TracePointConfig, WatchResult, Variable, \
-    VariableID, StackFrame
+    VariableID, StackFrame, WatchSource
 
 from .push_service import PushService
 
@@ -55,9 +55,13 @@ def __convert_frame(frame: StFr):
                       )
 
 
+def __convert_watch_source(source):
+    return WatchSource.Value(source)
+
+
 def __convert_watch(watch: WaRe):
     return WatchResult(expression=watch.expression, good_result=__convert_variable_id(watch.result),
-                       error_result=watch.error)
+                       error_result=watch.error, source=__convert_watch_source(watch.source))
 
 
 def __convert_variable(variable: Var):

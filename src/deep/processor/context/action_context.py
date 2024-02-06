@@ -32,6 +32,7 @@ import abc
 from typing import Tuple, TYPE_CHECKING, Dict
 
 import deep.logging
+from deep.api.tracepoint.eventsnapshot import WATCH_SOURCE_CAPTURE
 from deep.logging import logging
 from deep.api.tracepoint import WatchResult, Variable
 from deep.processor.variable_set_processor import VariableSetProcessor
@@ -65,10 +66,11 @@ class ActionContext(abc.ABC):
         if self.has_triggered():
             self.location_action.record_triggered(self.trigger_context.ts)
 
-    def eval_watch(self, watch: str) -> Tuple[WatchResult, Dict[str, Variable], str]:
+    def eval_watch(self, watch: str, source: str) -> Tuple[WatchResult, Dict[str, Variable], str]:
         """
         Evaluate an expression in the current frame.
 
+        :param source: The watch source.
         :param watch: The watch expression to evaluate.
         :return: Tuple with WatchResult, collected variables, and the log string for the expression
         """
@@ -78,10 +80,23 @@ class ActionContext(abc.ABC):
             result = self.trigger_context.evaluate_expression(watch)
             variable_id, log_str = var_processor.process_variable(watch, result)
 
-            return WatchResult(watch, variable_id), var_processor.var_lookup, log_str
+            return WatchResult(source, watch, variable_id), var_processor.var_lookup, log_str
         except BaseException as e:
             logging.exception("Error evaluating watch %s", watch)
-            return WatchResult(watch, None, str(e)), {}, str(e)
+            return WatchResult(source, watch, None, str(e)), {}, str(e)
+
+    def process_capture_variable(self, name: str, variable: any) -> Tuple[WatchResult, Dict[str, Variable], str]:
+        """
+        Process a captured variable (exception or return), into a variable set.
+
+        :param name: the name to use (raised or returned)
+        :param variable: the value to process
+        :return: Tuple with WatchResult, collected variables, and the log string for the expression
+        """
+        var_processor = VariableSetProcessor({}, self.trigger_context.var_cache)
+        variable_id, log_str = var_processor.process_variable(name, variable)
+
+        return WatchResult(WATCH_SOURCE_CAPTURE, name, variable_id), var_processor.var_lookup, log_str
 
     def process(self):
         """Process the action."""

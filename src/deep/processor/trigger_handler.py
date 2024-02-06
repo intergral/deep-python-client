@@ -136,8 +136,10 @@ class TriggerHandler:
         :return: None to ignore other calls, or our self to continue
         """
         event, file, line, function = self.location_from_event(event, frame)
+        trigger_context = TriggerContext(self._config, self._push_service, frame, event, arg)
+
         if event in ["line", "return", "exception"] and self._callbacks.is_set:
-            self.__process_call_backs(arg, frame, event, file, line, function)
+            self.__process_call_backs(trigger_context, arg, frame, event, file, line, function)
 
         # return if we do not have any tracepoints
         if len(self._tp_config) == 0:
@@ -147,7 +149,6 @@ class TriggerHandler:
         if len(actions) == 0:
             return self.trace_call
 
-        trigger_context = TriggerContext(self._config, self._push_service, frame, event)
         try:
             with trigger_context:
                 for action in actions:
@@ -176,13 +177,14 @@ class TriggerHandler:
                 actions += trigger.actions
         return actions
 
-    def __process_call_backs(self, arg: any, frame: FrameType, event: str, file: str, line: int, function_name: str):
+    def __process_call_backs(self, ctx: 'TriggerContext', arg: any, frame: FrameType, event: str, file: str, line: int,
+                             function_name: str):
         # remove top context
         context: CallbackContext = self._callbacks.value.pop()
         # if it is for our location process it
         if context.at_location(event, file, line, function_name, frame):
             logging.debug("At callback location %s", context.name)
-            context.process(event, frame, arg)
+            context.process(ctx, event, frame, arg)
         else:
             logging.debug("Not at callback location %s", context.name)
             # else put the context back on the queue
