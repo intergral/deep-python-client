@@ -1,3 +1,5 @@
+# main (unreleased)
+
 # 1.1.0 (06/02/2024)
 
 - **[CHANGE]**: change(build): add doc string check to flake8 [#14](https://github.com/intergral/deep/pull/14) [@Umaaz](https://github.com/Umaaz)
