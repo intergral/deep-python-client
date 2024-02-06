@@ -33,6 +33,12 @@ lint:
 .PHONY: flake
 flake: lint
 
+.PHONY: build
+build:
+	rm -Rf $(ROOT_DIR)/dist
+
+	python -m build $(ROOT_DIR)
+
 .PHONY: check-python-vars
 check-python-vars:
 ifndef TWINE_USER
