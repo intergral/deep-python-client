@@ -177,10 +177,12 @@ class DeferredSnapshotActionResult(ActionResult):
         return DeferredSnapshotActionCallback(self.action_context, snapshot)
 
     def _decorate_snapshot(self, ctx):
-        attributes = BoundedAttributes(attributes={'ctx_id': ctx.id}, immutable=False)
+        attributes = BoundedAttributes(
+            attributes={'context': ctx.id, 'tracepoint': self.action_context.location_action.tracepoint.id},
+            immutable=False)
         for decorator in ctx.config.snapshot_decorators:
             try:
-                decorate = decorator.decorate(self.action_context)
+                decorate = decorator.decorate(self.snapshot.id_str, self.action_context)
                 if decorate is not None:
                     attributes.merge_in(decorate)
             except Exception:
@@ -231,8 +233,7 @@ class SendSnapshotActionResult(DeferredSnapshotActionResult):
         :param action_context: the action context that created this result
         :param snapshot: the snapshot result
         """
-        self.action_context = action_context
-        self.snapshot = snapshot
+        super().__init__(action_context, snapshot)
 
     def process(self, ctx: 'TriggerContext') -> Optional[ActionCallback]:
         """

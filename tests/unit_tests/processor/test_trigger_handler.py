@@ -256,7 +256,7 @@ class TestTriggerHandler(unittest.TestCase):
         config = MockConfigService({})
         mock_plugin = mockito.mock(spec=SpanProcessor)
         mock_span = mockito.mock()
-        mockito.when(mock_plugin).create_span('some_test_function').thenReturn(mock_span)
+        mockito.when(mock_plugin).create_span('some_test_function', mockito.ANY, mockito.ANY).thenReturn(mock_span)
         config.plugins = [mock_plugin]
         push = MockPushService(None, None)
         handler = TriggerHandler(config, push)
@@ -285,7 +285,7 @@ class TestTriggerHandler(unittest.TestCase):
         pushed = push.pushed
         self.assertEqual(0, len(pushed))
 
-        mockito.verify(mock_plugin, mockito.times(1)).create_span("some_test_function")
+        mockito.verify(mock_plugin, mockito.times(1)).create_span("some_test_function", mockito.ANY, mockito.ANY)
 
         mockito.verify(mock_span, mockito.times(1)).close()
 

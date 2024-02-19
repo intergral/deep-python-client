@@ -39,8 +39,16 @@ class TestOtel(unittest.TestCase):
     def test_collect_attributes(self):
         with trace.get_tracer_provider().get_tracer("test").start_as_current_span("test-span"):
             plugin = OTelPlugin()
-            attributes = plugin.decorate(None)
+            attributes = plugin.decorate("snap_id", None)
             self.assertIsNotNone(attributes)
             self.assertEqual("test-span", attributes.get("span_name"))
             self.assertIsNotNone(attributes.get("span_id"))
             self.assertIsNotNone(attributes.get("trace_id"))
+            self.assertEqual(plugin.current_span().proxy.attributes, {"snapshot": "snap_id"})
+
+    def test_create_span(self):
+        plugin = OTelPlugin()
+        span = plugin.create_span("test", "ctx_id", "tp_id")
+        self.assertIsNotNone(span)
+        attributes = span.proxy.attributes
+        self.assertEqual({"dynamic": "deep", "context": "ctx_id", "tracepoint": "tp_id"}, attributes)

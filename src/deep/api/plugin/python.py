@@ -35,10 +35,11 @@ class PythonPlugin(ResourceProvider, SnapshotDecorator, TracepointLogger):
     This plugin provides the python version to the resource, and the thread name to the attributes.
     """
 
-    def decorate(self, context: ActionContext) -> Optional[BoundedAttributes]:
+    def decorate(self, snapshot_id: str, context: ActionContext) -> Optional[BoundedAttributes]:
         """
         Decorate a snapshot with additional data.
 
+        :param snapshot_id: the id of the collected snapshot
         :param context: the action context for this action
 
         :return: the additional attributes to attach
