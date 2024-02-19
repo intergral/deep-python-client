@@ -44,7 +44,7 @@ class TestOtel(unittest.TestCase):
             self.assertEqual("test-span", attributes.get("span_name"))
             self.assertIsNotNone(attributes.get("span_id"))
             self.assertIsNotNone(attributes.get("trace_id"))
-            self.assertEqual(plugin.current_span().proxy.attributes, {"snapshot":"snap_id"})
+            self.assertEqual(plugin.current_span().proxy.attributes, {"snapshot": "snap_id"})
 
     def test_create_span(self):
         plugin = OTelPlugin()
