@@ -39,7 +39,7 @@ class TestOtel(unittest.TestCase):
     def test_collect_attributes(self):
         with trace.get_tracer_provider().get_tracer("test").start_as_current_span("test-span"):
             plugin = OTelPlugin()
-            attributes = plugin.decorate(None)
+            attributes = plugin.decorate("", None)
             self.assertIsNotNone(attributes)
             self.assertEqual("test-span", attributes.get("span_name"))
             self.assertIsNotNone(attributes.get("span_id"))

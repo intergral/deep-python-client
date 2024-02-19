@@ -27,6 +27,6 @@ class TestPython(unittest.TestCase):
 
     def test_collect_attributes(self):
         plugin = PythonPlugin()
-        attributes = plugin.decorate(None)
+        attributes = plugin.decorate("", None)
         self.assertIsNotNone(attributes)
         self.assertEqual("MainThread", attributes.get("thread_name"))
