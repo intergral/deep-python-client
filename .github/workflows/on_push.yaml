@@ -42,6 +42,24 @@ jobs:
           pip install -r dev-requirements.txt
       - run: |
           make coverage
+        continue-on-error: true
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1.8.0
+        if: success() || failure()
+        continue-on-error: true
+        with:
+          name: GO Tests
+          path: report.xml
+          reporter: java-junit
+
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: |
+            report.xml
+        if: success() || failure()
+        continue-on-error: true
 
   tests:
     runs-on: ubuntu-latest
