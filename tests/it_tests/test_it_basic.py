@@ -47,6 +47,9 @@ class BasicITTest(unittest.TestCase):
             snapshot = server.await_snapshot()
             _deep.shutdown()
             self.assertIsNotNone(snapshot)
+
+            self.assertIsNot(0, snapshot.duration_nanos)
+
             frames = snapshot.frames
             self.assertEqual(it_tests.test_target.__file__, frames[0].file_name)
             self.assertEqual("/it_tests/test_target.py", frames[0].short_path)
@@ -80,6 +83,8 @@ class BasicITTest(unittest.TestCase):
                 _deep.shutdown()
 
                 self.assertIsNotNone(snapshot)
+
+                self.assertIsNot(0, snapshot.duration_nanos)
 
                 self.assertEqual("[deep] test log name", snapshot.log_msg)
                 self.assertIn("[deep] test log name", logs.output[0])
