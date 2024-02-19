@@ -35,6 +35,15 @@ class TestResources(unittest.TestCase):
     def tearDown(self) -> None:
         environ.pop(DEEP_RESOURCE_ATTRIBUTES)
 
+    def test_merge(self):
+        create = Resource.create()
+        new_resource = Resource.create({SERVICE_NAME: 'test'})
+        self.assertEqual("unknown_service:python", create.attributes[SERVICE_NAME])
+        self.assertEqual("test", new_resource.attributes[SERVICE_NAME])
+
+        merge = create.merge(new_resource)
+        self.assertEqual("test", merge.attributes[SERVICE_NAME])
+
     def test_create(self):
         attributes = {
             "service": "ui",
