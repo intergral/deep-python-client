@@ -179,7 +179,7 @@ class DeferredSnapshotActionResult(ActionResult):
         attributes = BoundedAttributes(attributes={'ctx_id': ctx.id}, immutable=False)
         for decorator in ctx.config.snapshot_decorators:
             try:
-                decorate = decorator.decorate(self.action_context)
+                decorate = decorator.decorate(self.snapshot.id, self.action_context)
                 if decorate is not None:
                     attributes.merge_in(decorate)
             except Exception:

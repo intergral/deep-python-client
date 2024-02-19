@@ -67,6 +67,16 @@ class _OtelSpan(Span):
         """
         self.proxy.set_attribute(key, value)
 
+    def add_event(self, name, attributes=None):
+        """
+        Add an event to the span.
+
+        :param name: the event name
+        :param attributes: the event attributes
+        :return:
+        """
+        self.proxy.add_event(name, attributes=attributes)
+
     def close(self):
         """Close the span."""
         if not self.proxy.end_time:
@@ -132,16 +142,21 @@ class OTelPlugin(ResourceProvider, SnapshotDecorator, SpanProcessor):
             return Resource.create(attributes=attributes)
         return None
 
-    def decorate(self, context: ActionContext) -> Optional[BoundedAttributes]:
+    def decorate(self, snapshot_id: str, context: ActionContext) -> Optional[BoundedAttributes]:
         """
         Decorate a snapshot with additional data.
 
+        :param snapshot_id: the id of the collected snapshot
         :param context: the action context for this action
 
         :return: the additional attributes to attach
         """
         span = self.current_span()
         if span is not None:
+            span.add_event(context.location_action.location.name,
+                           attributes={"snapshot": snapshot_id,
+                                       "tracepoint": context.location_action.id,
+                                       "context": context.trigger_context.id})
             return BoundedAttributes(attributes={
                 "span_name": span.name,
                 "trace_id": span.trace_id,

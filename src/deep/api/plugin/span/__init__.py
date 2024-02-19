@@ -80,6 +80,17 @@ class Span:
         pass
 
     @abc.abstractmethod
+    def add_event(self, name, attributes=None):
+        """
+        Add an event to the span.
+
+        :param name: the event name
+        :param attributes: the event attributes
+        :return:
+        """
+        pass
+
+    @abc.abstractmethod
     def close(self):
         """Close the span."""
         pass
