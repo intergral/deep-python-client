@@ -14,6 +14,7 @@
 #      along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import unittest
 
+import mockito
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource, SERVICE_NAME
 from opentelemetry.sdk.trace import TracerProvider
@@ -41,12 +42,23 @@ class TestOtel(unittest.TestCase):
     def test_collect_attributes(self):
         with trace.get_tracer_provider().get_tracer("test").start_as_current_span("test-span"):
             plugin = OTelPlugin()
-            attributes = plugin.decorate("snap_id", None)
+
+            mock = mockito.mock()
+            mock.trigger_context = mock
+            mock.trigger_context.id = "id"
+            mock.location_action = mock
+            mock.location_action.id = "id"
+            mock.location_action.location = mock
+            mock.location_action.location.name = "test"
+
+            attributes = plugin.decorate("snap_id", mock)
             self.assertIsNotNone(attributes)
             self.assertEqual("test-span", attributes.get("span_name"))
             self.assertIsNotNone(attributes.get("span_id"))
             self.assertIsNotNone(attributes.get("trace_id"))
-            self.assertEqual(plugin.current_span().proxy.attributes, {"snapshot": "snap_id"})
+            self.assertEqual(plugin.current_span().proxy.events[0].name, "test")
+            self.assertEqual(plugin.current_span().proxy.events[0].attributes,
+                             {'snapshot': 'snap_id', 'tracepoint': 'id', 'context': 'id'})
 
     def test_create_span(self):
         plugin = OTelPlugin()
