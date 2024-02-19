@@ -139,6 +139,7 @@ class SnapshotActionContext(FrameCollectorContext, ActionContext):
             snapshot.add_watch_result(watch)
             snapshot.merge_var_lookup(new_vars)
 
+        snapshot.complete()
         if self._is_deferred():
             self.trigger_context.attach_result(DeferredSnapshotActionResult(self, snapshot))
         else:
