@@ -23,4 +23,4 @@ jobs:
                   python-version: 3.11
             - name: Run IT Tests
               if: ${{ github.event.event_name == 'workflow_dispatch' || env.CHANGE_COUNT > 0 }}
-              run: make it-tests
+              run: make it-test
