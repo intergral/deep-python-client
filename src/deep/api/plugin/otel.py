@@ -147,7 +147,7 @@ class OTelPlugin(ResourceProvider, SnapshotDecorator, SpanProcessor):
             # noinspection PyUnresolvedReferences
             resource = provider.resource
             attributes = dict(resource.attributes)
-            return Resource.create(attributes=attributes)
+            return Resource(attributes=attributes)
         return None
 
     def decorate(self, snapshot_id: str, context: ActionContext) -> Optional[BoundedAttributes]:

@@ -20,6 +20,7 @@ from opentelemetry.sdk.resources import Resource, SERVICE_NAME
 from opentelemetry.sdk.trace import TracerProvider
 
 from deep.api.plugin.otel import OTelPlugin
+from deep.api.resource import TELEMETRY_SDK_NAME
 
 
 class TestOtel(unittest.TestCase):
@@ -36,6 +37,7 @@ class TestOtel(unittest.TestCase):
         load_plugin = plugin.resource()
         self.assertIsNotNone(load_plugin)
         self.assertEqual("your-service-name", load_plugin.attributes.get(SERVICE_NAME))
+        self.assertIsNone(load_plugin.attributes.get(TELEMETRY_SDK_NAME))
 
     def test_collect_attributes(self):
         with trace.get_tracer_provider().get_tracer("test").start_as_current_span("test-span"):
