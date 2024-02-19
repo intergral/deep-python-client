@@ -84,6 +84,11 @@ class EventSnapshot:
         return self._id
 
     @property
+    def id_str(self):
+        """The id of this snapshot."""
+        return format(self._id, "032x")
+
+    @property
     def tracepoint(self):
         """The tracepoint that triggered this snapshot."""
         return self._tracepoint
