@@ -44,7 +44,6 @@ class TestResources(unittest.TestCase):
         merge = create.merge(new_resource)
         self.assertEqual("test", merge.attributes[SERVICE_NAME])
 
-
     def test_create(self):
         attributes = {
             "service": "ui",
