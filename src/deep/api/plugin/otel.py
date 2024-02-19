@@ -91,14 +91,22 @@ class OTelPlugin(ResourceProvider, SnapshotDecorator, SpanProcessor):
     Provide span and trace information to the snapshot.
     """
 
-    def create_span(self, name: str) -> Optional['Span']:
+    def create_span(self, name: str, context_id: str, tracepoint_id: str) -> Optional['Span']:
         """
         Create and return a new span.
 
         :param name: the name of the span to create
+        :param context_id: the id of the context
+        :param tracepoint_id: the id of thr tracepoint
         :return: the created span
         """
-        span = trace.get_tracer("deep").start_as_current_span(name, end_on_exit=False, attributes={'dynamic': 'deep'})
+        span = trace.get_tracer("deep").start_as_current_span(name,
+                                                              end_on_exit=False,
+                                                              attributes={'dynamic': 'deep',
+                                                                          'context': context_id,
+                                                                          "tracepoint": tracepoint_id
+                                                                          },
+                                                              )
         if span:
             # noinspection PyUnresolvedReferences
             # this is a generator contextlib._GeneratorContextManager
@@ -132,16 +140,18 @@ class OTelPlugin(ResourceProvider, SnapshotDecorator, SpanProcessor):
             return Resource(attributes=attributes)
         return None
 
-    def decorate(self, context: ActionContext) -> Optional[BoundedAttributes]:
+    def decorate(self, snapshot_id: str, context: ActionContext) -> Optional[BoundedAttributes]:
         """
         Decorate a snapshot with additional data.
 
+        :param snapshot_id: the id of the collected snapshot
         :param context: the action context for this action
 
         :return: the additional attributes to attach
         """
         span = self.current_span()
         if span is not None:
+            span.add_attribute("snapshot", snapshot_id)
             return BoundedAttributes(attributes={
                 "span_name": span.name,
                 "trace_id": span.trace_id,

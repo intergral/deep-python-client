@@ -18,9 +18,9 @@ jobs:
                   echo "CHANGE_COUNT=$NEW_COMMIT_COUNT" >> $GITHUB_ENV
 
             - name: Setup Python # Set Python version
-              uses: actions/setup-python@v4
+              uses: actions/setup-python@v5
               with:
                   python-version: 3.11
             - name: Run IT Tests
               if: ${{ github.event.event_name == 'workflow_dispatch' || env.CHANGE_COUNT > 0 }}
-              run: make it-tests
+              run: make it-test

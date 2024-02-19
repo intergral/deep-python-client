@@ -148,10 +148,11 @@ class SnapshotDecorator(Plugin, abc.ABC):
     """Implement this to decorate collected snapshots with attributes."""
 
     @abc.abstractmethod
-    def decorate(self, context: ActionContext) -> Optional[BoundedAttributes]:
+    def decorate(self, snapshot_id: str, context: ActionContext) -> Optional[BoundedAttributes]:
         """
         Decorate a snapshot with additional data.
 
+        :param snapshot_id: the id of the collected snapshot
         :param context: the action context for this action
 
         :return: the additional attributes to attach

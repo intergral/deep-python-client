@@ -86,7 +86,7 @@ class SpanActionContext(ActionContext):
         spans = []
 
         for span_processor in self.trigger_context.config.span_processors:
-            span = span_processor.create_span(name)
+            span = span_processor.create_span(name, self.trigger_context.id, self.location_action.tracepoint.id)
             if span:
                 spans.append(span)
 
