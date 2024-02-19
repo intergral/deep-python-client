@@ -24,7 +24,7 @@ it-test:
 
 .PHONY: coverage
 coverage:
-	pytest tests/unit_tests --cov=deep  --cov-report term --cov-fail-under=84 --cov-report html --cov-branch
+	pytest tests/unit_tests --cov=deep  --cov-report term --cov-fail-under=84 --cov-report html --cov-branch --junitxml=report.xml
 
 .PHONY: lint
 lint:
