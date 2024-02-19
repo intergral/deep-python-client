@@ -101,14 +101,22 @@ class OTelPlugin(ResourceProvider, SnapshotDecorator, SpanProcessor):
     Provide span and trace information to the snapshot.
     """
 
-    def create_span(self, name: str) -> Optional['Span']:
+    def create_span(self, name: str, context_id: str, tracepoint_id: str) -> Optional['Span']:
         """
         Create and return a new span.
 
         :param name: the name of the span to create
+        :param context_id: the id of the context
+        :param tracepoint_id: the id of thr tracepoint
         :return: the created span
         """
-        span = trace.get_tracer("deep").start_as_current_span(name, end_on_exit=False, attributes={'dynamic': 'deep'})
+        span = trace.get_tracer("deep").start_as_current_span(name,
+                                                              end_on_exit=False,
+                                                              attributes={'dynamic': 'deep',
+                                                                          'context': context_id,
+                                                                          "tracepoint": tracepoint_id
+                                                                          },
+                                                              )
         if span:
             # noinspection PyUnresolvedReferences
             # this is a generator contextlib._GeneratorContextManager

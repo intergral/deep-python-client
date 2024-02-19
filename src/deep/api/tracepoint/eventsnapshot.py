@@ -45,19 +45,11 @@ class EventSnapshot:
         self._attributes = BoundedAttributes(immutable=False)
         self._duration_nanos = 0
         self._resource = Resource.get_empty().merge(resource)
-        self._open = True
         self._log = None
 
     def complete(self):
         """Close and complete the snapshot."""
-        if not self._open:
-            return
         self._duration_nanos = time_ns() - self._ts_nanos
-        self._open = False
-
-    def is_open(self):
-        """Is this snapshot still open."""
-        return self._open
 
     def add_watch_result(self, watch_result: 'WatchResult'):
         """
@@ -66,8 +58,7 @@ class EventSnapshot:
         :param watch_result: the result to append.
         :return:
         """
-        if self.is_open():
-            self.watches.append(watch_result)
+        self.watches.append(watch_result)
 
     def merge_var_lookup(self, lookup: Dict[str, 'Variable']):
         """
@@ -75,13 +66,17 @@ class EventSnapshot:
 
         :param lookup:  the values to merge
         """
-        if self.is_open():
-            self._var_lookup.update(lookup)
+        self._var_lookup.update(lookup)
 
     @property
     def id(self):
         """The id of this snapshot."""
         return self._id
+
+    @property
+    def id_str(self):
+        """The id of this snapshot."""
+        return format(self._id, "032x")
 
     @property
     def tracepoint(self):

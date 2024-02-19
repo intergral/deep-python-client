@@ -29,11 +29,13 @@ class SpanProcessor(Plugin, abc.ABC):
     """Span processor connects Deep to a span provider."""
 
     @abc.abstractmethod
-    def create_span(self, name: str) -> Optional['Span']:
+    def create_span(self, name: str, context_id: str, tracepoint_id: str) -> Optional['Span']:
         """
         Create and return a new span.
 
         :param name: the name of the span to create
+        :param context_id: the id of the context
+        :param tracepoint_id: the id of thr tracepoint
         :return: the created span
         """
     pass
