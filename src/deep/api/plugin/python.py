@@ -55,7 +55,7 @@ class PythonPlugin(ResourceProvider, SnapshotDecorator, TracepointLogger):
 
         :return: the provided resource
         """
-        return Resource.create({
+        return Resource({
             "python_version": platform.python_version(),
         })
 
