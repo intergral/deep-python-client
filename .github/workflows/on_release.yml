@@ -26,5 +26,11 @@ jobs:
           pip install -r requirements.txt
           pip install -r dev-requirements.txt
 
+      - name: Write release version
+        run: |
+          VERSION=${VERSION#v}
+          echo Version: $VERSION
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Release Agent
         run: make rel-agent
