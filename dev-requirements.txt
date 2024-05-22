@@ -23,3 +23,4 @@ setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerabil
 opentelemetry-api
 opentelemetry-sdk
 prometheus-client
+requests>=2.32.0 # not directly required, pinned by Snyk to avoid a vulnerability
