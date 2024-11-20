@@ -1,5 +1,11 @@
 # main (unreleased)
 
+# 1.1.2 (20/11/2024)
+
+- **[BUGFIX]**: fix(logging): correct default log level [#65](https://github.com/intergral/deep/pull/65) [@Umaaz](https://github.com/Umaaz)
+
+# 1.1.1 (01/04/2024)
+
 - **[FEATURE]**: feat(capture): add support for capture tracepoints [#34](https://github.com/intergral/deep/pull/34) [@Umaaz](https://github.com/Umaaz)
 - **[BUGFIX]**: fix(duration): snapshot duration not set [#37](https://github.com/intergral/deep/pull/37) [@Umaaz](https://github.com/Umaaz)
 - **[BUGFIX]**: fix(attributes): snapshot attributes not set [#38](https://github.com/intergral/deep/pull/38) [@Umaaz](https://github.com/Umaaz)
